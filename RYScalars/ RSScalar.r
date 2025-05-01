@@ -46,20 +46,18 @@ RSScalar <- R6::R6Class(
 
     compare = function(other) {
       if (!self$isMemberOf(other$class())) {
-        stop("Cannot compare objects belonging to different classes.")
+        warning("Hard to compare objects belonging to different classes.")
       }
       val1 <- self$value()
       val2 <- other$value()
       if (is.na(val1) || is.na(val2)) {
-        return(NA_integer_)
+        if (is.na(val1) && !is.na(val2)) {
+          return(1L)
+        } else if (is.na(val2) && !is.na(val1)) {
+          return(-1L)
+        } else {return(0L)}
       }
-      if (val1 < val2) {
-        return(-1L)
-      } else if (val1 > val2) {
-        return(1L)
-      } else {
-        return(0L)
-      }
+      if (val1 < val2) {return(-1L)} else if (val1 > val2) {return(1L)} else {return(0L)}
     },
 
     description = function() {

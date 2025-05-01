@@ -75,26 +75,6 @@ RSObject <- R6::R6Class(
       u3 <- strtoi(unit3, base = 16L)
       u4 <- strtoi(unit4, base = 16L)
       return(bitwOr(bitwShiftL(u3, 16L), u4))
-    },
-    compare = function(other) {
-      if (!self$inMemberOf(other$class())) {
-        stop("Cannot compare objects belonging to different classes.")
-      }
-      val1 <- self$hash()
-      val2 <- self$hash()
-      if (is.na(val1) || is.na(val2)) {
-        return(NA_integer_)
-      }
-      if (val1 < val2) {
-        return(-1L)
-      } else if (val1 > val2) {
-        return(1L)
-      } else {
-        return(0L)
-      }
-    },
-    copy = function(){
-      return(self)
     }
   ),
   private = list(

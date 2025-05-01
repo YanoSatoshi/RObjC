@@ -3,6 +3,10 @@ RSHashOperator <- R6::R6Class(
   inherit = RSModule,
   cloneable = FALSE,
   public = list(
+    initialize = function() {
+      super$initialize()
+      invisible(self)
+    },
     hashesOfEachObject = function(objects) {
       if (length(objects) == 0) return(0L)
       vapply(objects, function(obj) obj$hash(), integer(1))
@@ -74,16 +78,15 @@ RSHashOperator <- R6::R6Class(
       code_points <- utf8ToInt(str_x)
       if (length(code_points) == 0) return(0L)
       # ベクトル化: 左シフト量をあらかじめ計算して、ビット演算をベクトルでまとめる
-      shifts <- (seq_along(code_points) - 1L) %% 32L  # シフト量をサイクルさせる
+      shifts  <- bitwShiftR((seq_along(code_points) - 1L), 5L)  # シフト量をサイクルさせる
       shifted <- bitwShiftL(code_points, shifts)
       h <- Reduce(bitwXor, shifted, init = 0L)
       abs(as.integer(h))
     }
   )
-)
+);
+RSHashOperator$new();
 # Module instance and accessor
-RSHashOperator$instance <- NULL
 RSHashOperator$module <- function() {
-  if (is.null(RSHashOperator$instance)) RSHashOperator$new()
-  RSHashOperator$instance
+  RSHashOperator$.instance
 }

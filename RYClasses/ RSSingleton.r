@@ -46,6 +46,14 @@
 #' It is recommended to protect this slot after instantiation using \code{lockBinding("singleton", ClassName)}.
 #' Unlike \code{RSModule}, singleton instances are generally mutable.
 #' This class does not require \code{private} definitions for instance control.
+register_rs_singleton <- function(klass, obj) {
+  klass$.singleton <- obj
+  klass$instance <- function() klass$.singleton
+  obj$lockVariables()
+  lockBinding(".singleton", klass)
+  invisible(obj)
+}
+lockBinding("register_rs_singleton", environment())
 RSSingleton <- R6::R6Class(
   "RSSingleton",
   inherit = RSObject,
@@ -54,18 +62,13 @@ RSSingleton <- R6::R6Class(
     # Constructor - must only be called once per singleton
     # All variables must be assigned before calling super$initialize().
     initialize = function() {
-      if (!is.null(RSSingleton$.singleton)) {
-        stop(sprintf(
-          "Use %s$instance() instead of new().", self$class()$classname
-        ))
-      }
       super$initialize()
       klass <- self$class()
-      klass$instance <- self
-      self$lockVariables()
-      lockBinding(".singleton", self$class())
+      if (!is.null(klass$.singleton)) {
+        stop(sprintf("Use %s$instance() instead of new().", klass$classname))
+      }
+      register_rs_singleton(klass, self)
     },
-
     # Locks all current bindings in the object to prevent accidental additions or removals.
     lockVariables = function() {
       for (name in ls(self, all.names = TRUE)) lockBinding(name, self)
@@ -73,10 +76,3 @@ RSSingleton <- R6::R6Class(
     }
   )
 )
-
-# Singleton instance holder and accessor
-RSSingleton$.singleton <- NULL
-RSSingleton$instance <- function() {
-  if (is.null(RSSingleton$singleton)) RSSingleton$new()
-  RSSingleton$singleton
-}

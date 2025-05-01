@@ -51,6 +51,14 @@
 #' Developers should avoid using \code{$new()} directly on subclasses of \code{RSModule}.
 #' Instead, define a \code{$module()} function and optionally protect the \code{$instance}
 #' binding using \code{lockBinding("instance", ClassName)} after first instantiation.
+register_rs_module <- function(klass, obj) {
+  klass$.singleton <- obj
+  klass$module <- function() klass$.singleton
+  obj$lockVariables()
+  lockBinding(".singleton", klass)
+  invisible(obj)
+}
+lockBinding("register_rs_module", environment())
 RSModule <- R6::R6Class(
   "RSModule",
   inherit = RSObject,
@@ -59,28 +67,22 @@ RSModule <- R6::R6Class(
     # Constructor - must be called once per module
     # All properties must be defined before calling super$initialize().
     initialize = function() {
-      if (!is.null(RSModule$instance)) {
-        stop(sprintf(
-          "Use %s$module() instead of new().", self$class()$classname
-        ))
-      }
       super$initialize()
       klass <- self$class()
-      klass$instance <- self
-      self$lockVariables()
-      lockBinding(".instance", klass)
+      if (!is.null(klass$.singleton)) {
+        stop(sprintf("Use %s$module() instead of new().", klass$classname))
+      }
+      register_rs_module(klass, self)
     },
-
     # Locks all current bindings in the object to prevent accidental additions or removals.
     lockVariables = function() {
       for (name in ls(self, all.names = TRUE)) lockBinding(name, self)
       lockEnvironment(as.environment(self), bindings = TRUE)
     }
   )
-)
-# Module instance and accessor
-RSModule$.instance <- NULL
+);
+RSModule$new()
+# Prevent accidental instantiation of RSModule itself
 RSModule$module <- function() {
-  if (is.null(RSModule$instance)) RSModule$new()
-  RSModule$instance
+  stop("RSModule is an abstract base class. Use a subclass's $module() instead.")
 }
