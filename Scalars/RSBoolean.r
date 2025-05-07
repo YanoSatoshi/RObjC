@@ -1,4 +1,17 @@
-#' RSBoolean
+#' @title RSBoolean: Logical Scalar Wrapper
+#'
+#' @description
+#' `RSBoolean` wraps a logical (TRUE/FALSE) scalar. It inherits from `RSScalar` and
+#' provides boolean-specific behavior, including conversion to numeric via `asNumber()`.
+#' It rejects NA values; use `RSNABoolean` for NA.
+#'
+#' @section Methods:
+#' - `asNumber()` — Returns an `RSNumber` with value 1 or 0.
+#'
+#' @section Usage:
+#' Use `RSBoolean$boolWith(val)` to construct safely.
+#'
+#' @export
 RSBoolean <- R6::R6Class(
   "RSBoolean",
   cloneable = FALSE,
@@ -9,20 +22,6 @@ RSBoolean <- R6::R6Class(
       super$initialize(val)
       invisible(self)
     },
-    compare = function(other, na.last = TRUE) {
-      if (!private$.comparable(other)) {
-        stop(sprintf(
-          "Abort trying to compare %s and %s",
-          self$class()$classname, other$class()$classname
-        ))
-      }
-      na_val <- if (na.last) .Machine$double.xmax else .Machine$double.xmin
-      val1 <- as.numeric(self$value())
-      val2 <- as.numeric(other$value())
-      val1 <- if (is.na(val1)) na_val else val1
-      val2 <- if (is.na(val2)) na_val else val2
-      return(sign(val1 - val2))
-    },
     ## CAST TO RSNumber
     asNumber = function() {
       RSNumber$new(as.numeric(private$.val))
@@ -30,13 +29,31 @@ RSBoolean <- R6::R6Class(
   )
 )
 RSBoolean$isNAClass <- FALSE
+
+
+#' @title Factory method for RSBoolean
+#' @description
+#' Wraps a logical scalar into an `RSBoolean` object. If the value is `NA`, returns an `RSNABoolean`.
+#' @param val A logical value (length 1).
+#' @return An `RSBoolean` or `RSNABoolean` object.
+#' @export
 RSBoolean$boolWith  <- function(val) {
   if (is.na(val)) return(RSNABoolean$new())
   return(RSBoolean$new(as.logical(val)))
 }
 
 
-#' NABoolean
+
+#' @title RSNABoolean: Wrapper for NA-logical Scalar
+#'
+#' @description
+#' `RSNABoolean` is a subclass of `RSBoolean` that safely represents `NA` logical values.
+#' This class is typically used internally by factory methods.
+#'
+#' @note
+#' Use `RSBoolean$boolWith(val)` instead of instantiating directly.
+#'
+#' @export
 RSNABoolean <- R6::R6Class(
   "RSNABoolean",
   cloneable = FALSE,

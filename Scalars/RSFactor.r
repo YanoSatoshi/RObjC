@@ -1,4 +1,29 @@
-#' RSFactor
+#' @title RSFactor: Wrapper for R's Factor Scalar Values
+#'
+#' @description
+#' `RSFactor` is a subclass of `RSString` designed to wrap R factor values while preserving
+#' their level definitions and ordering information. This enables safe scalar-level comparison
+#' and hashing while retaining the semantics of categorical variables.
+#'
+#' During initialization, the factor is converted to a character string for value storage,
+#' while `levels()` and `ordered()` provide access to the original factor metadata.
+#'
+#' @section Methods:
+#' - `asFactor()` – Reconstructs the original factor with levels and ordering
+#' - `levels()` – Returns the vector of factor levels
+#' - `ordered()` – Returns TRUE if the factor was ordered
+#' - `compare(other, na.last = TRUE)` – Compares factor values respecting ordering
+#'
+#' @examples
+#' f <- factor("low", levels = c("low", "medium", "high"), ordered = TRUE)
+#' obj <- RSFactor$factorWith(f)
+#' obj$levels()      # "low" "medium" "high"
+#' obj$ordered()     # TRUE
+#' obj$asFactor()    # reconstructs original factor
+#'
+#' @seealso RSNAFactor
+#'
+#' @export
 RSFactor <- R6::R6Class(
   "RSFactor",
   cloneable = FALSE,
@@ -46,6 +71,24 @@ RSFactor <- R6::R6Class(
   )
 )
 RSFactor$isNAClass  <- FALSE
+
+
+
+
+#' @title Factory Method for RSFactor
+#'
+#' @description
+#' Constructs an `RSFactor` from a valid R factor scalar.
+#' If the input is `NA`, an `RSNAFactor` is returned instead.
+#'
+#' @param val A factor value of length 1.
+#' @return An instance of `RSFactor` or `RSNAFactor`.
+#'
+#' @examples
+#' RSFactor$factorWith(factor("A"))
+#' RSFactor$factorWith(factor(NA_character_))  # returns RSNAFactor
+#'
+#' @export
 RSFactor$factorWith <- function(val) {
   if (is.na(val)) return(RSNAFactor$new())
   return(RSFactor$new(val))
@@ -53,6 +96,24 @@ RSFactor$factorWith <- function(val) {
 
 
 
+#' @title RSNAFactor: Wrapper for NA Factor Scalar
+#'
+#' @description
+#' `RSNAFactor` is a subclass of `RSFactor` used to represent `NA` factor values in a
+#' structured object-oriented manner. This allows `NA` to behave consistently with other
+#' `RSScalar`-derived objects in comparison, hashing, and set operations.
+#'
+#' The instance has no levels and is not ordered.
+#'
+#' @note
+#' Normally, this class is constructed internally via `RSFactor$factorWith()`.
+#'
+#' @examples
+#' na_f <- RSFactor$factorWith(factor(NA_character_))
+#' na_f$ordered()  # FALSE
+#' na_f$levels()   # NULL
+#'
+#' @export
 RSNAFactor <- R6::R6Class(
   "RSNAFactor",
   cloneable = FALSE,

@@ -1,8 +1,35 @@
+#' @title RSArray: Immutable, Ordered Object Container
+#'
+#' @description
+#' `RSArray` is a read-only subclass of `RSMutableArray`. Once created, its contents
+#' cannot be modified. Any attempt to mutate the array will raise an error.
+#' This class is suitable for safely sharing ordered collections without risk of modification.
+#'
+#' Use `$copyWithEnv()` to duplicate the array as-is, or `$mutableCopyWithEnv()` to obtain
+#' a mutable version.
+#'
+#' @note All mutation methods such as `addObject()`, `removeObjectAtIndex()`, etc.
+#' are overridden to raise errors.
+#'
+#' @examples
+#' readonly <- RSArray$new(objects = list(RSString$stringWith("X")))
+#' readonly$objectAtIndex(1)$value()  # "X"
+#' readonly$addObject(RSString$stringWith("Y"))  # Error: immutable
+#'
+#' @export
 RSArray <- R6::R6Class(
   "RSArray",
   inherit = RSMutableArray,
   cloneable = FALSE,
   public = list(
+
+#' @describeIn RSArray
+#' Returns an identical immutable copy of the current object placed into the specified environment.
+#' Because the object is already immutable, this method typically returns `self` unless an environment
+#' switch is needed for structural consistency.
+#'
+#' @param env The target environment.
+#' @return A copy of the current immutable object, typically `self`.
     copyWithEnv = function(env = parent.frame()) {
       if (identical(env, environment(self))) return(self)
       do.call(
@@ -14,6 +41,16 @@ RSArray <- R6::R6Class(
         envir = env
       )
     },
+
+
+
+#' @describeIn RSArray
+#' Returns a new mutable version of the current object in the specified environment.
+#' The content is duplicated to allow modifications, and the result is typically
+#' an instance of the corresponding mutable subclass (e.g., `RSMutableArray` for `RSArray`).
+#'
+#' @param env The environment in which the new mutable object will be evaluated.
+#' @return A new mutable copy of the object.
     mutableCopyWithEnv = function(env = parent.frame()) {
       do.call(
         RSMutableArray$new,

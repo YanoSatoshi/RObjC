@@ -1,4 +1,19 @@
-#' RSMutableDictionary
+#' @title RSMutableDictionary: Hash-Based Mutable Key-Value Store
+#'
+#' @description
+#' `RSMutableDictionary` is a mutable, unordered key-value container in which both keys
+#' and values must be `RSObject`s. Internally, it uses an `RSDynamicHash` containing
+#' `RSKeyValuePair` entries. Keys are hashed and compared using `hash()` and `isEqual()`.
+#'
+#' All keys and values are wrapped via `.wrapNull()` to support `RSNull`, and keys are
+#' copied using `copyWithEnv()` to maintain independence of reference.
+#'
+#' @section Supported Initializations:
+#' - `key_value_pairs`: list of `RSKeyValuePair`
+#' - `objects_and_keys`: alternating key-value sequence list
+#' - `keys` + `values`: paired vectors or lists
+#'
+#' @export
 RSMutableDictionary <- R6::R6Class(
   "RSMutableDictionary",
   cloneable = FALSE,
@@ -16,6 +31,15 @@ RSMutableDictionary <- R6::R6Class(
     }
   ),
   public = list(
+#' @describeIn RSMutableDictionary
+#' Constructs a dictionary using one of three formats: a list of key-value pairs,
+#' an alternating key-value list, or separate key and value lists.
+#' Keys and values are wrapped and stored in the internal hash table.
+#'
+#' @param key_value_pairs A list of `RSKeyValuePair` objects.
+#' @param objects_and_keys Alternating list of [key0, value0, key1, value1, ...].
+#' @param keys List or vector of key objects.
+#' @param values List or vector of value objects.
     initialize = function(
       key_value_pairs  = NULL, # default:          list[RSKeyValuePair] # nolint
       objects_and_keys = NULL, # alternative:      list[key0, value0, key1, value1, ...] #nolint
@@ -76,6 +100,16 @@ RSMutableDictionary <- R6::R6Class(
       for (entry in key_value_pairs) private$.hash_table$setObject(entry)
       return(invisible(self))
     },
+
+
+
+#' @describeIn utableDictionary
+#' Sets a value for the given key.  
+#' The key is copied using `copyWithEnv()` and stored with the wrapped value in a key-value pair.
+#' If the key already exists, the value is replaced.
+#'
+#' @param value An `RSObject` to store.
+#' @param key An `RSObject` that serves as the key.
     setObjectForKey = function(value, key) {
       if (is.null(key$copyWithEnv)) stop("Key must adopt RSCopying Protocol.")
       key   <- key$copyWithEnv(environment(self))
@@ -84,33 +118,105 @@ RSMutableDictionary <- R6::R6Class(
       )
       private$.hash_table$setObject(entry)
     },
+
+
+
+#' @describeIn RSMutableDictionary
+#' Returns the value associated with the specified key, or `NULL` if not found.
+#' The key is normalized via `.wrapNull()`.
+#'
+#' param key An `RSObject` key.
+#' @return The corresponding value (`RSObject`), or `NULL`.
     objectForKey = function(key) {
       found <- private$.getEntryByKey(private$.wrapNull(key))
       if (is.null(found)) return(NULL)
       found$value()
     },
+
+
+
+#' @describeIn RSMutableDictionary
+#' Removes the key-value pair associated with the given key, if present.
+#'
+#' @param key An `RSObject` to be removed.
     removeObjectForKey = function(key) {
       found <- private$.getEntryByKey(private$.wrapNull(key))
       if (!is.null(found)) private$.hash_table$removeObject(found)
     },
-    allEntriesAsList = function() private$.hash_table$allObjectsAsList(),
-    allEntries       = function() RSArray$new(self$allEntriesAsList()),
-    allKeysAsList = function() {
-      lapply(self$allEntriesAsList(), function(e) e$key())
-    },
-    allKeys = function() RSArray$new(self$allKeysAsList()),
-    allValuesAsList  = function() {
-      lapply(self$allEntriesAsList(), function(e) e$value())
-    },
-    allValues        = function() RSArray$new(self$allValuesAsList()),
-    allObjectsAsList = function() self$allEntriesAsList(),
-    allObjects       = function() self$allEntries(),
-    count = function() {
-      private$.hash_table$count()
-    },
+
+
+
+#' @describeIn RSMutableDictionary
+#' Clears all key-value pairs from the dictionary.
     removeAllObjects = function() {
       private$.hash_table <- RSDynamicHash$new()
     },
+
+
+
+#' @describeIn RSMutableDictionary
+#' Returns a list of all `RSKeyValuePair` entries stored in the dictionary.
+    allEntriesAsList = function() private$.hash_table$allObjectsAsList(),
+
+
+
+#' @describeIn RSMutableDictionary
+#' Returns the entries as an `RSArray` object.
+    allEntries       = function() RSArray$new(self$allEntriesAsList()),
+
+
+
+#' @describeIn RSMutableDictionary
+#' Returns a list of all keys in the dictionary.
+    allKeysAsList = function() {
+      lapply(self$allEntriesAsList(), function(e) e$key())
+    },
+
+
+
+#' @describeIn RSMutableDictionary
+#' Returns the keys as an `RSArray`.
+    allKeys = function() RSArray$new(self$allKeysAsList()),
+
+
+
+#' @descriSMutableDictionary
+#' Returns a list of all values in the dictionary.
+    allValuesAsList  = function() {
+      lapply(self$allEntriesAsList(), function(e) e$value())
+    },
+
+
+
+#' @describeIn RSMutableDictionary
+#' Returns the values as an `RSArray`.
+    allValues        = function() RSArray$new(self$allValuesAsList()),
+
+
+
+#' @describeIn RSMutableDictionary
+#' Alias for `allEntriesAsList()` / `allEntries()`.
+    allObjectsAsList = function() self$allEntriesAsList(),
+
+
+
+#' @describeIn RSMutableDictionary
+#' Alias for `allEntriesAsList()` / `allEntries()`.
+    allObjects       = function() self$allEntries(),
+
+
+
+#' @describeIn RSMutableDictionary
+#' Returns the number of key-value pairs in the dictionary.
+    count = function() {
+      private$.hash_table$count()
+    },
+
+
+
+#' @describeIn RSMutableDictionary
+#' Returns an immutable `RSDictionary` copy of the current dictionary.
+#' All entries are preserved as-is and placed into the new environment.
     copyWithEnv = function(env = parent.frame()){
       do.call(
         RSDictionary$new,
@@ -118,6 +224,12 @@ RSMutableDictionary <- R6::R6Class(
         envir = env
       )
     },
+
+
+
+#' @describeIn RSMutableDictionary
+#' Returns a new mutable copy of the dictionary.
+#' If the target environment matches the current one, the instance is returned unchanged.
     mutableCopyWithEnv = function(env = parent.frame()) {
       if (identical(env, environment(self))) return(self)
       do.call(
@@ -126,12 +238,24 @@ RSMutableDictionary <- R6::R6Class(
         envir = env
       )
     },
+
+
+
     description = function(...) {
       paste(
         super$description(),
         sprintf("%d entries", self$count())
       )
     },
+
+
+
+#' @describeIn RSMutableDictionary
+#' Returns a merged immutable dictionary containing all entries from this and another dictionary.
+#' Conflicting keys will prefer entries from `other`.
+#'
+#' @param other Another `RSMutableDictionary`.
+#' @return An `RSDictionary` instance.
     dictionaryByMergingWithDictionary  = function(other) {
       stopifnot(other$isKindOf(RSMutableDictionary))
       helper <- private$.hash_table$hash_operator
@@ -141,6 +265,14 @@ RSMutableDictionary <- R6::R6Class(
       )
       return(RSDictionary$new(merged))
     },
+
+
+
+#' @describeIn RSMutableDictionary
+#' Returns a new immutable dictionary excluding keys found in `other`.
+#'
+#' @param other Another `RSMutableDictionary`.
+#' @return An `RSDictionary` instance.
     dictionaryByExcludingWithDictionary = function(other) {
       stopifnot(other$isKindOf(RSMutableDictionary))
       helper <- private$.hash_table$hash_operator

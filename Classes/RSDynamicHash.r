@@ -1,3 +1,27 @@
+#' @title RSDynamicHash: Mutable, Hash-Based Key-Value Container
+#'
+#' @description
+#' `RSDynamicHash` is a hash-table-like mutable data structure for storing uniquely
+#' identifiable `RSObject` instances. Keys are derived from each object’s `hash()` method,
+#' and equivalence is determined by `isEqual()`. The structure dynamically resizes
+#' when the load factor exceeds 75%.
+#'
+#' Unlike `RSMutableSet` or `RSMutableDictionary`, this class stores objects **as-is**;
+#' it does not call `copyWithEnv()` upon insertion. This allows full control over the
+#' mutability and lifecycle of stored objects, and is suitable for internal frameworks
+#' requiring high-performance mutable object indexing.
+#'
+#' @section Internal Modules:
+#' - `RSHashOperator` — used for hash calculation and equality
+#' - `RSEntryFinder` — used for binary/linear search
+#' - `RSSorter` — used for reordering buckets during rehashing
+#'
+#' @section Public Methods:
+#' - `setObject()`, `getObject()`, `containsObject()`, `removeObject()`
+#' - `removeAllObjects()`, `allObjectsAsList()`, `count()`, `size()`
+#' - `hash()`, `isEqual(other)`, `description()`, `debugDescription()`
+#'
+#' @export
 RSDynamicHash <- R6::R6Class(
   ### class name ###
   "RSDynamicHash",
@@ -20,11 +44,9 @@ RSDynamicHash <- R6::R6Class(
       new_bits <- private$.bits + 1L
       new_size <- bitwShiftL(1L, new_bits)
       new_bucket <- vector("list", new_size)
-      # flatten entries
       all_entries <- unlist(old_bucket, recursive = FALSE)
-      # compare() に対応しているか事前チェック（n==0 でもOKにする）
       has_compare <-
-        length(all_entries) <= 1L ||
+        length(all_entries) <= 1L || # capable with length 0 list.
         all(
           vapply(all_entries, function(x) x$respondsTo("compare"), logical(1))
         )
@@ -55,6 +77,16 @@ RSDynamicHash <- R6::R6Class(
     hash_operator = NULL, # read_only
     entry_finder  = NULL, # read_only
     entry_sorter  = NULL, # read_only
+
+
+
+#' @describeIn RSDynamicHash
+#' Constructs a new hash table with an optional list of objects to register.
+#' Objects are stored directly without copying. The internal bucket size is `2^initial_bits`.
+#'
+#' @param initial_bits Integer; log2 of the number of initial buckets.
+#' @param objects Optional list of `RSObject`s to register immediately.
+#' @return A new `RSDynamicHash` instance.
     initialize = function(initial_bits = 4, objects = list()) {
       super$initialize()
       private$.bits   <- initial_bits
@@ -70,9 +102,40 @@ RSDynamicHash <- R6::R6Class(
       for (obj in objects) self$setObject(obj)
       invisible(self)
     },
+
+
+
+#' @describeIn RSDynamicHas
+#' Returns the total number of stored objects in the hash table.
+#' @return Integer count.
     count = function() {
       private$.count
     },
+
+
+
+#' @describeIn RSDynamicHash
+#' Retrieves an object from the table that matches the input object
+#' by `hash()` and `isEqual()` equivalence.
+#'
+#' @param obj The `RSObject` to search for.
+#' @return The matching object, or `NULL` if not found.
+    getObject = function(obj) {
+      self$getEntryMatching(obj, identity)
+    },
+
+
+
+#' @describeIn RSDynamicHash
+#' Retrieves the full entry object from the internal hash table whose key matches the input object.
+#' Unlike `getObject()`, which returns the stored object itself, this method returns the complete
+#' internal entry that contains metadata such as the key and value pair.
+#'
+#' This method is typically used by dictionary-like structures (e.g., `RSDictionary`)
+#' to access both the key and value simultaneously.
+#'
+#' @param obj The key-like `RSObject` to search for.
+#' @return The internal entry object (e.g., `RSKeyValuePair`), or `NULL` if not found.
     getEntryMatching = function(obj, key_getter) {
       idx <- private$.hashIndex(obj$hash())
       bucket <- private$.bucket[[idx]]
@@ -86,12 +149,25 @@ RSDynamicHash <- R6::R6Class(
       if (is.na(index)) return(NULL)
       bucket[[index]]
     },
-    getObject = function(obj) {
-      self$getEntryMatching(obj, identity)
-    },
+
+
+
+#' @describeIn RSDynamicHash
+#' Checks whether an equivalent object is present in the table.
+#' @param obj An `RSObject` to check.
+#' @return `TRUE` if present; otherwise `FALSE`.
     containsObject = function(obj) {
       !is.null(self$getEntryMatching(obj, identity))
     },
+
+
+
+#' @describeIn RSDynamicHash
+#' Registers or replaces an object in the hash table based on its `hash()` and `isEqual()` values.
+#' If an equivalent object is already present, it is replaced.
+#'
+#' @param obj An `RSObject` to store. Must implement `hash()` and `isEqual()`.
+#' @return Invisible `self`.
     setObject = function(obj) {
       if (is.null(obj$isMemberOf)) {
         stop("InvalidArgumentError. Object must inherit RSObject.")
@@ -115,6 +191,14 @@ RSDynamicHash <- R6::R6Class(
       private$.bucket[[idx]] <- bucket
       invisible(self)
     },
+
+
+
+#' @describeIn RSDynamicHash
+#' Removes the specified object from the hash table based on its identity.
+#'
+#' @param obj An `RSObject` to remove.
+#' @return Invisible `NULL`.
     removeObject = function(obj) {
       if (is.null(obj$isMemberOf)) {
         stop("InvalidArgumentError. Object must inherit RSObject.")
@@ -135,16 +219,37 @@ RSDynamicHash <- R6::R6Class(
       }
       invisible(NULL)
     },
+
+
+
+#' @describeIn RSDynHash
+#' Clears the hash table by removing all registered objects.
+#'
+#' @return Invisible `NULL`.
     removeAllObjects = function() {
       private$.initializeTable()
       invisible(self)
     },
+
+
+
+#' @describeIn RSDynamicHash
+#' Returns all stored objects in a flat list, preserving bucket contents.
+#' @return A list of `RSObject`s.
     allObjectsAsList = function() {
       objs <- list()
       filled_b <- Filter(Negate(is.null), private$.bucket)
       objs <- unlist(filled_b, recursive = FALSE)
       return(objs)
     },
+
+
+
+#' @describeIn RSDynamicHash
+#' Returns a short string summary of the hash table's state.
+#' Format: "<ClassName: N entries, M buckets>".
+#'
+#' @return Character string.
     description = function() {
       sprintf(
         "<%s: %d entries, %d buckets>",
@@ -153,6 +258,13 @@ RSDynamicHash <- R6::R6Class(
         private$.size
       )
     },
+
+
+
+#' @describeIn RSDynamicHash
+#' Returns a detailed multi-line string showing bucket-wise occupancy.
+#' Useful for debugging internal state.
+#' @return Character string.
     debugDescription = function() {
       b_info <- vapply(
         seq_along(private$.bucket),
@@ -170,13 +282,33 @@ RSDynamicHash <- R6::R6Class(
         self$description(), "\n", paste(b_info, collapse = "\n")
       )
     },
+
+
+
+#' @describeIn RSDynamicHash
+#' Custom print method that calls `description()` and prints to console.
+#'
+#' @return Invisible `self`.
     print = function(...) {
       cat(self$description(), "\n")
       invisible(self)
     },
+
+
+
+#' @describeIn RSDynamicHash
+#' Computes an aggregate hash from all stored objects using `RSHashOperator$hashFromObjects()`.
+#' @return Integer hash value.
     hash = function() {
       self$hash_operator$hashFromObjects(self$allObjectsAsList())
     },
+
+
+
+#' @describeIn RSDynamicHash
+#' Compares two hash tables for equality by comparing the contents of their object lists.
+#' @param other Another `RSDynamicHash` instance.
+#' @return `TRUE` if equivalent; otherwise `FALSE`.
     isEqual = function(other) {
       if (!other$isMemberOf(self$class())) return(FALSE)
       self$hash_operator$areEqualSets(
@@ -184,6 +316,12 @@ RSDynamicHash <- R6::R6Class(
         other$allObjectsAsList()
       )
     },
+
+
+
+#' @describeIn RSDynamicHash
+#' Returns the number of buckets currently allocated.
+#' @return Integer bucket size.
     size = function() {
       return(private$.size)
     }

@@ -1,3 +1,21 @@
+#' @title RSMutableDataFrame: Mutable Data Frame Object with Key Column Semantics
+#'
+#' @description
+#' `RSMutableDataFrame` wraps a `tibble::tibble` as an `RSObject`, providing controlled access
+#' to its columns, rows, and key structure. It allows for safe manipulation and hashing of
+#' tabular data within the RS framework, especially in environments that require
+#' immutable tracking or serialization of row-keyed structures.
+#'
+#' The internal data frame is always stored as a `tibble`, and key columns are used for
+#' hashing and equality comparisons.
+#'
+#' @section Core Features:
+#' - Column access and mutation
+#' - Customizable key columns
+#' - Structural equality and hash support
+#' - Conversion to immutable `RSDataFrame`
+#'
+#' @export
 RSMutableDataFrame <- R6::R6Class(
   "RSMutableDataFrame",
   inherit = RSObject,
@@ -18,6 +36,14 @@ RSMutableDataFrame <- R6::R6Class(
     }
   ),
   public = list(
+
+
+#' @describeIn RSMutableDataFrame
+#' Initializes the object with a tibble and a vector of key column names.
+#' If `key_columns` is empty, all atomic columns are selected as keys.
+#'
+#' @param df A `data.frame` or `tibble`.
+#' @param key_columns Character vector of key column names.
     initialize = function(df = data.frame(), key_columns = character()) {
       super$initialize()
       private$.df <- private$.checkDataFrame(df)
@@ -26,17 +52,86 @@ RSMutableDataFrame <- R6::R6Class(
       }
       private$.key_columns <- key_columns
     },
+
+
+
+#' @describeIn RSMutableDataFrame
+#' Returns the internal tibble object.
+#'
+#' @return A `tibble::tibble` object.
     getData = function() private$.df,
+
+
+
+#' @describeIn RSMutableDataFrame
+#' Replaces the entire data frame. The input is converted to a tibble.
+#'
+#' @param df A `data.frame` or `tibble`.
     setData = function(df) {
       private$.df <- private$.checkDataFrame(df)
     },
+
+
+
+#' @describeIn RSMutableDataFrame
+#' Returns the values stored in the specified column.
+#'
+#' @param name Column name.
+#' @return A vector of column values.
     getColumn = function(name) private$.df[[name]],
+
+
+
+#' @describeIn RSMutableDataFrame
+#' Replaces a column's contents with a new vector of values.
+#'
+#' @param name Column name.
+#' @param values A vector of replacement values.
     setColumn = function(name, values) private$.df[[name]] <- values,
+
+
+
+#' @describeIn RSMutableDataFrame
+#' Returns the number of rows in the data frame.
+#' @return Integer.
     nrow = function() nrow(private$.df),
+
+
+
+#' @describeIn RSMutableDataFrame
+#' Returns the number of columns.
+#' @return Integer.
     ncol = function() ncol(private$.df),
+
+
+
+#' @describeIn RSMutableDataFrame
+#' Returns the column names of the data frame.
+#' @return Character vector.
     colnames = function() colnames(private$.df),
+
+
+
+#' @describeIn RSMutableDataFrame
+#' Returns the row names of the data frame.
+#' @return Character vector.
     rownames = function() rownames(private$.df),
+
+
+
+#' @describeIn RSMutableDataFrame
+#' Returns the names of the key columns used for hashing and comparison.
+#' @return Character vector.
     keyColumns = function() private$.key_columns,
+
+
+
+#' @describeIn RSMutableDataFrame
+#' Compares this object to another `RSMutableDataFrame`.
+#' The comparison checks column names, row count, and full data equality including attributes.
+#'
+#' @param other Another `RSMutableDataFrame`.
+#' @return `TRUE` if equal; otherwise `FALSE`.
     isEqual = function(other) {
       if (is.null(other) || !other$isKindOf(RSMutableDataFrame)) return(FALSE)
       private$.validateKeys()
@@ -46,6 +141,12 @@ RSMutableDataFrame <- R6::R6Class(
       if (nrow(df1) != nrow(df2)) return(FALSE)
       identical(all.equal(df1, df2, check.attributes = TRUE), TRUE)
     },
+
+
+
+#' @describeIn RSMutableDataFrame
+#' Computes a hash based on the contents of the key columns and metadata such as row count and column names.
+#' @return Integer hash value.
     hash = function() {
       private$.validateKeys()
       df <- private$.df
@@ -59,6 +160,14 @@ RSMutableDataFrame <- R6::R6Class(
       )
       RSHashOperator$computeHashCodeWithString(hash_basis)
     },
+
+
+
+#' @describeIn RSMutableDataFrame
+#' Creates an immutable copy of the data frame as an `RSDataFrame` in the specified environment.
+#'
+#' @param env The target environment.
+#' @return A new `RSDataFrame` instance.
     copyWithEnv = function(env = parent.frame()) {
       do.call(
         RSDataFrame$new,
@@ -66,6 +175,15 @@ RSMutableDataFrame <- R6::R6Class(
         envir = env
       )
     },
+
+
+
+#' @describeIn RSMutableDataFrame
+#' Creates a new `RSMutableDataFrame` in the specified environment.
+#' If the environment is unchanged, returns `self`.
+#'
+#' @param env The target environment.
+#' @return A new or current `RSMutableDataFrame` instance.
     mutableCopyWithEnv = function(env = parent.frame()) {
       if (identical(env, environment(self))) return(self)
       do.call(

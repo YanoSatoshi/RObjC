@@ -1,4 +1,14 @@
-#' RSDictionary
+#' @title RSDictionary: Immutable Key-Value Store
+#'
+#' @description
+#' `RSDictionary` is an immutable subclass of `RSMutableDictionary`. Its structure is frozen
+#' after initialization, and all mutation methods raise errors. It provides efficient access
+#' via `objectForKey()`, and supports deep copying into mutable or immutable versions.
+#'
+#' @note Attempting to use `setObjectForKey()`, `removeObjectForKey()`, or `removeAllObjects()`
+#' will raise an error.
+#'
+#' @export
 RSDictionary <- R6::R6Class(
   "RSDictionary",
   inherit = RSMutableDictionary,
@@ -53,6 +63,16 @@ RSDictionary <- R6::R6Class(
     count = function() {
       length(private$.flat)
     },
+
+
+
+#' @describeIn RSDictionary
+#' Returns an identical immutable copy of the current object placed into the specified environment.
+#' Because the object is already immutable, this method typically returns `self` unless an environment
+#' switch is needed for structural consistency.
+#'
+#' @param env The target environment.
+#' @return A copy of the current immutable object, typically `self`.
     copyWithEnv = function() {
       if (identical(env, environment(self))) return(self)
       do.call(
@@ -60,6 +80,16 @@ RSDictionary <- R6::R6Class(
         list(key_value_pairs = self$allEntriesAsList())
       )
     },
+
+
+
+#' @describeIn RSDictionary
+#' Returns a new mutable version of the current object in the specified environment.
+#' The content is duplicated to allow modifications, and the result is typically
+#' an instance of the corresponding mutable subclass (e.g., `RSMutableArray` for `RSArray`).
+#'
+#' @param env The environment in which the new mutable object will be evaluated.
+#' @return A new mutable copy of the object.
     mutableCopyWithEnv = function() {
       do.call(
         RSMutableDictionary$new,
