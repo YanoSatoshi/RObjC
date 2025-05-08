@@ -1,11 +1,17 @@
 Package: robjc
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
+Title: Objective-C Inspired OOP Framework for R Using R6
+Version: 0.0.1
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    person("Satoshi", "Yano", , "yanosatoshi@gmail.com", role = c("aut", "cre"))
+Description: Provides a lightweight object-oriented programming framework in R,
+    inspired by Objective-C, using R6 classes. Includes scalar wrappers, 
+    dictionary and set structures, protocol simulation, and safe copying.
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Imports: 
+    R6, tibble
