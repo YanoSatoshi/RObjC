@@ -19,7 +19,8 @@
 #' - Define a subclass that inherits `RSModule`
 #' - Populate instance fields in `initialize()`
 #' - Call `super$initialize()` last
-#' - Define a `$module()` method returning a singleton instance
+#' - Register the module with `register_rs_module()`
+#' - Use `$module()` to access the singleton instance
 #'
 #' @section Methods:
 #' - `initialize()` — Guards against double instantiation
@@ -38,7 +39,6 @@
 #'     getBasePath = function() self$base_path
 #'   )
 #' )
-#' ConfigModule$instance <- NULL
 #' register_rs_module(ConfigModule, ConfigModule$new())
 #' # Usage
 #' cfg <- ConfigModule$module()
@@ -46,8 +46,9 @@
 #' }
 #'
 #' @note
-#' It is recommended to lock the `$instance` slot after first instantiation
-#' using `lockBinding("instance", YourModuleClass)`.
+#' The singleton instance is stored in the `robjc_isa$slot` field of the class environment,
+#' and is automatically locked by \code{register_rs_module()} to prevent reassignment.
+#' Users should always access the module via the \code{$module()} method.
 #'
 #' @export
 RSModule <- R6::R6Class(
@@ -61,7 +62,7 @@ RSModule <- R6::R6Class(
     initialize = function() {
       super$initialize()
       klass <- self$class()
-      if (!is.null(klass$.singleton)) {
+      if (!is.null(klass$robjc_isa$slot)) {
         stop(sprintf("Use %s$module() instead of new().", klass$classname))
       }
       invisible(self)
@@ -74,4 +75,3 @@ RSModule <- R6::R6Class(
     }
   )
 )
-register_rs_module(RSModule, RSModule$new())

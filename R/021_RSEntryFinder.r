@@ -95,4 +95,4 @@ RSEntryFinder <- R6::R6Class(
     }
   )
 )
-register_rs_module(RSEntryFinder, RSEntryFinder$new())
+register_rs_module(RSEntryFinder, RSEntryFinder$new(), lock_all = TRUE)

@@ -16,7 +16,6 @@
 #' - `isEqual(other)` – Returns TRUE if both values are equal.
 #' - `hash()` – Returns a numeric hash for the scalar value.
 #' - `value()` – Returns the raw wrapped value.
-#' - `copyWithEnv(env)` – Copies the object into another environment.
 #' - `description()` – Human-readable description string.
 #'
 #' @section Usage:
@@ -67,7 +66,13 @@ RSScalar <- R6::R6Class(
           )
         )
       }
-      stopifnot(!is.null(self$class()$isNAClass))
+      called_as_scalar_or_na <-
+        self$isMemberOf(RSScalar) || !is.null(self$class()$isNAClass)
+      if (!called_as_scalar_or_na) {
+        msg <-
+          sprintf("%s$initialize() is not implemented", self$class()$classname)
+        stop(msg)
+      }
       # IN INHERITING, CLASS DO AS FOLLOWS
       #   SomeClass <- R6::R6Class(...)  # nolint
       #   SomeClass$isNAClass <- TRUE/FALSE  ... TRUE on RS*** class, FALSE on RSNA*** class  # nolint
@@ -83,7 +88,8 @@ RSScalar <- R6::R6Class(
       }
       ## SET VAL
       private$.val <- val
-      private$.hash_operator <- RSHashOperator$module()
+      cls <- self$class()
+      if (is.null(cls$.hash_operator)) cls$.hash_operator <- RSHashOperator$module()
       invisible(self)
       ## IN INHERITING CLASS, DO AS FOLLOWS
       # initialize = functin(val) {
@@ -123,7 +129,7 @@ RSScalar <- R6::R6Class(
     description = function() {
       sprintf(
         "<%s %s> %s",
-        self$class()$classname, private$.pointerHex(),
+        self$class()$classname, get_pointer_hex(self),
         as.character(private$.val)
       )
     },
@@ -140,7 +146,7 @@ RSScalar <- R6::R6Class(
     #' Returns a numeric hash of the wrapped scalar value.
     #' @return An integer suitable for use in hashing-based structures (e.g., sets, dictionaries).
     hash = function() {
-      private$.hash_operator$hashForScalar(private$.val)
+      self$class()$.hash_operator$hashForScalar(private$.val)
     },
 
     #' @description
@@ -148,22 +154,7 @@ RSScalar <- R6::R6Class(
     #' @return A scalar value (numeric, character, logical, etc.).
     value = function() {
       private$.val
-    },
-
-    #' @description
-    #' Creates a copy of the scalar object within the specified environment.
-    #' @param env An environment where the new instance should be evaluated.
-    #' @return A cloned RSScalar object with identical value, bound to `env`.
-    copyWithEnv = function(env) {
-      if (identical(env, environment(self))) return(self)
-      klass <- self$class()
-      if (!klass$isNAClass) {
-        do.call(klass$new, list(private$.val), envir = env)
-      } else {
-        do.call(klass$new, envir = env)
-      }
     }
-
   ),
 
   private = list(
@@ -171,11 +162,6 @@ RSScalar <- R6::R6Class(
     # (Private) Stores the underlying scalar value.
     # Assigned during initialization; accessed via `value()`.
     .val = NULL,
-
-    # @field .hash_operator
-    # (Private) Holds an instance of `RSHashOperator`, used to compute hash values.
-    # Initialized during `initialize()`.
-    .hash_operator = NULL,
 
     # @description
     # (Private) Determines if this object and another scalar are comparable,
@@ -200,7 +186,6 @@ RSScalar <- R6::R6Class(
   )
 )
 RSScalar$isNAClass = NULL  # nolint
-
 
 
 

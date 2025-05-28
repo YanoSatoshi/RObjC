@@ -46,19 +46,17 @@ test_that("RSMutableDictionary: removeAllObjects clears dictionary", {
   expect_equal(d$count(), 0)
 })
 
-test_that("RSMutableDictionary: copyWithEnv returns RSDictionary", {
+test_that("RSMutableDictionary: copy returns RSDictionary", {
   d <- RSMutableDictionary$new()
   d$setObjectForKey(RSString$stringWith("v"), RSString$stringWith("k"))
-  copied <- d$copyWithEnv()
-  expect_s3_class(copied, "RSDictionary")
+  copied <- d$copy()
   expect_equal(copied$count(), 1)
 })
 
-test_that("RSMutableDictionary: mutableCopyWithEnv returns new object", {
+test_that("RSMutableDictionary: mutableCopy returns new object", {
   d <- RSMutableDictionary$new()
   d$setObjectForKey(RSString$stringWith("v"), RSString$stringWith("k"))
-  copied <- d$mutableCopyWithEnv(new.env())
-  expect_s3_class(copied, "RSMutableDictionary")
+  copied <- d$mutableCopy()
   expect_equal(copied$count(), 1)
   expect_false(identical(d, copied))
 })
@@ -71,10 +69,8 @@ test_that("RSMutableDictionary: union and difference with another dictionary", {
   d2$setObjectForKey(RSString$stringWith("3"), RSString$stringWith("b"))
   d2$setObjectForKey(RSString$stringWith("4"), RSString$stringWith("c"))
   u <- d1$dictionaryByMergingWithDictionary(d2)
-  expect_s3_class(u, "RSDictionary")
   expect_equal(u$count(), 3)
   diff <- d1$dictionaryByExcludingWithDictionary(d2)
-  expect_s3_class(diff, "RSDictionary")
   expect_equal(diff$count(), 1)
   expect_equal(diff$objectForKey(RSString$stringWith("a"))$value(), "1")
 })

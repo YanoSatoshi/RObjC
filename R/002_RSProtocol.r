@@ -8,9 +8,12 @@
 #' This class enforces singleton usage: instantiation via `$new()` is blocked if
 #' an instance already exists. Use the class method `$protocol()` instead.
 #'
-#' Subclasses should override `requiredMethods()` to return the character vector of method names.
-#' These are checked via `conformsTo()` in `RSObject`.
+#' Protocol instances are locked after registration to prevent accidental changes to
+#' the expected method definitions. This immutability ensures that protocol contracts
+#' remain consistent throughout runtime and cannot be redefined dynamically.
 #'
+#' Subclasses should override `requiredMethods()` to return the character vector of method names.
+#' 
 #' @section Methods:
 #' - `requiredMethods()` — Returns a character vector of method names expected by the protocol.
 #' - `lockVariables()` — Locks the internal structure of the protocol instance.
@@ -42,7 +45,7 @@ RSProtocol <- R6::R6Class(
     initialize = function() {
       super$initialize()
       klass <- self$class()
-      if (!is.null(klass$.singleton)) {
+      if (!is.null(klass$robjc_isa$slot)) {
         stop(sprintf("Use %s$protocol() instead of new().", klass$classname))
       }
     },
@@ -70,7 +73,6 @@ RSProtocol <- R6::R6Class(
 
 
 
-
     #' @description
     #' Locks all current bindings in the object to prevent accidental additions or removals. #nolint
     lockVariables = function() {
@@ -79,4 +81,3 @@ RSProtocol <- R6::R6Class(
     }
   )
 )
-register_rs_protocol(RSProtocol, RSProtocol$new())

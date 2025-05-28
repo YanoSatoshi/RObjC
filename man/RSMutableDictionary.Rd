@@ -9,7 +9,7 @@ and values must be \code{RSObject}s. Internally, it uses an \code{RSDynamicHash}
 \code{RSKeyValuePair} entries. Keys are hashed and compared using \code{hash()} and \code{isEqual()}.
 
 All keys and values are wrapped via \code{.wrapNull()} to support \code{RSNull}, and keys are
-copied using \code{copyWithEnv()} to maintain independence of reference.
+copied using \code{copy()} to maintain independence of reference.
 }
 \section{Supported Initializations}{
 
@@ -31,6 +31,9 @@ copied using \code{copyWithEnv()} to maintain independence of reference.
 \item \href{#method-RSMutableDictionary-objectForKey}{\code{RSMutableDictionary$objectForKey()}}
 \item \href{#method-RSMutableDictionary-removeObjectForKey}{\code{RSMutableDictionary$removeObjectForKey()}}
 \item \href{#method-RSMutableDictionary-removeAllObjects}{\code{RSMutableDictionary$removeAllObjects()}}
+\item \href{#method-RSMutableDictionary-addEntry}{\code{RSMutableDictionary$addEntry()}}
+\item \href{#method-RSMutableDictionary-removeEntry}{\code{RSMutableDictionary$removeEntry()}}
+\item \href{#method-RSMutableDictionary-removeAllEntries}{\code{RSMutableDictionary$removeAllEntries()}}
 \item \href{#method-RSMutableDictionary-allEntriesAsList}{\code{RSMutableDictionary$allEntriesAsList()}}
 \item \href{#method-RSMutableDictionary-allEntries}{\code{RSMutableDictionary$allEntries()}}
 \item \href{#method-RSMutableDictionary-allKeysAsList}{\code{RSMutableDictionary$allKeysAsList()}}
@@ -40,8 +43,8 @@ copied using \code{copyWithEnv()} to maintain independence of reference.
 \item \href{#method-RSMutableDictionary-allObjectsAsList}{\code{RSMutableDictionary$allObjectsAsList()}}
 \item \href{#method-RSMutableDictionary-allObjects}{\code{RSMutableDictionary$allObjects()}}
 \item \href{#method-RSMutableDictionary-count}{\code{RSMutableDictionary$count()}}
-\item \href{#method-RSMutableDictionary-copyWithEnv}{\code{RSMutableDictionary$copyWithEnv()}}
-\item \href{#method-RSMutableDictionary-mutableCopyWithEnv}{\code{RSMutableDictionary$mutableCopyWithEnv()}}
+\item \href{#method-RSMutableDictionary-copy}{\code{RSMutableDictionary$copy()}}
+\item \href{#method-RSMutableDictionary-mutableCopy}{\code{RSMutableDictionary$mutableCopy()}}
 \item \href{#method-RSMutableDictionary-description}{\code{RSMutableDictionary$description()}}
 \item \href{#method-RSMutableDictionary-dictionaryByMergingWithDictionary}{\code{RSMutableDictionary$dictionaryByMergingWithDictionary()}}
 \item \href{#method-RSMutableDictionary-dictionaryByExcludingWithDictionary}{\code{RSMutableDictionary$dictionaryByExcludingWithDictionary()}}
@@ -51,14 +54,20 @@ copied using \code{copyWithEnv()} to maintain independence of reference.
 <details><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="hash"><a href='../../robjc/html/RSObject.html#method-RSObject-hash'><code>robjc::RSObject$hash()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isEqual"><a href='../../robjc/html/RSObject.html#method-RSObject-isEqual'><code>robjc::RSObject$isEqual()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -97,7 +106,7 @@ Keys and values are wrapped and stored in the internal hash table.
 \if{latex}{\out{\hypertarget{method-RSMutableDictionary-setObjectForKey}{}}}
 \subsection{Method \code{setObjectForKey()}}{
 Sets a value for the given key.
-The key is copied using \code{copyWithEnv()} and stored with the wrapped value in a key-value pair.
+The key is copied using \code{copy()} and stored with the wrapped value in a key-value pair.
 If the key already exists, the value is replaced.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSMutableDictionary$setObjectForKey(value, key)}\if{html}{\out{</div>}}
@@ -158,6 +167,50 @@ Removes the key-value pair associated with the given key, if present.
 Clears all key-value pairs from the dictionary.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSMutableDictionary$removeAllObjects()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSMutableDictionary-addEntry"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableDictionary-addEntry}{}}}
+\subsection{Method \code{addEntry()}}{
+Add an entry
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RSMutableDictionary$addEntry(entry)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{entry}}{An \code{RSKeyValuePair} to add}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSMutableDictionary-removeEntry"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableDictionary-removeEntry}{}}}
+\subsection{Method \code{removeEntry()}}{
+Remove an entry
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RSMutableDictionary$removeEntry(entry)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{entry}}{An \code{RSKeyValuePair} to remove}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSMutableDictionary-removeAllEntries"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableDictionary-removeAllEntries}{}}}
+\subsection{Method \code{removeAllEntries()}}{
+Clears all key-value pairs from the dictionary.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RSMutableDictionary$removeAllEntries()}\if{html}{\out{</div>}}
 }
 
 }
@@ -252,39 +305,38 @@ Returns the number of key-value pairs in the dictionary.
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDictionary-copyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDictionary-copyWithEnv}{}}}
-\subsection{Method \code{copyWithEnv()}}{
+\if{html}{\out{<a id="method-RSMutableDictionary-copy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableDictionary-copy}{}}}
+\subsection{Method \code{copy()}}{
 Returns an immutable \code{RSDictionary} copy of the current dictionary.
-All entries are preserved as-is and placed into the new environment.
+
+This performs a shallow copy: all key-value pairs are reused as-is,
+and a new \code{RSDictionary} instance is created as the immutable wrapper.
+
+This method is typically used to freeze a mutable dictionary.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableDictionary$copyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSMutableDictionary$copy()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{An environment for the copy to be evaluated in.}
-}
-\if{html}{\out{</div>}}
+\subsection{Returns}{
+A new \code{RSDictionary} instance.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDictionary-mutableCopyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDictionary-mutableCopyWithEnv}{}}}
-\subsection{Method \code{mutableCopyWithEnv()}}{
-Returns a new mutable copy of the dictionary.
-If the target environment matches the current one, the instance is returned unchanged.
+\if{html}{\out{<a id="method-RSMutableDictionary-mutableCopy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableDictionary-mutableCopy}{}}}
+\subsection{Method \code{mutableCopy()}}{
+Returns a mutable copy of the dictionary as an \code{RSMutableDictionary}.
+
+This performs a shallow copy: key-value pairs are preserved, but
+the wrapper is recreated. If the original is already mutable, this may
+return \code{self} depending on the desired semantics.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableDictionary$mutableCopyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSMutableDictionary$mutableCopy()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{An environment for the copy to be evaluated in.}
-}
-\if{html}{\out{</div>}}
+\subsection{Returns}{
+A new \code{RSMutableDictionary} instance.
 }
 }
 \if{html}{\out{<hr>}}

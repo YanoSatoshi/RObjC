@@ -6,7 +6,7 @@
 #' `RSKeyValuePair` entries. Keys are hashed and compared using `hash()` and `isEqual()`.
 #'
 #' All keys and values are wrapped via `.wrapNull()` to support `RSNull`, and keys are
-#' copied using `copyWithEnv()` to maintain independence of reference.
+#' copied using `copy()` to maintain independence of reference.
 #'
 #' @section Supported Initializations:
 #' - `key_value_pairs`: list of `RSKeyValuePair`
@@ -20,7 +20,6 @@ RSMutableDictionary <- R6::R6Class(
   inherit = RSObject,
   private = list(
     .hash_table = NULL,
-    .copying = NULL,
     .wrapNull = function(some) {
       if (is.null(some)) return(RSNull$null())
       if (!is.null(some$isMemberOf) && some$isKindOf(RSObject)) return(some)
@@ -54,37 +53,36 @@ RSMutableDictionary <- R6::R6Class(
       }
       super$initialize()
       private$.hash_table <- RSDynamicHash$new()
-      private$.copying <- RSCopying$protocol()
       if (sum(is_kv_pair, is_alt_list, is_separate) == 0) {
         # returns empty dict
         return(invisible(self))
       }
       if (!is_kv_pair && is_alt_list) {
-        objects_and_keys <- cast_ry_storage_to_list(objects_and_keys)
+        objects_and_keys <- cast_rs_storage_to_list(objects_and_keys)
         if (length(objects_and_keys) %% 2 != 0) {
           stop("Length of 'objects_and_keys' must be even.")
         }
-        keys   <- objects_and_keys[seq(2, length(objects_and_keys), by = 2)]
         values <- objects_and_keys[seq(1, length(objects_and_keys), by = 2)]
+        keys   <- objects_and_keys[seq(2, length(objects_and_keys), by = 2)]
         is_separate <- TRUE
       }
       if (!is_kv_pair && is_separate) {
-        keys <- cast_ry_storage_to_list(keys)
-        values <- cast_ry_storage_to_list(values)
+        keys <- cast_rs_storage_to_list(keys)
+        values <- cast_rs_storage_to_list(values)
         if (length(keys) != length(values)) {
           stop("Keys and values must have same length.")
         }
         key_value_pairs <- mapply(
-          function(aKey, aValue) {
+          function(k, v) {
             RSKeyValuePair$new(
-              private$.wrapNull(aKey), private$.wrapNull(aValue)
+              private$.wrapNull(k), private$.wrapNull(v)
             )
           },
           keys, values, SIMPLIFY = FALSE
         )
       }
       # finally
-      key_value_pairs <- cast_ry_storage_to_list(key_value_pairs)
+      key_value_pairs <- cast_rs_storage_to_list(key_value_pairs)
       if (is.null(key_value_pairs)) return(NULL)
       contamination <- vapply(
         key_value_pairs,
@@ -105,14 +103,13 @@ RSMutableDictionary <- R6::R6Class(
 
     #' @description
     #' Sets a value for the given key.  
-    #' The key is copied using `copyWithEnv()` and stored with the wrapped value in a key-value pair.
+    #' The key is copied using `copy()` and stored with the wrapped value in a key-value pair.
     #' If the key already exists, the value is replaced.
     #'
     #' @param value An `RSObject` to store.
     #' @param key An `RSObject` that serves as the key.
     setObjectForKey = function(value, key) {
-      if (is.null(key$copyWithEnv)) stop("Key must adopt RSCopying Protocol.")
-      key   <- key$copyWithEnv(environment(self))
+      key   <- key$copy()
       entry <- RSKeyValuePair$new(
         private$.wrapNull(key), private$.wrapNull(value)
       )
@@ -149,6 +146,37 @@ RSMutableDictionary <- R6::R6Class(
     #' @description
     #' Clears all key-value pairs from the dictionary.
     removeAllObjects = function() {
+      private$.hash_table <- RSDynamicHash$new()
+    },
+
+
+    #' @description
+    #' Add an entry
+    #' 
+    #' @param entry An `RSKeyValuePair` to add
+    addEntry = function(entry) {
+      stopifnot(
+        "Entry must be a kind of RSKeyValuePair"
+        = entry$isKindOf(RSKeyValuePair)
+      )
+      private$.hash_table$setObject(entry)
+    },
+
+
+    #' @description
+    #' Remove an entry
+    #' 
+    #' @param entry An `RSKeyValuePair` to remove
+    removeEntry = function(entry) {
+      found <- private$.getEntryByKey(entry)
+      if (!is.null(found)) private$.hash_table$removeObject(found)
+    },
+
+
+
+    #' @description
+    #' Clears all key-value pairs from the dictionary.
+    removeAllEntries = function() {
       private$.hash_table <- RSDynamicHash$new()
     },
 
@@ -216,32 +244,26 @@ RSMutableDictionary <- R6::R6Class(
 
     #' @description
     #' Returns an immutable `RSDictionary` copy of the current dictionary.
-    #' All entries are preserved as-is and placed into the new environment.
     #' 
-    #' @param env An environment for the copy to be evaluated in.
-    copyWithEnv = function(env = parent.frame()){
-      do.call(
-        RSDictionary$new,
-        list(key_value_pairs = self$allEntriesAsList()),
-        envir = env
-      )
-    },
+    #' This performs a shallow copy: all key-value pairs are reused as-is,
+    #' and a new `RSDictionary` instance is created as the immutable wrapper.
+    #'
+    #' This method is typically used to freeze a mutable dictionary.
+    #'
+    #' @return A new `RSDictionary` instance.
+    copy = function() RSDictionary$new(key_value_pairs = self$allEntriesAsList()),
 
 
 
     #' @description
-    #' Returns a new mutable copy of the dictionary.
-    #' If the target environment matches the current one, the instance is returned unchanged.
+    #' Returns a mutable copy of the dictionary as an `RSMutableDictionary`.
     #' 
-    #' @param env An environment for the copy to be evaluated in.
-    mutableCopyWithEnv = function(env = parent.frame()) {
-      if (identical(env, environment(self))) return(self)
-      do.call(
-        RSMutableDictionary$new,
-        list(key_value_pairs = self$allEntriesAsList()),
-        envir = env
-      )
-    },
+    #' This performs a shallow copy: key-value pairs are preserved, but
+    #' the wrapper is recreated. If the original is already mutable, this may
+    #' return `self` depending on the desired semantics.
+    #'
+    #' @return A new `RSMutableDictionary` instance.
+    mutableCopy = function() RSMutableDictionary$new(key_value_pairs = self$allEntriesAsList()),
 
 
 
@@ -294,3 +316,5 @@ RSMutableDictionary <- R6::R6Class(
     }
   )
 )
+conform_protocol_to_class(RSMutableCopying$protocol(), RSMutableDictionary)
+conform_protocol_to_class(RSCopying$protocol(), RSMutableDictionary)

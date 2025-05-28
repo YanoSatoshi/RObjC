@@ -29,7 +29,7 @@ RSSet <- R6::R6Class(
 
     #' @description
     #' Constructs a new mutable set.
-    #' If a list of `RSObject`s is provided, each object is copied using `copyWithEnv()`
+    #' If a list of `RSObject`s is provided, each object is copied using `copy()`
     #' and stored in the internal hash table as an immutable element, ensuring that the structure  
     #' of the set remains independent from the original input.
     #'
@@ -122,36 +122,27 @@ RSSet <- R6::R6Class(
 
 
     #' @description
-    #' Returns an identical immutable copy of the current object placed into the specified environment.
-    #' Because the object is already immutable, this method typically returns `self` unless an environment
-    #' switch is needed for structural consistency.
+    #' Returns the object itself, since `RSSet` is immutable.
     #'
-    #' @param env The target environment.
-    #' @return A copy of the current immutable object, typically `self`.
-    copyWithEnv = function(env = parent.frame()) {
-      if (identical(env, environment(self))) return(self)
-      do.call(
-        RSSet$new,
-        list(objects = self$allObjectsAsList()),
-        envir = env
-      )
-    },
+    #' This is a no-op copy: the method returns `self`, as immutable
+    #' sets can safely be reused without duplication.
+    #'
+    #' @return The same `RSSet` instance (`self`).
+    copy = function() return(self),
 
 
 
     #' @description
-    #' Returns a new mutable version of the current object in the specified environment.
-    #' The content is duplicated to allow modifications, and the result is typically
-    #' an instance of the corresponding mutable subclass (e.g., `RSMutableArray` for `RSArray`).
+    #' Returns a mutable version of the current set.
     #'
-    #' @param env The environment in which the new mutable object will be evaluated.
-    #' @return A new mutable copy of the object.
-    mutableCopyWithEnv = function(env = parent.frame()) {
-      do.call(
-        RSMutableSet$new,
-        list(objects = self$allObjectsAsList()),
-        envir = env
-      )
-    }
+    #' This creates a new `RSMutableSet` instance that wraps the same set of elements,
+    #' allowing modifications. The copy is shallow: the contained objects are reused
+    #' as-is.
+    #'
+    #' This method is typically used to convert an immutable set into a mutable one
+    #' for editing or augmentation.
+    #'
+    #' @return A new `RSMutableSet` instance.
+    mutableCopy = function() RSMutableSet$new(objects = self$allObjectsAsList())
   )
 )

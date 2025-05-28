@@ -5,7 +5,7 @@
 #' cannot be modified. Any attempt to mutate the array will raise an error.
 #' This class is suitable for safely sharing ordered collections without risk of modification.
 #'
-#' Use `$copyWithEnv()` to duplicate the array as-is, or `$mutableCopyWithEnv()` to obtain
+#' Use `$copy()` to duplicate the array as-is, or `$mutableCopy()` to obtain
 #' a mutable version.
 #'
 #' @note All mutation methods such as `addObject()`, `removeObjectAtIndex()`, etc.
@@ -27,41 +27,30 @@ RSArray <- R6::R6Class(
   public = list(
 
     #' @description
-    #' Returns an identical immutable copy of the current object placed into the specified environment.
-    #'   Because the object is already immutable, this method typically returns `self` unless an environment
-    #'   switch is needed for structural consistency.
-    #' @param env The target environment.
-    #' @return A copy of the current immutable object, typically `self`.
-    copyWithEnv = function(env = parent.frame()) {
-      if (identical(env, environment(self))) return(self)
-      do.call(
-        RSArray$new,
-        list(
-          objects = private$.storage,
-          hash_operator = private$.hash_operator
-        ),
-        envir = env
-      )
-    },
+    #' Returns the object itself, since `RSArray` is immutable.
+    #' 
+    #' This is a no-op copy: the method simply returns `self`,
+    #' as immutable objects are safe to reuse without duplication.
+    #'
+    #' @return The same `RSArray` instance (`self`).
+    copy = function() return(self),
 
 
 
     #' @description
-    #' Returns a new mutable version of the current object in the specified environment.
-    #'   The content is duplicated to allow modifications, and the result is typically
-    #'   an instance of the corresponding mutable subclass (e.g., `RSMutableArray` for `RSArray`).
-    #' @param env The environment in which the new mutable object will be evaluated.
-    #' @return A new mutable copy of the object.
-    mutableCopyWithEnv = function(env = parent.frame()) {
-      do.call(
-        RSMutableArray$new,
-        list(
-          objects = private$.storage,
-          hash_operator = private$.hash_operator
-        ),
-        envir = env
-      )
-    },
+    #' Returns a mutable version of the current array.
+    #' 
+    #' This performs a shallow copy of the array elements and wraps them
+    #' in a new `RSMutableArray` instance, allowing modifications to the content.
+    #'
+    #' This is typically used when an immutable array needs to be transitioned into
+    #' a mutable one for editing.
+    #'
+    #' @return A new `RSMutableArray` instance.
+    mutableCopy = function() RSMutableArray$new(
+      objects = private$.storage,
+      hash_operator = private$.hash_operator
+    ),
 
 
 

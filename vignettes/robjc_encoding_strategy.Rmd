@@ -1,0 +1,120 @@
+---
+title: "robjc_encoding_strategy"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{robjc_encoding_strategy}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Encoding and Decoding Strategy in `robjc`
+
+This document outlines the internal encoding and decoding mechanisms of the `robjc` object system. It is intended for framework contributors, advanced users, or developers who wish to define custom encoders or decoders.
+
+---
+
+## §1 Overview
+
+The `robjc` framework provides Objective-C-inspired full OOP serialization for R objects. It distinguishes between standard framework classes and user-defined classes using class name and version resolution. The system supports recursive object structure encoding and full restoration via embedded metadata.
+
+---
+
+## §2 Class Architecture (Objective-C Style Syntax)
+
+```objc
+@interface RSClassRegistry : RSSingleton {
+  list std_classes; // character vector of class names
+}
+- (BOOL) isStandardClass(character klass_name);
+@end
+
+@interface RSClassEncoder : RSModule <RSEncoderProtocol> {
+  RSMutableDictionary *class_store;
+  list visited_env;
+  boolean status_frozen;
+}
+- (RSInstanceMap *) encodingContainer(id obj);
+- (void) encodeObject(id obj);
+- (RSDictionary *) finalize(void);
+- (RSDictionary *) lockedData(void);
+- (void) refresh(void);
+@end
+
+@interface RSClassDecoder : RSModule <RSDecoderProtocol> {
+  RSDictionary *class_store;
+  list unresolved;
+}
+- (void) loadEncodedData(RSDictionary *dict);
+- (void) resolveClassesWithDictionary(RSDictionary *replacement);
+- (void) unpackTo(environment target);
+@end
+
+@interface RSClassReference : RSKeyValuePair {
+  RSString *classID;
+  RSInstanceMap *instanceMap;
+}
+@end
+
+@interface RSInstanceMap : RSKeyValuePair {
+  RSWrappedClass *wrappedClass;
+  RSSet *objects;
+}
+@end
+```
+
+---
+
+## §3 Encoding Logic
+
+- `RSClassEncoder` traverses object graphs and records class-instance mappings.
+- Uses a `mark-and-store` strategy: already visited objects are skipped.
+- Each robjc-serializable object must implement `objectsForEncoding()`, which returns a list of child instances.
+- `lockInstance()` collects all reachable objects and their class trees.
+- The encoded result is a dictionary of `RSClassReference`, each pointing to `RSInstanceMap`.
+
+---
+
+## §4 Decoding Logic
+
+- `RSClassDecoder` loads the encoded metadata (`RSDictionary`) and uses `classID()` strings to match runtime class definitions.
+- Standard classes are resolved via `RSClassRegistry`.
+- User-defined classes must be supplied in a `class_map` (a dictionary of classID → R6Class object).
+- After resolving, `RSObject$resolveClassWith()` replaces the internal class reference.
+
+If class resolution fails for some classIDs, the decoder will issue a warning and mark them as unresolved. This does not interrupt execution.
+
+---
+
+## §5 Example Workflow
+
+```r
+# Saving a robjc-compatible object
+robjc_save_rds(my_object, file = "data.rds")
+
+# Later, restoring with optional user-defined class mapping
+custom_map <- RSDictionary$new(
+  keys = list(RSString$stringWith("MyClass_1.0")),
+  objects = list(MyClass)
+)
+
+restored <- robjc_read_rds("data.rds", class_map = custom_map)
+```
+
+- The function `objectsForEncoding()` should be implemented in all custom classes that reference other robjc objects.
+- If a class is not resolvable, a warning will list the missing class IDs.
+
+---
+
+## §6 Notes
+
+- The `.__rs_encoded_data__` object is automatically removed after decoding.
+- The system supports full recursive encoding and type-safe restoration of object graphs.
+- If you implement your own encoder or decoder, be sure to consult this structure.
+
+---
+
+## See Also
+
+- `robjc_save()`, `robjc_load()`
+- `robjc_save_rds()`, `robjc_read_rds()`
+- `RSClassEncoder`, `RSClassDecoder`, `RSClassRegistry`

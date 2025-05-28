@@ -41,20 +41,18 @@ test_that("RSDictionary: mutation methods are prohibited", {
   )
 })
 
-test_that("RSDictionary: copyWithEnv returns RSDictionary", {
+test_that("RSDictionary: copy returns identical", {
   d <- RSDictionary$new(objects_and_keys = list(
     RSString$stringWith("v"), RSString$stringWith("k")
   ))
-  copy <- d$copyWithEnv()
-  expect_s3_class(copy, "RSDictionary")
-  expect_equal(copy$objectForKey(RSString$stringWith("k"))$value(), "v")
+  copy <- d$copy()
+  expect_identical(d, copy)
 })
 
-test_that("RSDictionary: mutableCopyWithEnv returns RSMutableDictionary", {
+test_that("RSDictionary: mutableCopy returns RSMutableDictionary", {
   d <- RSDictionary$new(objects_and_keys = list(
     RSString$stringWith("v"), RSString$stringWith("k")
   ))
-  mcopy <- d$mutableCopyWithEnv()
-  expect_s3_class(mcopy, "RSMutableDictionary")
+  mcopy <- d$mutableCopy()
   expect_equal(mcopy$objectForKey(RSString$stringWith("k"))$value(), "v")
 })

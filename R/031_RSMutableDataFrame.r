@@ -1,3 +1,5 @@
+#' @importFrom tibble tibble
+
 #' @title RSMutableDataFrame: Mutable Data Frame Object with Key Column Semantics
 #'
 #' @description
@@ -133,7 +135,7 @@ RSMutableDataFrame <- R6::R6Class(
 #' @param other Another `RSMutableDataFrame`.
 #' @return `TRUE` if equal; otherwise `FALSE`.
     isEqual = function(other) {
-      if (is.null(other) || !other$isKindOf(RSMutableDataFrame)) return(FALSE)
+      if (is_robjc_instance(other) || !other$isKindOf(RSMutableDataFrame)) return(FALSE)
       private$.validateKeys()
       df1 <- private$.df
       df2 <- other$getData()
@@ -163,34 +165,39 @@ RSMutableDataFrame <- R6::R6Class(
 
 
 
-#' @description
-#' Creates an immutable copy of the data frame as an `RSDataFrame` in the specified environment.
-#'
-#' @param env The target environment.
-#' @return A new `RSDataFrame` instance.
-    copyWithEnv = function(env = parent.frame()) {
-      do.call(
-        RSDataFrame$new,
-        list(df = private$.df, key_columns = private$.key_columns),
-        envir = env
+    #' @description
+    #' Returns an immutable copy of the data frame as an `RSDataFrame`.
+    #' 
+    #' This performs a shallow copy: the underlying tibble is shared,
+    #' while the wrapper class is replaced with its immutable counterpart.
+    #'
+    #' This method is typically used to convert a mutable data frame to its immutable form.
+    #'
+    #' @return A new `RSDataFrame` instance.
+    copy = function() {
+      RSDataFrame$new(
+        df = private$.df,
+        key_columns = private$.key_columns
       )
     },
 
 
 
-#' @description
-#' Creates a new `RSMutableDataFrame` in the specified environment.
-#' If the environment is unchanged, returns `self`.
-#'
-#' @param env The target environment.
-#' @return A new or current `RSMutableDataFrame` instance.
-    mutableCopyWithEnv = function(env = parent.frame()) {
-      if (identical(env, environment(self))) return(self)
-      do.call(
-        RSMutableDataFrame$new,
-        list(df = private$.df, key_columns = private$.key_columns),
-        envir = env
+    #' @description
+    #' Returns a mutable copy of the data frame as an `RSMutableDataFrame`.
+    #' 
+    #' This performs a shallow copy: the underlying tibble is reused,
+    #' while the wrapper is recreated. If the original is already mutable,
+    #' returning `self` would be acceptable depending on context.
+    #'
+    #' @return A new `RSMutableDataFrame` instance.
+    mutableCopy = function() {
+      RSMutableDataFrame$new(
+        df = private$.df,
+        key_columns = private$.key_columns
       )
     }
   )
 )
+conform_protocol_to_class(RSMutableCopying$protocol(), RSMutableDataFrame)
+conform_protocol_to_class(RSCopying$protocol(), RSMutableDataFrame)

@@ -8,14 +8,14 @@
 It uses \code{RSDynamicHash} internally to guarantee hash-based uniqueness,
 with support for insertion, removal, set operations, and object comparison.
 
-Elements are deep-copied into the set using the \code{copyWithEnv()} method of the \code{RSCopying} protocol.
+Elements are deep-copied into the set using the \code{copy()} method of the \code{RSCopying} protocol.
 }
 \section{Key Operations}{
 
 \itemize{
 \item \code{addObject()}, \code{containsObject()}, \code{removeObject()}, \code{removeAllObjects()}
 \item \code{unionSet()}, \code{intersectSet()}, \code{differenceSet()}
-\item \code{copyWithEnv()} / \code{mutableCopyWithEnv()}
+\item \code{copy()} / \code{mutableCopy()}
 }
 }
 
@@ -33,18 +33,24 @@ Elements are deep-copied into the set using the \code{copyWithEnv()} method of t
 \item \href{#method-RSMutableSet-unionSet}{\code{RSMutableSet$unionSet()}}
 \item \href{#method-RSMutableSet-intersectSet}{\code{RSMutableSet$intersectSet()}}
 \item \href{#method-RSMutableSet-differenceSet}{\code{RSMutableSet$differenceSet()}}
-\item \href{#method-RSMutableSet-copyWithEnv}{\code{RSMutableSet$copyWithEnv()}}
-\item \href{#method-RSMutableSet-mutableCopyWithEnv}{\code{RSMutableSet$mutableCopyWithEnv()}}
+\item \href{#method-RSMutableSet-copy}{\code{RSMutableSet$copy()}}
+\item \href{#method-RSMutableSet-mutableCopy}{\code{RSMutableSet$mutableCopy()}}
 }
 }
 \if{html}{\out{
 <details><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDynamicHash" data-id="count"><a href='../../robjc/html/RSDynamicHash.html#method-RSDynamicHash-count'><code>robjc::RSDynamicHash$count()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDynamicHash" data-id="debugDescription"><a href='../../robjc/html/RSDynamicHash.html#method-RSDynamicHash-debugDescription'><code>robjc::RSDynamicHash$debugDescription()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDynamicHash" data-id="description"><a href='../../robjc/html/RSDynamicHash.html#method-RSDynamicHash-description'><code>robjc::RSDynamicHash$description()</code></a></span></li>
@@ -65,9 +71,9 @@ Elements are deep-copied into the set using the \code{copyWithEnv()} method of t
 \if{latex}{\out{\hypertarget{method-RSMutableSet-new}{}}}
 \subsection{Method \code{new()}}{
 Constructs a new mutable set.
-If a list of \code{RSObject}s is provided, each object is copied using \code{copyWithEnv()}
-and stored in the internal hash table as an immutable element, ensuring that the structure
-of the set remains independent from the original input.
+If a list of \code{RSObject}s is provided, each object is copied using \code{copy()}
+and stored in the internal hash table as an immutable element, ensuring
+that the structure of the set remains independent from the original input.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$new(objects = list())}\if{html}{\out{</div>}}
 }
@@ -87,8 +93,9 @@ A new \code{RSMutableSet}.
 \if{html}{\out{<a id="method-RSMutableSet-addObject"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-addObject}{}}}
 \subsection{Method \code{addObject()}}{
-Adds a new object to the set. The object is copied using \code{copyWithEnv()} and stored in the hash table.
-Duplicate objects (as defined by \code{isEqual()}) will not be added.
+Adds a new object to the set. The object is copied using \code{copy()} and
+stored in the hash table. Duplicate objects (as defined by \code{isEqual()})
+will not be added.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$addObject(obj)}\if{html}{\out{</div>}}
 }
@@ -215,43 +222,36 @@ An \code{RSSet} of elements in this set but not in the other.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableSet-copyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableSet-copyWithEnv}{}}}
-\subsection{Method \code{copyWithEnv()}}{
+\if{html}{\out{<a id="method-RSMutableSet-copy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableSet-copy}{}}}
+\subsection{Method \code{copy()}}{
 Returns an immutable copy (\code{RSSet}) of the current set.
-Each element is duplicated using \code{copyWithEnv()} into the target environment.
+
+This performs a shallow copy: elements are preserved as-is,
+and a new \code{RSSet} instance is created to wrap them.
+
+Use this method to obtain a non-modifiable version of the current set.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$copyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$copy()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{Environment to evaluate the copy in.}
-}
-\if{html}{\out{</div>}}
-}
 \subsection{Returns}{
 An \code{RSSet} copy of the set.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableSet-mutableCopyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableSet-mutableCopyWithEnv}{}}}
-\subsection{Method \code{mutableCopyWithEnv()}}{
-Returns a new mutable copy of the current set.
-All elements are duplicated into the target environment.
+\if{html}{\out{<a id="method-RSMutableSet-mutableCopy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableSet-mutableCopy}{}}}
+\subsection{Method \code{mutableCopy()}}{
+Returns a mutable copy (\code{RSMutableSet}) of the current set.
+
+This performs a shallow copy: the element list is reused,
+but a new mutable set wrapper is created. If the instance is already mutable,
+returning \code{self} may be acceptable depending on usage context.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$mutableCopyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$mutableCopy()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{Environment for the new instance.}
-}
-\if{html}{\out{</div>}}
-}
 \subsection{Returns}{
 A \code{RSMutableSet} copy.
 }

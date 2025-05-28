@@ -26,18 +26,24 @@ All mutation methods such as \code{addObject()} or \code{removeObject()} are dis
 \item \href{#method-RSSet-addObject}{\code{RSSet$addObject()}}
 \item \href{#method-RSSet-removeObject}{\code{RSSet$removeObject()}}
 \item \href{#method-RSSet-removeAllObjects}{\code{RSSet$removeAllObjects()}}
-\item \href{#method-RSSet-copyWithEnv}{\code{RSSet$copyWithEnv()}}
-\item \href{#method-RSSet-mutableCopyWithEnv}{\code{RSSet$mutableCopyWithEnv()}}
+\item \href{#method-RSSet-copy}{\code{RSSet$copy()}}
+\item \href{#method-RSSet-mutableCopy}{\code{RSSet$mutableCopy()}}
 }
 }
 \if{html}{\out{
 <details><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDynamicHash" data-id="debugDescription"><a href='../../robjc/html/RSDynamicHash.html#method-RSDynamicHash-debugDescription'><code>robjc::RSDynamicHash$debugDescription()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDynamicHash" data-id="description"><a href='../../robjc/html/RSDynamicHash.html#method-RSDynamicHash-description'><code>robjc::RSDynamicHash$description()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDynamicHash" data-id="getEntryMatching"><a href='../../robjc/html/RSDynamicHash.html#method-RSDynamicHash-getEntryMatching'><code>robjc::RSDynamicHash$getEntryMatching()</code></a></span></li>
@@ -58,7 +64,7 @@ All mutation methods such as \code{addObject()} or \code{removeObject()} are dis
 \if{latex}{\out{\hypertarget{method-RSSet-new}{}}}
 \subsection{Method \code{new()}}{
 Constructs a new mutable set.
-If a list of \code{RSObject}s is provided, each object is copied using \code{copyWithEnv()}
+If a list of \code{RSObject}s is provided, each object is copied using \code{copy()}
 and stored in the internal hash table as an immutable element, ensuring that the structure
 of the set remains independent from the original input.
 \subsection{Usage}{
@@ -193,47 +199,39 @@ No return value. Always raises an error.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSSet-copyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSSet-copyWithEnv}{}}}
-\subsection{Method \code{copyWithEnv()}}{
-Returns an identical immutable copy of the current object placed into the specified environment.
-Because the object is already immutable, this method typically returns \code{self} unless an environment
-switch is needed for structural consistency.
+\if{html}{\out{<a id="method-RSSet-copy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSSet-copy}{}}}
+\subsection{Method \code{copy()}}{
+Returns the object itself, since \code{RSSet} is immutable.
+
+This is a no-op copy: the method returns \code{self}, as immutable
+sets can safely be reused without duplication.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSSet$copyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSSet$copy()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{The target environment.}
-}
-\if{html}{\out{</div>}}
-}
 \subsection{Returns}{
-A copy of the current immutable object, typically \code{self}.
+The same \code{RSSet} instance (\code{self}).
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSSet-mutableCopyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSSet-mutableCopyWithEnv}{}}}
-\subsection{Method \code{mutableCopyWithEnv()}}{
-Returns a new mutable version of the current object in the specified environment.
-The content is duplicated to allow modifications, and the result is typically
-an instance of the corresponding mutable subclass (e.g., \code{RSMutableArray} for \code{RSArray}).
+\if{html}{\out{<a id="method-RSSet-mutableCopy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSSet-mutableCopy}{}}}
+\subsection{Method \code{mutableCopy()}}{
+Returns a mutable version of the current set.
+
+This creates a new \code{RSMutableSet} instance that wraps the same set of elements,
+allowing modifications. The copy is shallow: the contained objects are reused
+as-is.
+
+This method is typically used to convert an immutable set into a mutable one
+for editing or augmentation.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSSet$mutableCopyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSSet$mutableCopy()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{The environment in which the new mutable object will be evaluated.}
-}
-\if{html}{\out{</div>}}
-}
 \subsection{Returns}{
-A new mutable copy of the object.
+A new \code{RSMutableSet} instance.
 }
 }
 }

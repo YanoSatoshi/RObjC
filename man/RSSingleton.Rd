@@ -13,13 +13,19 @@ It ensures that only one instance of a subclass is created. Direct instantiation
 explicit accessor method, typically \verb{$instance()}, that internally constructs
 and stores the singleton instance in \verb{$singleton}.
 
+After registration via \code{register_rs_singleton()}, the singleton instance can be optionally
+locked using \code{lockVariables()} to prevent modification. This protects runtime stability
+by ensuring the structure of shared global state cannot change unexpectedly.
+
 Any instance fields must be assigned before calling \code{super$initialize()} inside
 the subclass constructor. After that, all fields will be locked to preserve shape integrity.
 }
 \note{
-The singleton instance is stored in the class field \code{singleton}, and should be locked
-after registration using \code{register_rs_singleton(SingletonClass, SingletonClass$new())}.
-The singleton instance is mutable and intended for shared runtime coordination.
+The singleton instance is stored in the class field \code{robjc_isa$slot}, and may be locked
+after registration using \code{register_rs_singleton(SingletonClass, SingletonClass$new())}
+with \code{lock_all = TRUE} (the default).
+Locking ensures that the shared singleton instance remains structurally stable throughout runtime.
+You may disable locking during testing or controlled reconfiguration by passing \code{lock_all = FALSE}.
 }
 \examples{
 \dontrun{
@@ -57,15 +63,22 @@ logger$log("System booted.")
 <details><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="copy"><a href='../../robjc/html/RSObject.html#method-RSObject-copy'><code>robjc::RSObject$copy()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="description"><a href='../../robjc/html/RSObject.html#method-RSObject-description'><code>robjc::RSObject$description()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="hash"><a href='../../robjc/html/RSObject.html#method-RSObject-hash'><code>robjc::RSObject$hash()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isEqual"><a href='../../robjc/html/RSObject.html#method-RSObject-isEqual'><code>robjc::RSObject$isEqual()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
 </ul>
 </details>
 }}

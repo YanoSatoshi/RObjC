@@ -4,22 +4,40 @@
 \alias{register_rs_singleton}
 \title{Register a Singleton Instance for an RSSingleton Subclass}
 \usage{
-register_rs_singleton(klass, obj)
+register_rs_singleton(klass, obj, lock_all = TRUE)
 }
 \arguments{
 \item{klass}{The R6 class object to which the singleton belongs.}
 
 \item{obj}{The singleton instance to register.}
+
+\item{lock_all}{Logical. If \code{TRUE} (default), the instance's fields will be locked
+using \code{lockVariables()}. Set to \code{FALSE} in controlled contexts such as testing
+or dynamic reconfiguration.}
 }
 \value{
-The registered object (invisibly).
+The registered singleton instance (invisibly).
 }
 \description{
-Assigns a singleton object to an RS-style class by setting the \code{.singleton} field,
-and registers an \code{instance()} method that returns the singleton.
-This helper also locks the singleton slot to ensure immutability.
+Registers a singleton instance of an \code{RSSingleton} subclass and stores it in the
+class's internal \code{robjc_isa$slot} field. An accessor method \verb{$instance()} is automatically
+defined on the class to retrieve the registered singleton.
+
+After registration, the singleton slot is locked using \code{lockBinding()} to prevent
+reassignment. By default, the instance's fields are also locked using \code{lockVariables()}
+to ensure immutability. This can be disabled via the \code{lock_all} argument.
+
+This helper is intended for internal use within the robjc system and supports
+both singleton-style objects and placeholder values such as \code{RSNull}.
 }
 \examples{
-# register_rs_singleton(MyManager, MyManager$new())
+\dontrun{
+register_rs_singleton(MyManager, MyManager$new())
+MyManager$instance()  # Retrieve the singleton
+}
 
 }
+\seealso{
+\code{\link{RSSingleton}} – The base class for robjc-style singletons.
+}
+\keyword{internal}

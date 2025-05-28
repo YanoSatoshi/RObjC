@@ -7,7 +7,7 @@
 #' when the load factor exceeds 75%.
 #'
 #' Unlike `RSMutableSet` or `RSMutableDictionary`, this class stores objects **as-is**;
-#' it does not call `copyWithEnv()` upon insertion. This allows full control over the
+#' it does not call `copy()` upon insertion. This allows full control over the
 #' mutability and lifecycle of stored objects, and is suitable for internal frameworks
 #' requiring high-performance mutable object indexing.
 #'
@@ -33,7 +33,7 @@ RSDynamicHash <- R6::R6Class(
     .bucket = NULL,
     .count  = NULL,
     .hashIndex = function(raw_hash) {
-      as.integer(bitwAnd(raw_hash, (bitwShiftL(private$.bits, 1L) - 1))) + 1
+      as.integer(bitwAnd(raw_hash, bitwShiftL(private$.bits, 1L) - 1L)) + 1L
     },
     .initializeTable = function() {
       private$.bucket[] <- rep(list(NULL), length(private$.bucket))
@@ -51,7 +51,10 @@ RSDynamicHash <- R6::R6Class(
           vapply(all_entries, function(x) x$respondsTo("compare"), logical(1))
         )
       hashes <- vapply(all_entries, function(obj) obj$hash(), integer(1))
-      new_indices <- as.integer(bitwAnd(hashes, new_size - 1L)) + 1L
+      new_indices <-
+        as.integer(
+          bitwAnd(hashes, bitwShiftL(new_bits, 1L) - 1L)
+        ) + 1L
       grouped <- split(all_entries, new_indices)
       sorter <- self$entry_sorter
       for (idx_chr in names(grouped)) {
@@ -182,6 +185,7 @@ RSDynamicHash <- R6::R6Class(
       if (is.null(obj$isMemberOf)) {
         stop("InvalidArgumentError. Object must inherit RSObject.")
       }
+      # TODO: BUG FIX ME
       if (private$.count > private$.size * 0.75) private$.rehash()
       idx <- private$.hashIndex(obj$hash())
       bucket <- private$.bucket[[idx]]

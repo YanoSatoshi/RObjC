@@ -1,3 +1,5 @@
+#' @importFrom R6 R6Class
+
 #' @title RSObject: A Fundamental Base Class Inspired by Objective-C's NSObject
 #'
 #' @description
@@ -22,10 +24,11 @@
 #' - `isKindOf(cls)` – Checks if the object inherits from the given class (directly or indirectly).
 #' - `isEqual(other)` – Returns `TRUE` if the reference is identical to `other`.
 #' - `hash()` – Computes a numeric hash based on the memory address of the object.
+#' - `classVersion()` – Returns the class object version such as "1.0.0"
+#' - `objectID()` - Returns the pointer of instance.
 #'
 #' @section Internal Fields:
-#' - `.__class__` – Cached class object.
-#' - `.__protocols__` – Vector of protocol names (if any) the object claims conformance to.
+#' - `.__isa` – Cached class object.
 #'
 #' @section Notes:
 #' - The hash method extracts a portion of the object's environment pointer as a unique key.
@@ -45,9 +48,30 @@ RSObject <- R6::R6Class(
 
 
     #' @description
-    #' Initializes the RSObject and assigns internal class metadata.
-    #' @return The initialized object (invisible).
-    initialize = function() {
+    #' Initializes a new instance of an `RSObject` subclass.
+    #'
+    #' During initialization, this method sets up the internal `robjc_isa` metadata
+    #' for the class if it has not already been initialized. This includes establishing:
+    #' 
+    #' - The class version (`version`)
+    #' - The full inheritance chain (`inherit_chain`)
+    #' - The immediate superclass (`super_class`)
+    #' - The list of adopted protocols (`protocols`)
+    #' - A general-purpose slot (`slot`)
+    #'
+    #' If the class has already been initialized, this step is skipped to avoid redefinition.
+    #'
+    #' The `.version` argument allows the developer to explicitly set the version string
+    #' associated with the class. If omitted, it defaults to `"0.0"`. This version is used
+    #' for compatibility checks during object deserialization.
+    #'
+    #' @param .version Optional character or numeric version identifier for the class.
+    #'   If `NULL`, defaults to `"0.0"`.
+    #'
+    #' @return The initialized object itself (invisibly).
+    #'
+    #' @keywords internal
+    initialize = function(.version = NULL) {
       # get Class Object
       class_name <- class(self)[1]  # Only here, get classname from func class().  # nolint
       base_env   <- environment(self$initialize)
@@ -57,8 +81,31 @@ RSObject <- R6::R6Class(
       } else {
         search_env <- base_env
       }
-      class_def  <- get(class_name, envir = search_env, inherits = TRUE)
-      private$.__class__ <- class_def
+      private$.__isa <- get(class_name, envir = search_env, inherits = TRUE)
+      if (is.null(private$.__isa$robjc_isa)) {
+        private$.__isa$robjc_isa <- new.env(parent = emptyenv())
+        ## inside robjc_isa ##
+        #   char version;       Version string
+        #   list inherit_chain; List starts with class of itself and ends with RSObject.
+        #                       [CurrentClass, SuperClass, .., RSObject]
+        #   Class super         Super class.
+        #   list protocols;     List of declarating protocol adoptation.
+        #                       [SomeProtocol, .., RSCopying, RSEncoding]
+        #   var  slot;          A slot. In singleton pattern, the slot stores
+        #                       singleton instance.
+        ### end ###
+        isa <- private$.__isa$robjc_isa
+        # class version setting
+        isa$version <- if (is.null(.version)) "0.0" else as.character(.version)
+        # class-chain setting
+        isa$inherit_chain <- resolve_class_ancestors(private$.__isa)
+        # super class
+        isa$super_class <- isa$inherit_chain[[2]]
+        # delegate protocol setting
+        isa$protocols <- resolve_protocol_ancestors(private$.__isa)
+        # slot
+        isa$slot <- NULL
+      }
       invisible(self)
     },
 
@@ -67,9 +114,14 @@ RSObject <- R6::R6Class(
     #' @description
     #' Returns the internal class object.
     #' @return The object's class definition.
-    class = function() {
-      private$.__class__
-    },
+    class = function() private$.__isa,
+
+
+
+    #' @description
+    #' Returns the super-class object.
+    #' @return The object's super-class definition.
+    superClass = function() self$class()$robjc_isa$super_class,
 
 
 
@@ -78,8 +130,11 @@ RSObject <- R6::R6Class(
     #' @param protocol A character string naming the protocol.
     #' @return TRUE if conforms, FALSE otherwise.
     conformsTo = function(protocol) {
-      if (is.null(private$.__protocols__)) return(FALSE)
-      protocol %in% private$.__protocols__
+      cls <- self$class()
+      if (is.null(cls$robjc_isa$protocols)) return(FALSE)
+      if (is.function(protocol$class)) protocol <- protocol$class()
+      if (!is.character(protocol)) protocol <- protocol$classname
+      protocol %in% names(cls$robjc_isa$protocols)
     },
 
 
@@ -94,7 +149,7 @@ RSObject <- R6::R6Class(
         is.function(self[[method]])
       in_private <-
         exists(method, where = private, inherits = TRUE) &&
-        is.function(self[[method]])
+        is.function(private[[method]])
       in_public || in_private
     },
 
@@ -104,7 +159,7 @@ RSObject <- R6::R6Class(
     #' Returns a compact description like "<Class 0xabc123>".
     #' @return A character string describing the object.
     description = function() {
-      paste0("<", self$class()$classname, " ", private$.pointerHex(), ">")
+      paste0("<", self$class()$classname, " ", get_pointer_hex(self), ">")
     },
 
 
@@ -158,7 +213,7 @@ RSObject <- R6::R6Class(
     isKindOf = function(cls) {
       any(
         vapply(
-          private$.inheritClasses(),
+          self$inheritClassesAsList(),
           function(kls) identical(kls, cls),
           logical(1)
         )
@@ -181,63 +236,139 @@ RSObject <- R6::R6Class(
     #' Returns a hash of the object based on memory pointer.
     #' @return Integer hash value.
     hash = function() {
-      hex_str <- private$.pointerHex()
+      hex_str <- get_pointer_hex(self)
       padded <- sprintf("%016s", tolower(sub("^0x", "", hex_str)))
       unit3 <- substr(padded, 9, 12)
       unit4 <- substr(padded, 13, 16)
       u3 <- strtoi(unit3, base = 16L)
       u4 <- strtoi(unit4, base = 16L)
       return(bitwOr(bitwShiftL(u3, 16L), u4))
-    }
-  ),
-  private = list(
-    # @filed .__class__
-    # Stores the class object associated with the instance.
-    # This is initialized in `initialize()` and used for class checks.
-    .__class__ = NULL,
-
-    # @field .__protocols__
-    # Stores the protocols implemented by this class.
-    .__protocols__ = NULL,
-
-
-    # @description
-    # Returns a string representing the pointer address.
-    # @return pointer address expressed by hex.
-    .pointerHex = function() {
-      addr <- capture.output(environment(self$print))
-      # addr <- capture.output(self$.__enclos_env__)
-      hex_match <- sub("^<environment: (0x[0-9a-f]+)>$", "\\1", addr)
-      if (is.na(hex_match)) {
-        stop("RSObject internal pointer (.ptr) could not be extracted.")
-      }
-      return(hex_match)
     },
 
 
-    # @description
-    # Returns the list of ancestor classes.
-    # @return list of inheriting classes
-    .inheritClasses = function() {
-      cls <- private$.__class__
-      if (!is.null(cls$rs_inherit_chain)) return(cls$rs_inherit_chain)
-      rs_inherit_chain <- list()
-      while (!is.null(cls)) {
-        size <- length(rs_inherit_chain)
-        rs_inherit_chain[[size + 1]] <- cls
-        if (!is.symbol(cls$inherit)) {
-          cls <- cls$inherit
-        } else {
-          cls <- eval(cls$inherit)
-        }
-      }
-      cls <- private$.__class__
-      cls$rs_inherit_chain <- rs_inherit_chain
-      lockBinding("rs_inherit_chain", cls)
-      return(cls$rs_inherit_chain)
+
+    #' @description
+    #' Returns the version string of the class associated with this instance.
+    classVersion = function() self$class()$robjc_isa$version,
+
+
+
+    #' @description
+    #' Returns the pointer of instance.
+    objectID = function() get_pointer_hex(self),
+
+
+
+
+    #' @description
+    #' Returns the list of ancestor classes.
+    #' @return list of inheriting classes
+    inheritClassesAsList = function() {
+      return(self$class()$robjc_isa$inherit_chain)
+    },
+
+
+
+
+    ##### RSCopying ####
+    #' @description
+    #' Returns a shallow copy of the object.
+    #' 
+    #' For the base \code{RSObject} class, this method simply returns \code{self} unchanged.
+    #' This behavior mirrors the default implementation of \code{NSObject}'s \code{copy}
+    #' method in Objective-C, which returns the same instance unless overridden by a subclass.
+    #' 
+    #' Subclasses should override this method if a distinct copy is required,
+    #' especially if the object holds internal mutable state.
+    #'
+    #' @return The object itself (\code{self}).
+    #'
+    #' @note
+    #' The default implementation does not create a new instance. This is safe for
+    #' immutable objects. If the object has mutable fields, overriding this method
+    #' is strongly recommended to avoid side effects from shared references.
+    #'
+    #' @examples
+    #' \dontrun{
+    #' obj <- RSObject$new()
+    #' copy <- obj$copy()
+    #' identical(obj, copy)  # TRUE
+    #' }
+    #'
+    #' @keywords internal
+    copy = function() return(self),
+
+
+
+    ##### RSEncoding ####
+    #' @description
+    #' Returns a list of additional objects to be encoded alongside this instance.
+    #'
+    #' This method is part of the `RSEncoding` protocol. It is used by the encoder to
+    #' determine which instances should be recursively encoded. You should override
+    #' this method in your custom subclasses to return all objects that this instance
+    #' owns or manages directly.
+    #'
+    #' Only return instances of `RSObject` subclasses—atomic values or scalar fields should
+    #' not be included here. Inherited class metadata and class relationships are handled
+    #' automatically and do not need to be manually returned.
+    #'
+    #' When overriding this method, always call `super$objectsForEncoding()` to collect
+    #' objects from parent classes, and combine them with your own declared fields.
+    #'
+    #' @return A list of objects to be encoded recursively (defaults to an empty list).
+    #'
+    #' @examples
+    #' \dontrun{
+    #' MyContainerClass <- R6::R6Class("MyContainerClass", inherit = RSObject,
+    #' public = list(
+    #'   instance1 = NULL,
+    #'   instance2 = NULL,
+    #'   initialize = function(obj1, obj2) {
+    #'     self$instance1 <- obj1  # RSObject instance
+    #'     self$instance2 <- obj2  # RSObject instance
+    #'     super$initialize()
+    #'   },
+    #'   objectsForEncoding = function() {
+    #'     inherited <- super$objectsForEncoding()
+    #'     custom <- list(self$instance1, self$instance2)
+    #'     return(c(inherited, custom))
+    #'   }
+    #' ))
+    #' }
+    #'
+    #' @seealso
+    #' \code{\link[=RSEncoding]{RSEncoding}} – Protocol interface for serialization.
+    #' \code{\link[=RSClassEncoder]{RSClassEncoder}} – Main encoder class; see \code{encodeObject()} method for recursive encoding logic.
+    #'
+    #' @note
+    #' Class metadata and superclass information are handled automatically by the encoder.
+    #' Do not include class objects or static class-level state in this list.
+    #'
+    #' @keywords internal
+    objectsForEncoding = function() return(list()),
+
+
+    #' @description
+    #' Replace class object for decoding (use on load).
+    #' 
+    #' @param new_cls Class to replace.
+    #' 
+    #' @keywords internal
+    resolveClassWith = function(new_cls) {
+      stopifnot(
+        "Class version check." = can_resolve_class(self$class(), new_cls)
+      )
+      private$.__isa <- new_cls
+      invisible(self)
     }
+  ),
+
+
+  private = list(
+    # @field .__isa
+    # Stores the class object associated with the instance.
+    # This is initialized in `initialize()` and used for class checks.
+    .__isa = NULL
   )
-);
-RSObject$.__class__ <- RSObject
-RSObject$rs_inherit_chain <- NULL
-RSObject$new()
+)

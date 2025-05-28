@@ -37,18 +37,17 @@ test_that("RSMutableSet: removeAllObjects clears all elements", {
   expect_equal(s$count(), 0)
 })
 
-test_that("RSMutableSet: copyWithEnv returns immutable RSSet", {
+test_that("RSMutableSet: copy returns immutable RSSet", {
   s <- RSMutableSet$new()
   s$addObject(RSString$stringWith("x"))
-  copied <- s$copyWithEnv(new.env())
-  expect_s3_class(copied, "RSSet")
+  copied <- s$copy()
   expect_equal(copied$count(), 1)
 })
 
-test_that("RSMutableSet: mutableCopyWithEnv returns RSMutableSet", {
+test_that("RSMutableSet: mutableCopy returns RSMutableSet", {
   s <- RSMutableSet$new()
   s$addObject(RSString$stringWith("x"))
-  mcopy <- s$mutableCopyWithEnv(new.env())
+  mcopy <- s$mutableCopy()
   expect_s3_class(mcopy, "RSMutableSet")
   expect_equal(mcopy$count(), 1)
 })

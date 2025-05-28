@@ -8,7 +8,7 @@
 cannot be modified. Any attempt to mutate the array will raise an error.
 This class is suitable for safely sharing ordered collections without risk of modification.
 
-Use \verb{$copyWithEnv()} to duplicate the array as-is, or \verb{$mutableCopyWithEnv()} to obtain
+Use \verb{$copy()} to duplicate the array as-is, or \verb{$mutableCopy()} to obtain
 a mutable version.
 }
 \note{
@@ -30,8 +30,8 @@ tryCatch(
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-RSArray-copyWithEnv}{\code{RSArray$copyWithEnv()}}
-\item \href{#method-RSArray-mutableCopyWithEnv}{\code{RSArray$mutableCopyWithEnv()}}
+\item \href{#method-RSArray-copy}{\code{RSArray$copy()}}
+\item \href{#method-RSArray-mutableCopy}{\code{RSArray$mutableCopy()}}
 \item \href{#method-RSArray-addObject}{\code{RSArray$addObject()}}
 \item \href{#method-RSArray-insertObjectAtIndex}{\code{RSArray$insertObjectAtIndex()}}
 \item \href{#method-RSArray-replaceObjectAtIndex}{\code{RSArray$replaceObjectAtIndex()}}
@@ -43,11 +43,17 @@ tryCatch(
 <details><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="allObjects"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-allObjects'><code>robjc::RSMutableArray$allObjects()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="allObjectsAsList"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-allObjectsAsList'><code>robjc::RSMutableArray$allObjectsAsList()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="asList"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-asList'><code>robjc::RSMutableArray$asList()</code></a></span></li>
@@ -67,47 +73,38 @@ tryCatch(
 </details>
 }}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSArray-copyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSArray-copyWithEnv}{}}}
-\subsection{Method \code{copyWithEnv()}}{
-Returns an identical immutable copy of the current object placed into the specified environment.
-Because the object is already immutable, this method typically returns \code{self} unless an environment
-switch is needed for structural consistency.
+\if{html}{\out{<a id="method-RSArray-copy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSArray-copy}{}}}
+\subsection{Method \code{copy()}}{
+Returns the object itself, since \code{RSArray} is immutable.
+
+This is a no-op copy: the method simply returns \code{self},
+as immutable objects are safe to reuse without duplication.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSArray$copyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSArray$copy()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{The target environment.}
-}
-\if{html}{\out{</div>}}
-}
 \subsection{Returns}{
-A copy of the current immutable object, typically \code{self}.
+The same \code{RSArray} instance (\code{self}).
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSArray-mutableCopyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSArray-mutableCopyWithEnv}{}}}
-\subsection{Method \code{mutableCopyWithEnv()}}{
-Returns a new mutable version of the current object in the specified environment.
-The content is duplicated to allow modifications, and the result is typically
-an instance of the corresponding mutable subclass (e.g., \code{RSMutableArray} for \code{RSArray}).
+\if{html}{\out{<a id="method-RSArray-mutableCopy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSArray-mutableCopy}{}}}
+\subsection{Method \code{mutableCopy()}}{
+Returns a mutable version of the current array.
+
+This performs a shallow copy of the array elements and wraps them
+in a new \code{RSMutableArray} instance, allowing modifications to the content.
+
+This is typically used when an immutable array needs to be transitioned into
+a mutable one for editing.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSArray$mutableCopyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSArray$mutableCopy()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{The environment in which the new mutable object will be evaluated.}
-}
-\if{html}{\out{</div>}}
-}
 \subsection{Returns}{
-A new mutable copy of the object.
+A new \code{RSMutableArray} instance.
 }
 }
 \if{html}{\out{<hr>}}

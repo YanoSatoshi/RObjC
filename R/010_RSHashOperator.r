@@ -2,7 +2,7 @@
 #'
 #' @description
 #' Registers a singleton module object on the given class and defines its `$module()` accessor.
-#' This function also locks the `.singleton` slot and the module object itself using `lockVariables()`.
+#' This function also locks the `robjc_isa$slot` and the module object itself using `lockVariables()`.
 #' It is invoked internally when registering an instance of an `RSModule` subclass.
 #'
 #' @param klass The R6 class object (subclass of `RSModule`)
@@ -187,4 +187,4 @@ RSHashOperator <- R6::R6Class(
     }
   )
 )
-register_rs_module(RSHashOperator, RSHashOperator$new())
+register_rs_module(RSHashOperator, RSHashOperator$new(), lock_all = TRUE)

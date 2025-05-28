@@ -5,33 +5,30 @@
 #' It uses `RSDynamicHash` internally to guarantee hash-based uniqueness,
 #' with support for insertion, removal, set operations, and object comparison.
 #'
-#' Elements are deep-copied into the set using the `copyWithEnv()` method of the `RSCopying` protocol.
+#' Elements are deep-copied into the set using the `copy()` method of the `RSCopying` protocol.
 #'
 #' @section Key Operations:
 #' - `addObject()`, `containsObject()`, `removeObject()`, `removeAllObjects()`
 #' - `unionSet()`, `intersectSet()`, `differenceSet()`
-#' - `copyWithEnv()` / `mutableCopyWithEnv()`
+#' - `copy()` / `mutableCopy()`
 #'
 #' @export
 RSMutableSet <- R6::R6Class(
   "RSMutableSet",
   inherit = RSDynamicHash,
   cloneable = FALSE,
-  private = list(
-    .copying = NULL
-  ),
   public = list(
 
     #' @description
     #' Constructs a new mutable set.
-    #' If a list of `RSObject`s is provided, each object is copied using `copyWithEnv()`
-    #' and stored in the internal hash table as an immutable element, ensuring that the structure  
-    #' of the set remains independent from the original input.
+    #' If a list of `RSObject`s is provided, each object is copied using `copy()`
+    #' and stored in the internal hash table as an immutable element, ensuring
+    #' that the structure of the set remains independent from the original input.
     #'
     #' @param objects Optional list of `RSObject`s to initialize the set.
     #' @return A new `RSMutableSet`.
     initialize = function(objects = list()) {
-      objects <- cast_ry_storage_to_list(objects)
+      objects <- cast_rs_storage_to_list(objects)
       if (
         length(objects) > 0 &&
         !all(vapply(
@@ -40,23 +37,21 @@ RSMutableSet <- R6::R6Class(
           logical(1)
         ))
       ) stop("All elements must inherit from RSObject.")
-      super$initialize(objects = objects)
-      private$.copying <- RSCopying$protocol()
+      super$initialize(objects = lapply(objects, function(obj) obj$copy()))
       invisible(self)
     },
 
 
 
     #' @description
-    #' Adds a new object to the set. The object is copied using `copyWithEnv()` and stored in the hash table.
-    #' Duplicate objects (as defined by `isEqual()`) will not be added.
+    #' Adds a new object to the set. The object is copied using `copy()` and
+    #' stored in the hash table. Duplicate objects (as defined by `isEqual()`)
+    #' will not be added.
     #'
     #' @param obj An `RSObject` to insert.
     #' @return Invisible `NULL`.
     addObject = function(obj) {
-      stopifnot(!is.null(obj$isKindOf), obj$isKindOf(RSObject))
-      copied <- private$.copying$copyObjectWithEnv(obj, environment(self))
-      super$setObject(copied)
+      super$setObject(obj$copy())
     },
 
 
@@ -144,33 +139,26 @@ RSMutableSet <- R6::R6Class(
 
     #' @description
     #' Returns an immutable copy (`RSSet`) of the current set.
-    #' Each element is duplicated using `copyWithEnv()` into the target environment.
+    #' 
+    #' This performs a shallow copy: elements are preserved as-is,
+    #' and a new `RSSet` instance is created to wrap them.
+    #' 
+    #' Use this method to obtain a non-modifiable version of the current set.
     #'
-    #' @param env Environment to evaluate the copy in.
     #' @return An `RSSet` copy of the set.
-    copyWithEnv = function(env = parent.frame()) {
-      do.call(
-        RSSet$new,
-        list(objects = self$allObjectsAsList()),
-        envir = env
-      )
-    },
-
+    copy = function() RSSet$new(objects = self$allObjectsAsList()),
 
 
     #' @description
-    #' Returns a new mutable copy of the current set.
-    #' All elements are duplicated into the target environment.
+    #' Returns a mutable copy (`RSMutableSet`) of the current set.
+    #' 
+    #' This performs a shallow copy: the element list is reused,
+    #' but a new mutable set wrapper is created. If the instance is already mutable,
+    #' returning `self` may be acceptable depending on usage context.
     #'
-    #' @param env Environment for the new instance.
     #' @return A `RSMutableSet` copy.
-    mutableCopyWithEnv = function(env = parent.frame()) {
-      if (identical(env, environment(self))) return(self)
-      do.call(
-        RSMutableSet$new,
-        list(objects = self$allObjectsAsList()),
-        envir = env
-      )
-    }
+    mutableCopy = function() RSMutableSet$new(objects = self$allObjectsAsList())
   )
 )
+conform_protocol_to_class(RSMutableCopying$protocol(), RSMutableSet)
+conform_protocol_to_class(RSCopying$protocol(), RSMutableSet)

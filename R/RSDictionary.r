@@ -120,34 +120,23 @@ RSDictionary <- R6::R6Class(
 
 
     #' @description
-    #' Returns an identical immutable copy of the current object placed into the specified environment.
-    #' Because the object is already immutable, this method typically returns `self` unless an environment
-    #' switch is needed for structural consistency.
+    #' Returns the object itself, since `RSDictionary` is immutable.
     #'
-    #' @param env The target environment.
-    #' @return A copy of the current immutable object, typically `self`.
-    copyWithEnv = function(env = parent.frame()) {
-      if (identical(env, environment(self))) return(self)
-      do.call(
-        RSDictionary$new,
-        list(key_value_pairs = self$allEntriesAsList())
-      )
-    },
+    #' This is a no-op copy: the method returns `self`, as immutable
+    #' dictionaries are safe to reuse without duplication.
+    #'
+    #' @return The same `RSDictionary` instance (`self`).
+    copy = function() return(self),
 
 
 
     #' @description
-    #' Returns a new mutable version of the current object in the specified environment.
-    #' The content is duplicated to allow modifications, and the result is typically
-    #' an instance of the corresponding mutable subclass (e.g., `RSMutableArray` for `RSArray`).
+    #' Returns the object itself, since `RSDictionary` is immutable.
     #'
-    #' @param env The environment in which the new mutable object will be evaluated.
-    #' @return A new mutable copy of the object.
-    mutableCopyWithEnv = function(env = parent.frame()) {
-      do.call(
-        RSMutableDictionary$new,
-        list(key_value_pairs = self$allEntriesAsList())
-      )
-    }
+    #' This is a no-op copy: the method returns `self`, as immutable
+    #' dictionaries are safe to reuse without duplication.
+    #'
+    #' @return The same `RSDictionary` instance (`self`).
+    mutableCopy = function() RSMutableDictionary$new(key_value_pairs = self$allEntriesAsList())
   )
 )

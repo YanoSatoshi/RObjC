@@ -21,8 +21,8 @@ ensuring structural isolation between containers.
 \item \code{removeAllObjects()} — Clear entire array
 \item \code{objectAtIndex(index)} — Retrieve object by index
 \item \code{asList()} — Return list of elements
-\item \code{copyWithEnv(env)} — Return immutable copy (RSArray)
-\item \code{mutableCopyWithEnv(env)} — Return new mutable copy
+\item \code{copy()} — Return immutable copy (RSArray)
+\item \code{mutableCopy()} — Return new mutable copy
 }
 }
 
@@ -52,8 +52,8 @@ arr$objectAtIndex(1)$value()  # "b"
 \item \href{#method-RSMutableArray-asList}{\code{RSMutableArray$asList()}}
 \item \href{#method-RSMutableArray-allObjectsAsList}{\code{RSMutableArray$allObjectsAsList()}}
 \item \href{#method-RSMutableArray-count}{\code{RSMutableArray$count()}}
-\item \href{#method-RSMutableArray-copyWithEnv}{\code{RSMutableArray$copyWithEnv()}}
-\item \href{#method-RSMutableArray-mutableCopyWithEnv}{\code{RSMutableArray$mutableCopyWithEnv()}}
+\item \href{#method-RSMutableArray-copy}{\code{RSMutableArray$copy()}}
+\item \href{#method-RSMutableArray-mutableCopy}{\code{RSMutableArray$mutableCopy()}}
 \item \href{#method-RSMutableArray-hash}{\code{RSMutableArray$hash()}}
 \item \href{#method-RSMutableArray-hashesOfObjects}{\code{RSMutableArray$hashesOfObjects()}}
 \item \href{#method-RSMutableArray-hashOperator}{\code{RSMutableArray$hashOperator()}}
@@ -67,11 +67,17 @@ arr$objectAtIndex(1)$value()  # "b"
 <details><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -80,8 +86,7 @@ arr$objectAtIndex(1)$value()  # "b"
 \if{latex}{\out{\hypertarget{method-RSMutableArray-new}{}}}
 \subsection{Method \code{new()}}{
 Constructs a new mutable array instance. Optionally takes a list of RSObjects
-to initialize the array. Each object in the list is copied using copyWithEnv(),
-and stored as an immutable element within the array.
+to initialize the array.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSMutableArray$new(objects = list(), hash_operator = RSHashOperator$module())}\if{html}{\out{</div>}}
 }
@@ -104,8 +109,6 @@ A new \code{RSMutableArray} instance.
 \if{latex}{\out{\hypertarget{method-RSMutableArray-addObject}{}}}
 \subsection{Method \code{addObject()}}{
 Appends an object to the end of the array.
-The object is copied using \code{copyWithEnv()} and stored as an immutable element,
-ensuring that the internal structure of the array remains independent from the input object.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSMutableArray$addObject(obj)}\if{html}{\out{</div>}}
 }
@@ -113,7 +116,7 @@ ensuring that the internal structure of the array remains independent from the i
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{obj}}{An \code{RSObject} implementing \code{copyWithEnv(env)}.}
+\item{\code{obj}}{An \code{RSObject}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -126,8 +129,6 @@ Invisible \code{NULL}.
 \if{latex}{\out{\hypertarget{method-RSMutableArray-insertObjectAtIndex}{}}}
 \subsection{Method \code{insertObjectAtIndex()}}{
 Inserts an object at the specified index, shifting existing elements to the right.
-The object is copied using \code{copyWithEnv()} and stored as an immutable element,
-maintaining isolation from the original input.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSMutableArray$insertObjectAtIndex(obj, index)}\if{html}{\out{</div>}}
 }
@@ -135,7 +136,7 @@ maintaining isolation from the original input.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{obj}}{An \code{RSObject} implementing \code{copyWithEnv(env)}.}
+\item{\code{obj}}{An \code{RSObject}.}
 
 \item{\code{index}}{Integer position (1-based) where the object will be inserted.}
 }
@@ -150,8 +151,6 @@ Invisible \code{NULL}.
 \if{latex}{\out{\hypertarget{method-RSMutableArray-replaceObjectAtIndex}{}}}
 \subsection{Method \code{replaceObjectAtIndex()}}{
 Replaces the object at the specified index with a new one.
-The new object is copied using \code{copyWithEnv()} and stored as an immutable element,
-replacing the existing content without modifying the input.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSMutableArray$replaceObjectAtIndex(obj, index)}\if{html}{\out{</div>}}
 }
@@ -159,7 +158,7 @@ replacing the existing content without modifying the input.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{obj}}{An \code{RSObject} implementing \code{copyWithEnv(env)}.}
+\item{\code{obj}}{An \code{RSObject}.}
 
 \item{\code{index}}{Integer index (1-based) of the object to replace.}
 }
@@ -321,45 +320,37 @@ An integer count.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-copyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-copyWithEnv}{}}}
-\subsection{Method \code{copyWithEnv()}}{
+\if{html}{\out{<a id="method-RSMutableArray-copy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableArray-copy}{}}}
+\subsection{Method \code{copy()}}{
 Returns an immutable copy of the array (i.e., an \code{RSArray} instance).
-Each element is copied via \code{copyWithEnv()} into the given environment.
+This performs a shallow copy: the container is newly created,
+but the elements are shared (not deeply duplicated).
+
+This method is typically used to convert a mutable array to its immutable form.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableArray$copyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSMutableArray$copy()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{An environment into which the copy is placed.}
-}
-\if{html}{\out{</div>}}
-}
 \subsection{Returns}{
 An \code{RSArray} object.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-mutableCopyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-mutableCopyWithEnv}{}}}
-\subsection{Method \code{mutableCopyWithEnv()}}{
-Returns a new mutable copy of the array.
-Each element is copied into the given environment, preserving the array structure.
+\if{html}{\out{<a id="method-RSMutableArray-mutableCopy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableArray-mutableCopy}{}}}
+\subsection{Method \code{mutableCopy()}}{
+Returns a mutable copy of the array (i.e., an \code{RSMutableArray} instance).
+This performs a shallow copy: the container is recreated,
+but the elements are shared as-is without deep duplication.
+
+If the original array is already mutable, this method may simply return itself.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableArray$mutableCopyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSMutableArray$mutableCopy()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{An environment for evaluating the copy.}
-}
-\if{html}{\out{</div>}}
-}
 \subsection{Returns}{
-A new \code{RSMutableArray} object.
+An \code{RSMutableArray} object.
 }
 }
 \if{html}{\out{<hr>}}

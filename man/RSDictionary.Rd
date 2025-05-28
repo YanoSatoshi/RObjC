@@ -25,22 +25,29 @@ will raise an error.
 \item \href{#method-RSDictionary-objectForKey}{\code{RSDictionary$objectForKey()}}
 \item \href{#method-RSDictionary-allEntriesAsList}{\code{RSDictionary$allEntriesAsList()}}
 \item \href{#method-RSDictionary-count}{\code{RSDictionary$count()}}
-\item \href{#method-RSDictionary-copyWithEnv}{\code{RSDictionary$copyWithEnv()}}
-\item \href{#method-RSDictionary-mutableCopyWithEnv}{\code{RSDictionary$mutableCopyWithEnv()}}
+\item \href{#method-RSDictionary-copy}{\code{RSDictionary$copy()}}
+\item \href{#method-RSDictionary-mutableCopy}{\code{RSDictionary$mutableCopy()}}
 }
 }
 \if{html}{\out{
 <details><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="hash"><a href='../../robjc/html/RSObject.html#method-RSObject-hash'><code>robjc::RSObject$hash()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isEqual"><a href='../../robjc/html/RSObject.html#method-RSObject-isEqual'><code>robjc::RSObject$isEqual()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="addEntry"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-addEntry'><code>robjc::RSMutableDictionary$addEntry()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allEntries"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allEntries'><code>robjc::RSMutableDictionary$allEntries()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allKeys"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allKeys'><code>robjc::RSMutableDictionary$allKeys()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allKeysAsList"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allKeysAsList'><code>robjc::RSMutableDictionary$allKeysAsList()</code></a></span></li>
@@ -51,6 +58,8 @@ will raise an error.
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="description"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-description'><code>robjc::RSMutableDictionary$description()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="dictionaryByExcludingWithDictionary"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-dictionaryByExcludingWithDictionary'><code>robjc::RSMutableDictionary$dictionaryByExcludingWithDictionary()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="dictionaryByMergingWithDictionary"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-dictionaryByMergingWithDictionary'><code>robjc::RSMutableDictionary$dictionaryByMergingWithDictionary()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="removeAllEntries"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-removeAllEntries'><code>robjc::RSMutableDictionary$removeAllEntries()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="removeEntry"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-removeEntry'><code>robjc::RSMutableDictionary$removeEntry()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -184,47 +193,35 @@ Returns the number of key-value pairs in the dictionary.
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSDictionary-copyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSDictionary-copyWithEnv}{}}}
-\subsection{Method \code{copyWithEnv()}}{
-Returns an identical immutable copy of the current object placed into the specified environment.
-Because the object is already immutable, this method typically returns \code{self} unless an environment
-switch is needed for structural consistency.
+\if{html}{\out{<a id="method-RSDictionary-copy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-copy}{}}}
+\subsection{Method \code{copy()}}{
+Returns the object itself, since \code{RSDictionary} is immutable.
+
+This is a no-op copy: the method returns \code{self}, as immutable
+dictionaries are safe to reuse without duplication.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSDictionary$copyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSDictionary$copy()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{The target environment.}
-}
-\if{html}{\out{</div>}}
-}
 \subsection{Returns}{
-A copy of the current immutable object, typically \code{self}.
+The same \code{RSDictionary} instance (\code{self}).
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSDictionary-mutableCopyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSDictionary-mutableCopyWithEnv}{}}}
-\subsection{Method \code{mutableCopyWithEnv()}}{
-Returns a new mutable version of the current object in the specified environment.
-The content is duplicated to allow modifications, and the result is typically
-an instance of the corresponding mutable subclass (e.g., \code{RSMutableArray} for \code{RSArray}).
+\if{html}{\out{<a id="method-RSDictionary-mutableCopy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-mutableCopy}{}}}
+\subsection{Method \code{mutableCopy()}}{
+Returns the object itself, since \code{RSDictionary} is immutable.
+
+This is a no-op copy: the method returns \code{self}, as immutable
+dictionaries are safe to reuse without duplication.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSDictionary$mutableCopyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSDictionary$mutableCopy()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{The environment in which the new mutable object will be evaluated.}
-}
-\if{html}{\out{</div>}}
-}
 \subsection{Returns}{
-A new mutable copy of the object.
+The same \code{RSDictionary} instance (\code{self}).
 }
 }
 }

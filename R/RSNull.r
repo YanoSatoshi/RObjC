@@ -42,13 +42,13 @@ RSNull <- R6::R6Class(
     #'
     #' @return The initialized `RSNull` instance (invisible).
     initialize = function() {
-      if (!is.null(RSNull$.singleton)) {
+      if (!is.null(RSNull$robjc_isa$slot)) {
         stop("Use RSNull$null() instead of new().")
       }
       super$initialize(0L)
       private$.val <- NULL
       klass <- self$class()
-      klass$null <- function() klass$.singleton
+      klass$null <- function() klass$robjc_isa$slot
       invisible(self)
     },
 
