@@ -64,6 +64,25 @@ RSKeyValuePair <- R6::R6Class(
 
 
     #' @description
+    #' @param key Replacing key
+    #' @note Method for Dictionary slot instance.
+    #' @examples
+    #' pair <- RSKeyValuePair$new(RSNull$null(), RSNull$null())
+    #' pair$setKey(RSString$new("some_key"))  # OK
+    #' \dontrun{
+    #' pair$setValue(RSNumber$new(123))       # NO: no setValue method
+    #' }
+    setKey = function(key) {
+      if (!identical(private$.value, RSNull$null())) {
+        stop("Key replacing available only when value is RSNull. RSKeyValuePair")
+      }
+      private$.key <- key
+      invisible(self)
+    },
+
+
+
+    #' @description
     #' Returns the value object associated with this pair.
     #' @return An `RSObject` representing the value.
     value = function() private$.value,
@@ -91,6 +110,16 @@ RSKeyValuePair <- R6::R6Class(
     #' @return An integer hash value derived from the key.
     hash = function() {
       private$.key$hash()
+    },
+
+
+
+    #' @description
+    #' Returns encoding objects, key and value
+    #'
+    #' @return List from key and value
+    objectsForEncoding = function() {
+      list(private$.key, private$.value)
     }
   )
 )

@@ -25,49 +25,55 @@
 RSDynamicHash <- R6::R6Class(
   ### class name ###
   "RSDynamicHash",
-  cloneable = FALSE,
   inherit = RSObject,
+  cloneable = FALSE,
   private = list(
+    .key_getter = NULL,
     .bits = NULL,
     .size = NULL,
     .bucket = NULL,
     .count  = NULL,
     .hashIndex = function(raw_hash) {
-      as.integer(bitwAnd(raw_hash, bitwShiftL(private$.bits, 1L) - 1L)) + 1L
+      filter <- bitwShiftL(1L, private$.bits) - 1L # (1L << bits) - 1L
+      as.integer(bitwAnd(raw_hash, filter) + 1L)   # `+1L` to avoid hash 0
     },
-    .initializeTable = function() {
-      private$.bucket[] <- rep(list(NULL), length(private$.bucket))
-      private$.count <- 0
+    .getBucket = function(obj) {
+      idx <- private$.hashIndex(private$.key_getter(obj)$hash())
+      return(list(index = idx, bucket = private$.bucket[[idx]]))
+    },
+    .getEntryIndex  = function(obj, bucket) {
+      key <- private$.key_getter(obj)
+      idx <- if (key$respondsTo("compare")) {
+        self$entry_finder$findIndexByBinary(bucket, obj, private$.key_getter)
+      } else {
+        self$entry_finder$findIndexByLinear(bucket, obj, private$.key_getter)
+      }
+      return(idx)
     },
     .rehash = function() {
       old_bucket <- private$.bucket
-      new_bits <- private$.bits + 1L
-      new_size <- bitwShiftL(1L, new_bits)
+      new_bits   <- private$.bits + 1L
+      new_size   <- bitwShiftL(1L, new_bits)
       new_bucket <- vector("list", new_size)
       all_entries <- unlist(old_bucket, recursive = FALSE)
-      has_compare <-
-        length(all_entries) <= 1L || # capable with length 0 list.
-        all(
-          vapply(all_entries, function(x) x$respondsTo("compare"), logical(1))
-        )
-      hashes <- vapply(all_entries, function(obj) obj$hash(), integer(1))
-      new_indices <-
-        as.integer(
-          bitwAnd(hashes, bitwShiftL(new_bits, 1L) - 1L)
-        ) + 1L
+      has_compare <- all(
+        vapply(all_entries, function(x) x$respondsTo("compare"), logical(1))
+      )
+      hashes <- vapply(
+        all_entries, function(o) private$.key_getter(o)$hash(), integer(1)
+      )
+      bit_mask    <- bitwShiftL(1L, new_bits) - 1L
+      new_indices <- as.integer(bitwAnd(hashes, bit_mask) + 1L)
       grouped <- split(all_entries, new_indices)
-      sorter <- self$entry_sorter
+      sorter  <- self$entry_sorter
       for (idx_chr in names(grouped)) {
         i <- as.integer(idx_chr)
         entries <- grouped[[idx_chr]]
         if (has_compare && length(entries) > 1L) {
-          sorted_entries <- sorter$sortByCompare(
-            entries, function(a, b) a$compare(b)
-          )
+          new_bucket[[i]] <- sorter$sortByCompare(entries, function(a, b) a$compare(b))
         } else {
-          sorted_entries <- entries
+          new_bucket[[i]] <- entries
         }
-        new_bucket[[i]] <- sorted_entries
       }
       private$.bits   <- new_bits
       private$.size   <- new_size
@@ -98,31 +104,31 @@ RSDynamicHash <- R6::R6Class(
     #'
     #' @param initial_bits Integer; log2 of the number of initial buckets.
     #' @param objects Optional list of `RSObject`s to register immediately.
+    #' @param key_getter Optional function to identify getting hash/isEqual target.
     #' @return A new `RSDynamicHash` instance.
-    initialize = function(initial_bits = 4, objects = list()) {
+    initialize = function(initial_bits = 4,
+                          objects = list(),
+                          key_getter = identity) {
       super$initialize()
+      private$.key_getter <- key_getter
       private$.bits   <- initial_bits
-      private$.size   <- bitwShiftL(1L, private$.bits)
-      private$.bucket <- vector("list", private$.size)
+      private$.size   <- bitwShiftL(1L, private$.bits) # 1L << bits
+      private$.bucket <- vector("list", private$.size)  # malloc(sizeof(void*), size)
       private$.count  <- 0
       self$hash_operator <- RSHashOperator$module()
       self$entry_finder  <- RSEntryFinder$module()
       self$entry_sorter  <- RSSorter$module()
       lockBinding("hash_operator", self)
       lockBinding("entry_finder",  self)
-      lockBinding("entry_sorter",  self)
       for (obj in objects) self$setObject(obj)
       invisible(self)
     },
 
 
-
     #' @description
     #' Returns the total number of stored objects in the hash table.
     #' @return Integer count.
-    count = function() {
-      private$.count
-    },
+    count = function() private$.count,
 
 
 
@@ -133,35 +139,17 @@ RSDynamicHash <- R6::R6Class(
     #' @param obj The `RSObject` to search for.
     #' @return The matching object, or `NULL` if not found.
     getObject = function(obj) {
-      self$getEntryMatching(obj, identity)
-    },
-
-
-
-    #' @description
-    #' Retrieves the full entry object from the internal hash table whose key matches the input object.
-    #' Unlike `getObject()`, which returns the stored object itself, this method returns the complete
-    #' internal entry that contains metadata such as the key and value pair.
-    #'
-    #' This method is typically used by dictionary-like structures (e.g., `RSDictionary`)
-    #' to access both the key and value simultaneously.
-    #'
-    #' @param obj The key-like `RSObject` to search for.
-    #' @param key_getter Lambda function to get key variable
-    #' @return The internal entry object (e.g., `RSKeyValuePair`), or `NULL` if not found.
-    getEntryMatching = function(obj, key_getter) {
-      idx <- private$.hashIndex(obj$hash())
-      bucket <- private$.bucket[[idx]]
-      if (is.null(bucket) || length(bucket) == 0) return(NULL)
-      index <- as.integer(NA)
-      if (obj$respondsTo("compare")) {
-        index <- self$entry_finder$findIndexByBinary(bucket, obj, key_getter)
-      } else {
-        index <- self$entry_finder$findIndexByLinear(bucket, obj, key_getter)
+      index_bucket <- private$.getBucket(obj)
+      if (is.null(index_bucket$bucket) || length(index_bucket$bucket) == 0) {
+        return(NULL) # rough screen
       }
+      index <- private$.getEntryIndex(obj, index_bucket$bucket)
       if (is.na(index)) return(NULL)
-      bucket[[index]]
+      return(index_bucket$bucket[[index]])
     },
+
+
+
 
 
 
@@ -169,9 +157,7 @@ RSDynamicHash <- R6::R6Class(
     #' Checks whether an equivalent object is present in the table.
     #' @param obj An `RSObject` to check.
     #' @return `TRUE` if present; otherwise `FALSE`.
-    containsObject = function(obj) {
-      !is.null(self$getEntryMatching(obj, identity))
-    },
+    containsObject = function(obj) !is.null(self$getObject(obj)),
 
 
 
@@ -182,20 +168,12 @@ RSDynamicHash <- R6::R6Class(
     #' @param obj An `RSObject` to store. Must implement `hash()` and `isEqual()`.
     #' @return Invisible `self`.
     setObject = function(obj) {
-      if (is.null(obj$isMemberOf)) {
-        stop("InvalidArgumentError. Object must inherit RSObject.")
-      }
-      # TODO: BUG FIX ME
+      stopifnot("InvalidArgumentError. `obj` must inherit RSObject." = is_robjc_instance(obj))
       if (private$.count > private$.size * 0.75) private$.rehash()
-      idx <- private$.hashIndex(obj$hash())
-      bucket <- private$.bucket[[idx]]
-      getter <- identity
-      index  <- as.integer(NA)
-      if (obj$respondsTo("compare")) {
-        index <- self$entry_finder$findIndexByBinary(bucket, obj, getter)
-      } else {
-        index <- self$entry_finder$findIndexByLinear(bucket, obj, getter)
-      }
+      index_bucket <- private$.getBucket(obj)
+      idx    <- index_bucket$index
+      bucket <- index_bucket$bucket
+      index  <- private$.getEntryIndex(obj, bucket)
       if (!is.na(index)) {
         bucket[[index]] <- obj  # replacing
       } else {
@@ -214,21 +192,14 @@ RSDynamicHash <- R6::R6Class(
     #' @param obj An `RSObject` to remove.
     #' @return Invisible `NULL`.
     removeObject = function(obj) {
-      if (is.null(obj$isMemberOf)) {
-        stop("InvalidArgumentError. Object must inherit RSObject.")
+      stopifnot("InvalidArgumentError. `obj` must inherit RSObject." = is_robjc_instance(obj))
+      index_bucket <- private$.getBucket(obj)
+      if (is.null(index_bucket$bucket) || length(index_bucket$bucket) == 0) {
+        return(invisible(NULL))
       }
-      idx <- private$.hashIndex(obj$hash())
-      bucket <- private$.bucket[[idx]]
-      if (is.null(bucket) || length(bucket) == 0) return(invisible(NULL))
-      getter <- identity
-      index  <- as.integer(NA)
-      if(obj$respondsTo("compare")) {
-        index <- self$entry_finder$findIndexByBinary(bucket, obj, getter)
-      } else {
-        index <- self$entry_finder$findIndexByLinear(bucket, obj, getter)
-      }
+      index <- private$.getEntryIndex(obj, index_bucket$bucket)
       if (!is.na(index)) {
-        private$.bucket[[idx]] <- bucket[-index]
+        private$.bucket[[index_bucket$index]] <- index_bucket$bucket[-index]
         private$.count <- private$.count - 1L
       }
       invisible(NULL)
@@ -241,8 +212,8 @@ RSDynamicHash <- R6::R6Class(
     #'
     #' @return Invisible `NULL`.
     removeAllObjects = function() {
-      private$.initializeTable()
-      invisible(self)
+      private$.bucket[] <- vector("list", length(private$.bucket))
+      private$.count <- 0
     },
 
 
@@ -251,10 +222,7 @@ RSDynamicHash <- R6::R6Class(
     #' Returns all stored objects in a flat list, preserving bucket contents.
     #' @return A list of `RSObject`s.
     allObjectsAsList = function() {
-      objs <- list()
-      filled_b <- Filter(Negate(is.null), private$.bucket)
-      objs <- unlist(filled_b, recursive = FALSE)
-      return(objs)
+      unlist(Filter(Negate(is.null), private$.bucket), recursive = FALSE)
     },
 
 
@@ -265,13 +233,12 @@ RSDynamicHash <- R6::R6Class(
     #'
     #' @return Character string.
     description = function() {
-      sprintf(
-        "<%s: %d entries, %d buckets>",
-        self$class()$classname,
-        private$.count,
-        private$.size
+      paste(
+        super$description(),
+        sprintf("%d entries, %d buckets", private$.count, private$.size)
       )
     },
+
 
 
 
@@ -330,8 +297,7 @@ RSDynamicHash <- R6::R6Class(
     isEqual = function(other) {
       if (!other$isMemberOf(self$class())) return(FALSE)
       self$hash_operator$areEqualSets(
-        self$allObjectsAsList(),
-        other$allObjectsAsList()
+        self$allObjectsAsList(), other$allObjectsAsList()
       )
     },
 
@@ -341,8 +307,13 @@ RSDynamicHash <- R6::R6Class(
     #' Returns the number of buckets currently allocated.
     #' 
     #' @return Integer bucket size.
-    size = function() {
-      return(private$.size)
-    }
+    size = function() return(private$.size),
+
+
+
+    #' @description
+    #'
+    #' @return List of content objects
+    objectForEncoding = function() self$allObjectsAsList()
   )
 )

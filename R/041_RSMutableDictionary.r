@@ -19,14 +19,12 @@ RSMutableDictionary <- R6::R6Class(
   cloneable = FALSE,
   inherit = RSObject,
   private = list(
+    .kv_slot = NULL,
     .hash_table = NULL,
     .wrapNull = function(some) {
       if (is.null(some)) return(RSNull$null())
-      if (!is.null(some$isMemberOf) && some$isKindOf(RSObject)) return(some)
+      if (is_robjc_instance(some)) return(some)
       stop(sprintf("Unsupported key type: %s", class(some)[1]))
-    },
-    .getEntryByKey = function(entry_key) {
-      private$.hash_table$getEntryMatching(entry_key, function(entry) entry$key())
     }
   ),
   public = list(
@@ -52,7 +50,8 @@ RSMutableDictionary <- R6::R6Class(
         stop("Choose a initializing by key_value_pairs or objects_and_keys, or 'keys and values'") # nolint
       }
       super$initialize()
-      private$.hash_table <- RSDynamicHash$new()
+      private$.hash_table <- RSDynamicHash$new(key_getter = function(obj) obj$key())
+      private$.kv_slot <- RSKeyValuePair$new(RSNull$null(), RSNull$null())
       if (sum(is_kv_pair, is_alt_list, is_separate) == 0) {
         # returns empty dict
         return(invisible(self))
@@ -109,9 +108,8 @@ RSMutableDictionary <- R6::R6Class(
     #' @param value An `RSObject` to store.
     #' @param key An `RSObject` that serves as the key.
     setObjectForKey = function(value, key) {
-      key   <- key$copy()
       entry <- RSKeyValuePair$new(
-        private$.wrapNull(key), private$.wrapNull(value)
+        private$.wrapNull(key)$copy(), private$.wrapNull(value)
       )
       private$.hash_table$setObject(entry)
     },
@@ -125,9 +123,11 @@ RSMutableDictionary <- R6::R6Class(
     #' @param key An `RSObject` key.
     #' @return The corresponding value (`RSObject`), or `NULL`.
     objectForKey = function(key) {
-      found <- private$.getEntryByKey(private$.wrapNull(key))
+      stopifnot(is_robjc_instance(key))
+      private$.kv_slot$setKey(key)
+      found <- private$.hash_table$getObject(private$.kv_slot)
       if (is.null(found)) return(NULL)
-      found$value()
+      return(found$value())
     },
 
 
@@ -137,7 +137,9 @@ RSMutableDictionary <- R6::R6Class(
     #'
     #' @param key An `RSObject` to be removed.
     removeObjectForKey = function(key) {
-      found <- private$.getEntryByKey(private$.wrapNull(key))
+      stopifnot(is_robjc_instance(key))
+      private$.kv_slot$setKey(key)
+      found <- private$.hash_table$getObject(private$.kv_slot)
       if (!is.null(found)) private$.hash_table$removeObject(found)
     },
 
@@ -168,7 +170,7 @@ RSMutableDictionary <- R6::R6Class(
     #' 
     #' @param entry An `RSKeyValuePair` to remove
     removeEntry = function(entry) {
-      found <- private$.getEntryByKey(entry)
+      found <- private$.hash_table$getObject(entry)
       if (!is.null(found)) private$.hash_table$removeObject(found)
     },
 
@@ -179,6 +181,11 @@ RSMutableDictionary <- R6::R6Class(
     removeAllEntries = function() {
       private$.hash_table <- RSDynamicHash$new()
     },
+
+
+    #' @description
+    #' Returns a list of all `RSKeyValuePair` entries stored in the dictionary.
+    asList = function() private$.hash_table$allObjectsAsList(),
 
 
 
@@ -224,13 +231,13 @@ RSMutableDictionary <- R6::R6Class(
 
     #' @description
     #' Alias for `allEntriesAsList()` / `allEntries()`.
-    allObjectsAsList = function() self$allEntriesAsList(),
+    allObjectsAsList = function() self$allValuesAsList(),
 
 
 
     #' @description
     #' Alias for `allEntriesAsList()` / `allEntries()`.
-    allObjects       = function() self$allEntries(),
+    allObjects       = function() self$allValues(),
 
 
 
@@ -313,6 +320,16 @@ RSMutableDictionary <- R6::R6Class(
         other$allEntriesAsList()
       )
       return(RSDictionary$new(excluded))
+    },
+
+
+
+    #' @description
+    #' Returns encoding a object, hash_table
+    #' 
+    #' @return List with hash_table
+    objectsForEncoding = function() {
+      list(private$.hash_table, private$.kv_slot)
     }
   )
 )

@@ -71,9 +71,7 @@ RSMutableSet <- R6::R6Class(
     #' Returns the set's contents as a list of `RSObject` instances.
     #'
     #' @return A list of objects.
-    allObjectsAsList = function() {
-      super$allObjectsAsList()
-    },
+    allObjectsAsList = function() super$allObjectsAsList(),
 
 
 
@@ -81,9 +79,15 @@ RSMutableSet <- R6::R6Class(
     #' Returns the contents of the set as an `RSArray` object.
     #'
     #' @return An `RSArray` containing all objects.
-    allObjects = function() {
-      RSArray$new(self$allObjectsAsList())
-    },
+    allObjects = function() RSArray$new(self$allObjectsAsList()),
+
+
+
+    #' @description
+    #' Returns the set's contents as a list of `RSObject` instances.
+    #'
+    #' @return A list of objects.
+    asList = function() super$allObjectsAsList(),
 
 
 

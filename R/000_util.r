@@ -109,9 +109,7 @@ get_pointer_hex <- function(some_obj, obj_name = NULL) {
 #'
 #' @export
 is_robjc_instance <- function(obj) {
-  !is.null(obj) && !is.atomic(obj) && !is.function(obj) &&
-  is.function(obj$class) &&
-  !is.null(obj$class()$robjc_isa)
+  tryCatch(!is.null(obj$class()$robjc_isa), error = function(e) FALSE)
 }
 
 
@@ -140,7 +138,16 @@ is_robjc_instance <- function(obj) {
 #'
 #' @export
 is_robjc_class <- function(obj) {
-  !is.null(obj) &&
-  !is.atomic(obj) &&
-  !is.null(obj$robjc_isa)
+  tryCatch(
+    {
+      if (!is.null(obj$robjc_isa)) return(TRUE)
+      super_class <- obj$get_inherit()
+      while (!is.null(super_class)) {
+        if (identical(super_class, RSObject)) return(TRUE)
+        super_class <- super_class$get_inherit()
+      }
+      return(FALSE)
+    },
+    error = function(e) FALSE
+  )
 }

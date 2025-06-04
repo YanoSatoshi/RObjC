@@ -37,7 +37,7 @@ RSEntryFinder <- R6::R6Class(
     findIndexByLinear = function(entries, target, getter = identity) {
       for (i in seq_along(entries)) {
         probe <- getter(entries[[i]])
-        if (probe$isEqual(target)) return(i)
+        if (probe$isEqual(getter(target))) return(i)
       }
       as.integer(NA)
     },
@@ -70,11 +70,11 @@ RSEntryFinder <- R6::R6Class(
       lo <- 1L
       hi <- length(entries)
       while (lo <= hi) {
-        mid <- bitwShiftR(lo + hi, 1L)
+        mid <- bitwShiftR(lo + hi, 1L) # (lo + hi) >> 1
         probe <- getter(entries[[mid]])
         if (!probe$respondsTo("compare")) break
-        cmp <- probe$compare(target)
-        if (cmp == 0L && probe$isEqual(target)) return(mid)
+        cmp <- probe$compare(getter(target))
+        if (cmp == 0L && probe$isEqual(getter(target))) return(mid)
         if (cmp < 0L) lo <- mid + 1L else hi <- mid - 1L
       }
       as.integer(NA)
