@@ -52,4 +52,19 @@ test_that("RSSet: mutableCopy returns RSMutableSet", {
   mcopy <- s$mutableCopy()
   expect_s3_class(mcopy, "RSMutableSet")
   expect_equal(mcopy$count(), 1)
+
+  mcopy$addObject(RSString$stringWith("n"))
+  expect_equal(s$count(), 1)
+  expect_equal(mcopy$count(), 2)
+})
+
+test_that("RSSet: setWithSet creates independent native storage", {
+  source <- RSMutableSet$new(list(RSString$stringWith("a")))
+  copied <- RSSet$setWithSet(source)
+
+  source$addObject(RSString$stringWith("b"))
+
+  expect_s3_class(copied, "RSSet")
+  expect_equal(copied$count(), 1)
+  expect_true(copied$containsObject(RSString$stringWith("a")))
 })

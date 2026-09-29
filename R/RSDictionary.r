@@ -1,41 +1,36 @@
-#' @title RSDictionary: Immutable Key-Value Store
+#' @title RSDictionary: Native-Backed Immutable Key-Value Store
 #'
 #' @description
-#' `RSDictionary` is an immutable subclass of `RSMutableDictionary`. Its structure is frozen
-#' after initialization, and all mutation methods raise errors. It provides efficient access
-#' via `objectForKey()`, and supports deep copying into mutable or immutable versions.
+#' `RSDictionary` is the immutable counterpart of [RSMutableDictionary]. It uses
+#' the same native-backed storage and lookup behavior, while rejecting every
+#' public mutation operation.
 #'
-#' @note Attempting to use `setObjectForKey()`, `removeObjectForKey()`, or `removeAllObjects()`
-#' will raise an error.
+#' `copy()` returns the receiver. `mutableCopy()` creates independent native
+#' storage that initially references the same key and value objects.
+#'
+#' @section Convenience Constructor:
+#' `RSDictionary$dictionaryWithDictionary(dictionary)` creates an immutable
+#' shallow copy with an independent native table.
 #'
 #' @export
 RSDictionary <- R6::R6Class(
   "RSDictionary",
   inherit = RSMutableDictionary,
   cloneable = FALSE,
-  private = list(
-    .flat = NULL,
-    .freeze = function() {
-      private$.flat <- private$.hash_table$allObjectsAsList()
-      private$.hash_table <- NULL
-    }
-  ),
   public = list(
-
     #' @description
-    #' Constructs an immutable dictionary using one of three formats: a list of key-value pairs,
-    #' an alternating key-value list, or separate key and value lists.
-    #' Keys and values are wrapped and stored in the internal hash table.
-    #'
-    #' @param key_value_pairs A list of `RSKeyValuePair` objects.
-    #' @param objects_and_keys Alternating list of \code{list(key0, value0, key1, value1, ...)}.
-    #' @param keys List or vector of key objects.
-    #' @param values List or vector of value objects.
+    #' Constructs an immutable dictionary from one supported input format.
+    #' @param key_value_pairs A list of [RSKeyValuePair] objects.
+    #' @param objects_and_keys Alternating values and keys, for example
+    #'   `list(value0, key0, value1, key1)`.
+    #' @param keys A collection of keys supplied together with `values`.
+    #' @param values A collection of values supplied together with `keys`.
+    #' @return A new `RSDictionary` instance.
     initialize = function(
-      key_value_pairs  = NULL, # default:          list[RSKeyValuePair] # nolint
-      objects_and_keys = NULL, # alternative:      list[key0, value0, key1, value1, ...] # nolint
-      keys   = NULL,           # give with values: list[key0, key1, ...]
-      values = NULL            # give with keys:   list[value0, value1, ...]
+      key_value_pairs = NULL,
+      objects_and_keys = NULL,
+      keys = NULL,
+      values = NULL
     ) {
       super$initialize(
         key_value_pairs = key_value_pairs,
@@ -43,100 +38,65 @@ RSDictionary <- R6::R6Class(
         keys = keys,
         values = values
       )
-      private$.freeze()
       invisible(self)
     },
 
-
-
-    #' @description
-    #' This method is disabled for immutable `RSDictionary` objects.
-    #' Attempting to call this method will result in an error.
+    #' @description Disabled because the dictionary is immutable.
     #' @param value Ignored.
     #' @param key Ignored.
-    #' @return No return value. Always raises an error.
     setObjectForKey = function(value, key) {
       stop(msg_immutable_try_mutate(self$class()))
     },
 
-
-
-    #' @description
-    #' This method is disabled for immutable `RSDictionary` objects.
-    #' Attempting to call this method will result in an error.
+    #' @description Disabled because the dictionary is immutable.
     #' @param key Ignored.
-    #' @return No return value. Always raises an error.
     removeObjectForKey = function(key) {
       stop(msg_immutable_try_mutate(self$class()))
     },
 
-
-
-    #' @description
-    #' This method is disabled for immutable `RSDictionary` objects.
-    #' Attempting to call this method will result in an error.
-    #' @return No return value. Always raises an error.
+    #' @description Disabled because the dictionary is immutable.
     removeAllObjects = function() {
       stop(msg_immutable_try_mutate(self$class()))
     },
 
-
-
-    #' @description
-    #' Returns the value associated with the specified key, or `NULL` if not found.
-    #' The key is normalized via `.wrapNull()`.
-    #'
-    #' @param key An `RSObject` key.
-    #' @return The corresponding value (`RSObject`), or `NULL`.
-    objectForKey = function(key) {
-      if (is.null(key$isKindOf) || !key$isKindOf(RSObject)) {
-        stop("InvalidArgumentError. Key must be a kind of RSObject class")
-      }
-      hash_val <- key$hash()
-      match <- Find(
-        function(entry) {
-          entry$hash() == hash_val && key$isEqual(entry$key())
-        },
-        private$.flat
-      )
-      if (is.null(match)) return(NULL)
-      match$value()
+    #' @description Disabled because the dictionary is immutable.
+    #' @param entry Ignored.
+    addEntry = function(entry) {
+      stop(msg_immutable_try_mutate(self$class()))
     },
 
-
-
-    #' @description
-    #' Returns a list of all `RSKeyValuePair` entries stored in the dictionary.
-    allEntriesAsList = function() private$.flat,
-
-
-
-    #' @description
-    #' Returns the number of key-value pairs in the dictionary.
-    count = function() {
-      length(private$.flat)
+    #' @description Disabled because the dictionary is immutable.
+    #' @param entry Ignored.
+    removeEntry = function(entry) {
+      stop(msg_immutable_try_mutate(self$class()))
     },
 
+    #' @description Disabled because the dictionary is immutable.
+    removeAllEntries = function() {
+      stop(msg_immutable_try_mutate(self$class()))
+    },
 
+    #' @description Returns the receiver because it is immutable.
+    #' @return `self`.
+    copy = function() self,
 
-    #' @description
-    #' Returns the object itself, since `RSDictionary` is immutable.
-    #'
-    #' This is a no-op copy: the method returns `self`, as immutable
-    #' dictionaries are safe to reuse without duplication.
-    #'
-    #' @return The same `RSDictionary` instance (`self`).
-    copy = function() return(self),
-
-
-
-    #' @description
-    #' Returns the object itself, since `RSDictionary` is immutable.
-    #'
-    #' This is a no-op copy: the method returns `self`, as immutable
-    #' dictionaries are safe to reuse without duplication.
-    #'
-    #' @return The same `RSDictionary` instance (`self`).
-    mutableCopy = function() RSMutableDictionary$new(key_value_pairs = self$allEntriesAsList())
+    #' @description Returns an independent mutable shallow copy.
+    #' @return A new [RSMutableDictionary].
+    mutableCopy = function() {
+      RSMutableDictionary$dictionaryWithDictionary(self)
+    }
   )
 )
+
+# Creates an immutable dictionary with independent native storage.
+RSDictionary$dictionaryWithDictionary <- function(dictionary) {
+  stopifnot(
+    "Object must be a dictionary" =
+      is_robjc_instance(dictionary) &&
+      dictionary$isKindOf(RSMutableDictionary)
+  )
+  .rs_dictionary_with_storage(
+    RSDictionary,
+    .rs_dictionary_storage(dictionary)$duplicate()
+  )
+}

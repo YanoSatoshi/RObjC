@@ -82,6 +82,7 @@ RSObject <- R6::R6Class(
         search_env <- base_env
       }
       private$.__isa <- get(class_name, envir = search_env, inherits = TRUE)
+      # ATTENTION! Now, `private$.__isa` == Environment of class object.
       if (is.null(private$.__isa$robjc_isa)) {
         private$.__isa$robjc_isa <- new.env(parent = emptyenv())
         ## inside robjc_isa ##

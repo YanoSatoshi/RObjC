@@ -116,7 +116,6 @@ map$objects()$count()  # number of instances
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
@@ -124,6 +123,8 @@ map$objects()$count()  # number of instances
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSKeyValuePair" data-id="hash"><a href='../../robjc/html/RSKeyValuePair.html#method-RSKeyValuePair-hash'><code>robjc::RSKeyValuePair$hash()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSKeyValuePair" data-id="isEqual"><a href='../../robjc/html/RSKeyValuePair.html#method-RSKeyValuePair-isEqual'><code>robjc::RSKeyValuePair$isEqual()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSKeyValuePair" data-id="key"><a href='../../robjc/html/RSKeyValuePair.html#method-RSKeyValuePair-key'><code>robjc::RSKeyValuePair$key()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSKeyValuePair" data-id="objectsForEncoding"><a href='../../robjc/html/RSKeyValuePair.html#method-RSKeyValuePair-objectsForEncoding'><code>robjc::RSKeyValuePair$objectsForEncoding()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSKeyValuePair" data-id="setKey"><a href='../../robjc/html/RSKeyValuePair.html#method-RSKeyValuePair-setKey'><code>robjc::RSKeyValuePair$setKey()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSKeyValuePair" data-id="value"><a href='../../robjc/html/RSKeyValuePair.html#method-RSKeyValuePair-value'><code>robjc::RSKeyValuePair$value()</code></a></span></li>
 </ul>
 </details>

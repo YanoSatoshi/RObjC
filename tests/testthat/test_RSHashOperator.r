@@ -8,6 +8,23 @@ test_that("RSHashOperator: computeHashCodeWithString is stable", {
   expect_false(h1 == h3)
 })
 
+test_that("RSHashOperator: scalar hashes are well distributed", {
+  op <- RSHashOperator$module()
+  values <- sprintf("key-%08d", seq_len(1000))
+  hashes <- vapply(values, op$hashForScalar, integer(1))
+
+  expect_false(anyNA(hashes))
+  expect_equal(length(unique(hashes)), length(values))
+})
+
+test_that("RSHashOperator: equal numeric scalars have equal hashes", {
+  op <- RSHashOperator$module()
+
+  expect_equal(op$hashForScalar(1L), op$hashForScalar(1))
+  expect_type(op$hashForScalar(NA_real_), "integer")
+  expect_false(is.na(op$hashForScalar(NA_real_)))
+})
+
 test_that("RSHashOperator: hashesOfEachObject returns correct hashes", {
   nums <- lapply(1:3, RSNumber$numberWith)
   op <- RSHashOperator$module()

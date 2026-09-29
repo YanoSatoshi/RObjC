@@ -103,7 +103,7 @@ added to the encoder's store.
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-An \code{RSClassReference} that holds the class and its instance set.
+The \code{RSInstanceMap} stored for the object's class.
 }
 }
 \if{html}{\out{<hr>}}

@@ -25,31 +25,39 @@ RSHashOperator <- R6::R6Class(
 
 
     #' @description
-    #' Computes a hash for a scalar value by converting it to UTF-8 and applying a position-based bitwise XOR.
+    #' Computes a hash for a scalar value after normalizing it to UTF-8 text.
+    #' Integer and double representations of the same value intentionally produce
+    #' the same hash. Missing values use a stable type-specific marker.
     #' @param val A scalar value (e.g., number, string).
     #' @return An integer hash value.
     hashForScalar = function(val) {
-      str_x <- as.character(val)
-      code_points <- utf8ToInt(str_x)
-      if (length(code_points) == 0) return(0L)
-      shifts  <- bitwShiftR((seq_along(code_points) - 1L), 5L)
-      shifted <- bitwShiftL(code_points, shifts)
-      h <- Reduce(bitwXor, shifted, init = 0L)
-      abs(as.integer(h))
+      if (length(val) != 1L) {
+        stop("val must be a scalar")
+      }
+      string <- if (is.na(val)) {
+        sprintf("<NA:%s>", typeof(val))
+      } else {
+        enc2utf8(as.character(val))
+      }
+      self$computeHashCodeWithString(string)
     },
 
 
     #' @description
-    #' Computes a 32-bit signed integer hash code from a UTF-8 string using a simple hash function.
+    #' Computes a non-negative 31-bit hash code from a UTF-8 string.
+    #' Intermediate calculations use doubles to avoid R integer overflow.
     #' @param string A character string.
     #' @return An integer hash value.
     computeHashCodeWithString = function(string) {
-      chars <- utf8ToInt(string)
-      hash <- 0L
-      for (c in chars) {
-        hash <- bitwAnd(bitwShiftL(hash, 5L) - hash + c, 0x7FFFFFFF)
+      if (length(string) != 1L || is.na(string)) {
+        stop("string must be one non-missing character value")
       }
-      as.integer(bitwAnd(hash, 0x7FFFFFFF))  # cut to signed 32bit
+      chars <- utf8ToInt(enc2utf8(string))
+      hash <- 0
+      for (c in chars) {
+        hash <- (hash * 31 + c) %% 2147483647
+      }
+      as.integer(hash)
     },
 
 
@@ -70,7 +78,7 @@ RSHashOperator <- R6::R6Class(
     #' @return A combined integer
     hashFromObjects = function(objects) {
       hashes <- vapply(objects, function(obj) obj$hash(), integer(1))
-      Reduce(bitwXor, hashes)
+      Reduce(bitwXor, hashes, init = 0L)
     },
 
 
@@ -188,3 +196,4 @@ RSHashOperator <- R6::R6Class(
   )
 )
 register_rs_module(RSHashOperator, RSHashOperator$new(), lock_all = TRUE)
+conform_protocol_to_class(RSHashOperatorProtocol$protocol(), RSHashOperator)

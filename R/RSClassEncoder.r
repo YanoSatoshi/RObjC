@@ -74,7 +74,7 @@ RSClassEncoder <- R6::R6Class(
     #'
     #' @param obj An object conforming to `RSObject` and `RSEncoding`.
     #'
-    #' @return An `RSClassReference` that holds the class and its instance set.
+    #' @return The `RSInstanceMap` stored for the object's class.
     #' @export
     encodingContainer = function(obj) {
       version <- tryCatch(obj$classVersion(), error = function(e) "0.0")
@@ -82,15 +82,16 @@ RSClassEncoder <- R6::R6Class(
       cls_name_var <- RSString$stringWith(
         sprintf("%s_%s", obj$class()$classname, version)
       )
-      entry <- self$class_store$objectForKey(cls_name_var)
-      if (is.null(entry)) {
+      instance_map <- self$class_store$objectForKey(cls_name_var)
+      if (is.null(instance_map)) {
         klass <- obj$class()
         wrapped <- RSWrappedClass$new(klass)
-        entry <- RSClassReference$new(wrapped, list())
+        reference <- RSClassReference$new(wrapped, list())
+        instance_map <- reference$instanceMap()
         assign(get_pointer_hex(klass), TRUE, envir = self$visited_env)
-        self$class_store$addEntry(entry)
+        self$class_store$addEntry(reference)
       }
-      return(entry)
+      return(instance_map)
     },
 
 
@@ -111,8 +112,8 @@ RSClassEncoder <- R6::R6Class(
       if (exists(oid, envir = self$visited_env, inherits = FALSE)) {
         return(invisible(NULL))
       }
-      container <- self$encodingContainer(obj) # RSClassReference
-      container$instanceMap()$objects()$addObject(obj)
+      container <- self$encodingContainer(obj) # RSInstanceMap
+      container$objects()$addObject(obj)
       assign(oid, TRUE, envir = self$visited_env)
       for (child in obj$objectsForEncoding()) {
         self$encodeObject(child)
@@ -132,10 +133,7 @@ RSClassEncoder <- R6::R6Class(
     #' @return A frozen `RSDictionary` of all encoded classes and their instances.
     #' @export
     lockInstance = function() {
-      # get list of RSClassReferences.
-      references <- self$class_store$allEntriesAsList()
-      # get list of RSInstanceMaps.
-      instance_maps <- lapply(references, function(ref) ref$instanceMap())
+      instance_maps <- self$class_store$allValuesAsList()
       # prepare class list
       add_class_safely <- function(cls) {
         ## only for class use not instance use

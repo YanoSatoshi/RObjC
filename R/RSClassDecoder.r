@@ -53,8 +53,9 @@ RSClassDecoder <- R6::R6Class(
 
 
     #' @description
-    #' Return all stored RSClassReference entries as a list
-    #' @return A named list of RSClassReference
+    #' Return all encoded class mappings as key-value pairs.
+    #' @return A list of `RSKeyValuePair` objects whose values are
+    #'   `RSInstanceMap` objects.
     encodedClasses = function() {
       stopifnot(!is.null(self$class_store))
       return(self$class_store$allEntriesAsList())
@@ -69,7 +70,7 @@ RSClassDecoder <- R6::R6Class(
     encodedClassIDs = function() {
       vapply(
         self$encodedClasses(),
-        function(wrapped) wrapped$classID()$value(),
+        function(entry) entry$key()$value(),
         character(1)
       )
     },
@@ -92,10 +93,10 @@ RSClassDecoder <- R6::R6Class(
     resolveClassesWithDictionary = function(class_map) {
       stopifnot(class_map$isKindOf(RSMutableDictionary))
       self$unresolved <- character(0)
-      references <- self$encodedClasses()
-      for (ref in references) {
-        instance_map <- ref$instanceMap()
-        class_id     <- ref$classID()$value()
+      entries <- self$encodedClasses()
+      for (entry in entries) {
+        instance_map <- entry$value()
+        class_id <- entry$key()$value()
         new_class    <- class_map$objectForKey(RSString$stringWith(class_id))
         if (is.null(new_class)) {
           self$unresolved <- c(self$unresolved, class_id)
@@ -128,9 +129,9 @@ RSClassDecoder <- R6::R6Class(
     #' @return The decoder object (invisible).
     unpackTo = function(envir = .GlobalEnv) {
       stopifnot(!is.null(self$class_store))
-      references <- self$encodedClasses()
-      for (ref in references) {
-        map <- ref$instanceMap()
+      entries <- self$encodedClasses()
+      for (entry in entries) {
+        map <- entry$value()
         instances <- map$objects()$allObjectsAsList()
         for (obj in instances) {
           obj_name <- obj$objectID()

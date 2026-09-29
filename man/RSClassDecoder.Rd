@@ -95,13 +95,14 @@ Load encoded class map (from encoder) into internal state
 \if{html}{\out{<a id="method-RSClassDecoder-encodedClasses"></a>}}
 \if{latex}{\out{\hypertarget{method-RSClassDecoder-encodedClasses}{}}}
 \subsection{Method \code{encodedClasses()}}{
-Return all stored RSClassReference entries as a list
+Return all encoded class mappings as key-value pairs.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSClassDecoder$encodedClasses()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
-A named list of RSClassReference
+A list of \code{RSKeyValuePair} objects whose values are
+\code{RSInstanceMap} objects.
 }
 }
 \if{html}{\out{<hr>}}

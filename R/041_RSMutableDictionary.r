@@ -1,17 +1,22 @@
-#' @title RSMutableDictionary: Hash-Based Mutable Key-Value Store
+#' @title RSMutableDictionary: Native-Backed Mutable Key-Value Store
 #'
 #' @description
-#' `RSMutableDictionary` is a mutable, unordered key-value container in which both keys
-#' and values must be `RSObject`s. Internally, it uses an `RSDynamicHash` containing
-#' `RSKeyValuePair` entries. Keys are hashed and compared using `hash()` and `isEqual()`.
+#' `RSMutableDictionary` is a mutable, unordered key-value container. Keys and
+#' values are `RSObject` instances, with R `NULL` represented by [RSNull].
+#' Storage is delegated to the internal [RSConcreteDictionary] adapter.
 #'
-#' All keys and values are wrapped via `.wrapNull()` to support `RSNull`, and keys are
-#' copied using `copy()` to maintain independence of reference.
+#' Keys are copied when inserted through `setObjectForKey()`. Copies of a
+#' dictionary duplicate the native table but continue to reference the same
+#' key and value objects.
 #'
 #' @section Supported Initializations:
-#' - `key_value_pairs`: list of `RSKeyValuePair`
-#' - `objects_and_keys`: alternating key-value sequence list
-#' - `keys` + `values`: paired vectors or lists
+#' - `key_value_pairs`: a list of [RSKeyValuePair] objects.
+#' - `objects_and_keys`: alternating values and keys.
+#' - `keys` and `values`: separate collections of equal length.
+#'
+#' @section Convenience Constructor:
+#' `RSMutableDictionary$dictionaryWithDictionary(dictionary)` creates a mutable
+#' shallow copy with an independent native table.
 #'
 #' @export
 RSMutableDictionary <- R6::R6Class(
@@ -19,319 +24,307 @@ RSMutableDictionary <- R6::R6Class(
   cloneable = FALSE,
   inherit = RSObject,
   private = list(
-    .kv_slot = NULL,
-    .hash_table = NULL,
-    .wrapNull = function(some) {
-      if (is.null(some)) return(RSNull$null())
-      if (is_robjc_instance(some)) return(some)
-      stop(sprintf("Unsupported key type: %s", class(some)[1]))
+    .storage = NULL,
+
+    .wrapNull = function(object) {
+      if (is.null(object)) return(RSNull$null())
+      if (is_robjc_instance(object)) return(object)
+      stop(sprintf("Unsupported object type: %s", class(object)[1]))
+    },
+
+    .storeObjectForKey = function(value, key, copy_key = TRUE) {
+      key <- private$.wrapNull(key)
+      value <- private$.wrapNull(value)
+      if (copy_key) key <- key$copy()
+      private$.storage$set(key, value)
+      invisible(self)
     }
   ),
   public = list(
     #' @description
-    #' Constructs a dictionary using one of three formats: a list of key-value pairs,
-    #' an alternating key-value list, or separate key and value lists.
-    #' Keys and values are wrapped and stored in the internal hash table.
-    #'
-    #' @param key_value_pairs A list of `RSKeyValuePair` objects.
-    #' @param objects_and_keys Alternating list of \code{list(key0, value0, key1, value1, ...)}.
-    #' @param keys List or vector of key objects.
-    #' @param values List or vector of value objects.
+    #' Constructs a mutable dictionary from one supported input format.
+    #' With no arguments, constructs an empty dictionary.
+    #' @param key_value_pairs A list of [RSKeyValuePair] objects.
+    #' @param objects_and_keys Alternating values and keys, for example
+    #'   `list(value0, key0, value1, key1)`.
+    #' @param keys A collection of keys supplied together with `values`.
+    #' @param values A collection of values supplied together with `keys`.
+    #' @return A new `RSMutableDictionary` instance.
     initialize = function(
-      key_value_pairs  = NULL, # default:          list[RSKeyValuePair] # nolint
-      objects_and_keys = NULL, # alternative:      list[key0, value0, key1, value1, ...] #nolint
-      keys   = NULL,           # give with values: list[key0, key1, ...]
-      values = NULL            # give with keys:   list[value0, value1, ...]
+      key_value_pairs = NULL,
+      objects_and_keys = NULL,
+      keys = NULL,
+      values = NULL
     ) {
-      is_kv_pair  <- !is.null(key_value_pairs)
-      is_alt_list <- !is.null(objects_and_keys)
-      is_separate <- !is.null(keys) && !is.null(values)
-      if (sum(is_kv_pair, is_alt_list, is_separate) > 1) {
-        stop("Choose a initializing by key_value_pairs or objects_and_keys, or 'keys and values'") # nolint
+      has_pairs <- !is.null(key_value_pairs)
+      has_alternating <- !is.null(objects_and_keys)
+      has_keys <- !is.null(keys)
+      has_values <- !is.null(values)
+      has_separate <- has_keys && has_values
+
+      if (xor(has_keys, has_values)) {
+        stop("Keys and values must be provided together.")
       }
+      if (sum(has_pairs, has_alternating, has_separate) > 1L) {
+        stop(paste(
+          "Choose one initialization format:",
+          "key_value_pairs, objects_and_keys, or keys and values."
+        ))
+      }
+
       super$initialize()
-      private$.hash_table <- RSDynamicHash$new(key_getter = function(obj) obj$key())
-      private$.kv_slot <- RSKeyValuePair$new(RSNull$null(), RSNull$null())
-      if (sum(is_kv_pair, is_alt_list, is_separate) == 0) {
-        # returns empty dict
-        return(invisible(self))
-      }
-      if (!is_kv_pair && is_alt_list) {
+      private$.storage <- RSConcreteDictionary$new()
+
+      if (has_alternating) {
         objects_and_keys <- cast_rs_storage_to_list(objects_and_keys)
-        if (length(objects_and_keys) %% 2 != 0) {
+        if (length(objects_and_keys) %% 2L != 0L) {
           stop("Length of 'objects_and_keys' must be even.")
         }
-        values <- objects_and_keys[seq(1, length(objects_and_keys), by = 2)]
-        keys   <- objects_and_keys[seq(2, length(objects_and_keys), by = 2)]
-        is_separate <- TRUE
+        positions <- seq_along(objects_and_keys)
+        values <- objects_and_keys[positions %% 2L == 1L]
+        keys <- objects_and_keys[positions %% 2L == 0L]
+        has_separate <- TRUE
       }
-      if (!is_kv_pair && is_separate) {
+
+      if (has_separate) {
         keys <- cast_rs_storage_to_list(keys)
         values <- cast_rs_storage_to_list(values)
         if (length(keys) != length(values)) {
           stop("Keys and values must have same length.")
         }
-        key_value_pairs <- mapply(
-          function(k, v) {
-            RSKeyValuePair$new(
-              private$.wrapNull(k), private$.wrapNull(v)
-            )
+        for (i in seq_along(keys)) {
+          private$.storeObjectForKey(values[[i]], keys[[i]])
+        }
+      }
+
+      if (has_pairs) {
+        key_value_pairs <- cast_rs_storage_to_list(key_value_pairs)
+        valid <- vapply(
+          key_value_pairs,
+          function(pair) {
+            is_robjc_instance(pair) && pair$isKindOf(RSKeyValuePair)
           },
-          keys, values, SIMPLIFY = FALSE
+          logical(1)
         )
+        if (!all(valid)) {
+          stop("InvalidArgumentError. 'key_value_pairs' are contaminated!")
+        }
+        for (entry in key_value_pairs) {
+          private$.storeObjectForKey(entry$value(), entry$key())
+        }
       }
-      # finally
-      key_value_pairs <- cast_rs_storage_to_list(key_value_pairs)
-      if (is.null(key_value_pairs)) return(NULL)
-      contamination <- vapply(
-        key_value_pairs,
-        function(pair) {
-          isTRUE(
-            pair$isMemberOf(RSKeyValuePair) || pair$isKindOf(RSKeyValuePair)
-          )
-        }, logical(1)
-      )
-      if (!all(contamination)) {
-        stop("InvalidArgumentError. 'key_value_pairs' are contaminated!")
-      }
-      for (entry in key_value_pairs) private$.hash_table$setObject(entry)
-      return(invisible(self))
+
+      invisible(self)
     },
 
-
-
-    #' @description
-    #' Sets a value for the given key.  
-    #' The key is copied using `copy()` and stored with the wrapped value in a key-value pair.
-    #' If the key already exists, the value is replaced.
-    #'
-    #' @param value An `RSObject` to store.
-    #' @param key An `RSObject` that serves as the key.
+    #' @description Inserts or replaces a value for a key.
+    #' @param value An `RSObject` value, or `NULL`.
+    #' @param key An `RSObject` key, or `NULL`.
+    #' @return `self`, invisibly.
     setObjectForKey = function(value, key) {
-      entry <- RSKeyValuePair$new(
-        private$.wrapNull(key)$copy(), private$.wrapNull(value)
-      )
-      private$.hash_table$setObject(entry)
+      private$.storeObjectForKey(value, key)
     },
 
-
-
-    #' @description
-    #' Returns the value associated with the specified key, or `NULL` if not found.
-    #' The key is normalized via `.wrapNull()`.
-    #'
-    #' @param key An `RSObject` key.
-    #' @return The corresponding value (`RSObject`), or `NULL`.
+    #' @description Returns the value associated with a key.
+    #' @param key An `RSObject` key, or `NULL`.
+    #' @return The stored object, or `NULL` if the key is absent.
     objectForKey = function(key) {
-      stopifnot(is_robjc_instance(key))
-      private$.kv_slot$setKey(key)
-      found <- private$.hash_table$getObject(private$.kv_slot)
-      if (is.null(found)) return(NULL)
-      return(found$value())
+      private$.storage$get(private$.wrapNull(key))
     },
 
+    #' @description Tests whether a key is present.
+    #' @param key An `RSObject` key, or `NULL`.
+    #' @return A logical scalar.
+    containsKey = function(key) {
+      private$.storage$contains(private$.wrapNull(key))
+    },
 
-
-    #' @description
-    #' Removes the key-value pair associated with the given key, if present.
-    #'
-    #' @param key An `RSObject` to be removed.
+    #' @description Removes the value associated with a key, if present.
+    #' @param key An `RSObject` key, or `NULL`.
+    #' @return `self`, invisibly.
     removeObjectForKey = function(key) {
-      stopifnot(is_robjc_instance(key))
-      private$.kv_slot$setKey(key)
-      found <- private$.hash_table$getObject(private$.kv_slot)
-      if (!is.null(found)) private$.hash_table$removeObject(found)
+      private$.storage$remove(private$.wrapNull(key))
+      invisible(self)
     },
 
-
-
-    #' @description
-    #' Clears all key-value pairs from the dictionary.
+    #' @description Removes every entry.
+    #' @return `self`, invisibly.
     removeAllObjects = function() {
-      private$.hash_table <- RSDynamicHash$new()
+      private$.storage$clear()
+      invisible(self)
     },
 
-
-    #' @description
-    #' Add an entry
-    #' 
-    #' @param entry An `RSKeyValuePair` to add
+    #' @description Adds or replaces an [RSKeyValuePair].
+    #' @param entry An `RSKeyValuePair` object.
+    #' @return `self`, invisibly.
     addEntry = function(entry) {
       stopifnot(
-        "Entry must be a kind of RSKeyValuePair"
-        = entry$isKindOf(RSKeyValuePair)
+        "Entry must be a kind of RSKeyValuePair" =
+          is_robjc_instance(entry) && entry$isKindOf(RSKeyValuePair)
       )
-      private$.hash_table$setObject(entry)
+      private$.storeObjectForKey(entry$value(), entry$key(), copy_key = FALSE)
     },
 
-
-    #' @description
-    #' Remove an entry
-    #' 
-    #' @param entry An `RSKeyValuePair` to remove
+    #' @description Removes the entry with the supplied pair's key.
+    #' @param entry An `RSKeyValuePair` object.
+    #' @return `self`, invisibly.
     removeEntry = function(entry) {
-      found <- private$.hash_table$getObject(entry)
-      if (!is.null(found)) private$.hash_table$removeObject(found)
+      stopifnot(
+        "Entry must be a kind of RSKeyValuePair" =
+          is_robjc_instance(entry) && entry$isKindOf(RSKeyValuePair)
+      )
+      self$removeObjectForKey(entry$key())
     },
 
+    #' @description Removes every entry.
+    #' @return `self`, invisibly.
+    removeAllEntries = function() self$removeAllObjects(),
 
+    #' @description Returns all entries as [RSKeyValuePair] objects.
+    #' @return A list in unspecified order.
+    asList = function() self$allEntriesAsList(),
 
-    #' @description
-    #' Clears all key-value pairs from the dictionary.
-    removeAllEntries = function() {
-      private$.hash_table <- RSDynamicHash$new()
+    #' @description Returns all entries as [RSKeyValuePair] objects.
+    #' @return A list in unspecified order.
+    allEntriesAsList = function() {
+      keys <- private$.storage$keys()
+      values <- private$.storage$values()
+      Map(RSKeyValuePair$new, keys, values)
     },
 
+    #' @description Returns all entries as an [RSArray].
+    #' @return An `RSArray`.
+    allEntries = function() RSArray$new(self$allEntriesAsList()),
 
-    #' @description
-    #' Returns a list of all `RSKeyValuePair` entries stored in the dictionary.
-    asList = function() private$.hash_table$allObjectsAsList(),
+    #' @description Returns all keys as a list.
+    #' @return A list in unspecified order.
+    allKeysAsList = function() private$.storage$keys(),
 
-
-
-    #' @description
-    #' Returns a list of all `RSKeyValuePair` entries stored in the dictionary.
-    allEntriesAsList = function() private$.hash_table$allObjectsAsList(),
-
-
-
-    #' @description
-    #' Returns the entries as an `RSArray` object.
-    allEntries       = function() RSArray$new(self$allEntriesAsList()),
-
-
-
-    #' @description
-    #' Returns a list of all keys in the dictionary.
-    allKeysAsList = function() {
-      lapply(self$allEntriesAsList(), function(e) e$key())
-    },
-
-
-
-    #' @description
-    #' Returns the keys as an `RSArray`.
+    #' @description Returns all keys as an [RSArray].
+    #' @return An `RSArray`.
     allKeys = function() RSArray$new(self$allKeysAsList()),
 
+    #' @description Returns all values as a list.
+    #' @return A list corresponding to `allKeysAsList()` when unmodified.
+    allValuesAsList = function() private$.storage$values(),
 
+    #' @description Returns all values as an [RSArray].
+    #' @return An `RSArray`.
+    allValues = function() RSArray$new(self$allValuesAsList()),
 
-    #' @description
-    #' Returns a list of all values in the dictionary.
-    allValuesAsList  = function() {
-      lapply(self$allEntriesAsList(), function(e) e$value())
-    },
-
-
-
-    #' @description
-    #' Returns the values as an `RSArray`.
-    allValues        = function() RSArray$new(self$allValuesAsList()),
-
-
-
-    #' @description
-    #' Alias for `allEntriesAsList()` / `allEntries()`.
+    #' @description Alias for `allValuesAsList()`.
+    #' @return A list of values.
     allObjectsAsList = function() self$allValuesAsList(),
 
+    #' @description Alias for `allValues()`.
+    #' @return An `RSArray` of values.
+    allObjects = function() self$allValues(),
 
+    #' @description Returns the number of entries.
+    #' @return A non-negative numeric scalar.
+    count = function() private$.storage$count(),
 
-    #' @description
-    #' Alias for `allEntriesAsList()` / `allEntries()`.
-    allObjects       = function() self$allValues(),
+    #' @description Returns an immutable shallow copy.
+    #' @return A new [RSDictionary].
+    copy = function() RSDictionary$dictionaryWithDictionary(self),
 
-
-
-    #' @description
-    #' Returns the number of key-value pairs in the dictionary.
-    count = function() {
-      private$.hash_table$count()
+    #' @description Returns an independent mutable shallow copy.
+    #' @return A new `RSMutableDictionary`.
+    mutableCopy = function() {
+      RSMutableDictionary$dictionaryWithDictionary(self)
     },
 
+    #' @description Computes an order-independent hash from the dictionary keys.
+    #' @return An integer hash value.
+    hash = function() private$.storage$contentHash(),
 
+    #' @description Compares two dictionaries by keys and values.
+    #' @param other Another dictionary.
+    #' @return `TRUE` when both mappings are equal.
+    isEqual = function(other) {
+      if (!is_robjc_instance(other) ||
+          !other$isKindOf(RSMutableDictionary) ||
+          self$count() != other$count()) {
+        return(FALSE)
+      }
+      for (key in self$allKeysAsList()) {
+        if (!other$containsKey(key)) return(FALSE)
+        if (!isTRUE(self$objectForKey(key)$isEqual(other$objectForKey(key)))) {
+          return(FALSE)
+        }
+      }
+      TRUE
+    },
 
-    #' @description
-    #' Returns an immutable `RSDictionary` copy of the current dictionary.
-    #' 
-    #' This performs a shallow copy: all key-value pairs are reused as-is,
-    #' and a new `RSDictionary` instance is created as the immutable wrapper.
-    #'
-    #' This method is typically used to freeze a mutable dictionary.
-    #'
-    #' @return A new `RSDictionary` instance.
-    copy = function() RSDictionary$new(key_value_pairs = self$allEntriesAsList()),
-
-
-
-    #' @description
-    #' Returns a mutable copy of the dictionary as an `RSMutableDictionary`.
-    #' 
-    #' This performs a shallow copy: key-value pairs are preserved, but
-    #' the wrapper is recreated. If the original is already mutable, this may
-    #' return `self` depending on the desired semantics.
-    #'
-    #' @return A new `RSMutableDictionary` instance.
-    mutableCopy = function() RSMutableDictionary$new(key_value_pairs = self$allEntriesAsList()),
-
-
-
-    #' @description
-    #' Returns a concise textual representation of the mutable dictionary object.
-    #' The output includes the class name, a hexadecimal pointer string identifying the instance,
-    #' and the numbers of entries.
-    #' 
-    #' @param ... ignored.
+    #' @description Returns a concise textual representation.
+    #' @param ... Ignored.
+    #' @return A character scalar.
     description = function(...) {
-      paste(
-        super$description(),
-        sprintf("%d entries", self$count())
-      )
+      paste(super$description(), sprintf("%d entries", self$count()))
     },
 
-
-
-    #' @description
-    #' Returns a merged immutable dictionary containing all entries from this and another dictionary.
-    #' Conflicting keys will prefer entries from `other`.
-    #'
-    #' @param other Another `RSMutableDictionary`.
-    #' @return An `RSDictionary` instance.
-    dictionaryByMergingWithDictionary  = function(other) {
-      stopifnot(other$isKindOf(RSMutableDictionary))
-      helper <- private$.hash_table$hash_operator
-      merged <- helper$unionOfSets(
-        self$allEntriesAsList(),
-        other$allEntriesAsList()
+    #' @description Returns an immutable merge; values from `other` win.
+    #' @param other Another dictionary.
+    #' @return A new [RSDictionary].
+    dictionaryByMergingWithDictionary = function(other) {
+      stopifnot(
+        "Other must be a dictionary" =
+          is_robjc_instance(other) && other$isKindOf(RSMutableDictionary)
       )
-      return(RSDictionary$new(merged))
+      merged <- self$mutableCopy()
+      for (entry in other$allEntriesAsList()) merged$addEntry(entry)
+      merged$copy()
     },
 
-
-
-    #' @description
-    #' Returns a new immutable dictionary excluding keys found in `other`.
-    #'
-    #' @param other Another `RSMutableDictionary`.
-    #' @return An `RSDictionary` instance.
+    #' @description Returns an immutable copy excluding keys found in `other`.
+    #' @param other Another dictionary.
+    #' @return A new [RSDictionary].
     dictionaryByExcludingWithDictionary = function(other) {
-      stopifnot(other$isKindOf(RSMutableDictionary))
-      helper <- private$.hash_table$hash_operator
-      excluded <- helper$differenceOfSets(
-        self$allEntriesAsList(),
-        other$allEntriesAsList()
+      stopifnot(
+        "Other must be a dictionary" =
+          is_robjc_instance(other) && other$isKindOf(RSMutableDictionary)
       )
-      return(RSDictionary$new(excluded))
+      result <- self$mutableCopy()
+      for (key in other$allKeysAsList()) result$removeObjectForKey(key)
+      result$copy()
     },
 
+    #' @description Returns the dictionary entries required for encoding.
+    #' @return A list of [RSKeyValuePair] objects.
+    objectsForEncoding = function() self$allEntriesAsList(),
 
-
-    #' @description
-    #' Returns encoding a object, hash_table
-    #' 
-    #' @return List with hash_table
-    objectsForEncoding = function() {
-      list(private$.hash_table, private$.kv_slot)
+    #' @description Captures native storage for R serialization.
+    #' @return `self`, invisibly.
+    prepareForSerialization = function() {
+      private$.storage$prepareForSerialization()
+      invisible(self)
     }
   )
 )
 conform_protocol_to_class(RSMutableCopying$protocol(), RSMutableDictionary)
 conform_protocol_to_class(RSCopying$protocol(), RSMutableDictionary)
+
+
+.rs_dictionary_storage <- function(dictionary) {
+  dictionary$.__enclos_env__$private$.storage
+}
+
+.rs_dictionary_with_storage <- function(generator, storage) {
+  stopifnot(inherits(storage, "RSConcreteDictionary"))
+  result <- generator$new()
+  result$.__enclos_env__$private$.storage <- storage
+  result
+}
+
+# Creates a mutable dictionary with independent native storage.
+RSMutableDictionary$dictionaryWithDictionary <- function(dictionary) {
+  stopifnot(
+    "Object must be a dictionary" =
+      is_robjc_instance(dictionary) &&
+      dictionary$isKindOf(RSMutableDictionary)
+  )
+  .rs_dictionary_with_storage(
+    RSMutableDictionary,
+    .rs_dictionary_storage(dictionary)$duplicate()
+  )
+}

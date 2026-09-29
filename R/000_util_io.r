@@ -199,6 +199,22 @@ can_resolve_class <- function(old_cls, new_cls) {
 }
 
 
+.prepare_native_collections_for_serialization <- function(metadata) {
+  for (instance_map in metadata$allValuesAsList()) {
+    objects <- instance_map$objects()
+    for (object in objects$allObjectsAsList()) {
+      if (object$isKindOf(RSMutableDictionary) ||
+          object$isKindOf(RSMutableSet)) {
+        object$prepareForSerialization()
+      }
+    }
+    objects$prepareForSerialization()
+  }
+  metadata$prepareForSerialization()
+  invisible(metadata)
+}
+
+
 
 
 
@@ -234,6 +250,7 @@ robjc_encode_and_save <- function(objects,
     if (is_robjc_instance(obj)) encoder$encodeObject(obj)
   }
   metadata <- encoder$lockInstance()
+  .prepare_native_collections_for_serialization(metadata)
   # construct save env
   save_env <- list2env(
     c(objects, list(.__rs_encoded_data__ = metadata)),
@@ -313,7 +330,7 @@ robjc_save <- function(...,
 #' @param ascii Passed to `save()`
 #' @param version Passed to `save()`
 #' @param compress Passed to `save()`
-#' @param compression_level Passed to `save()`
+#' @param safe Reserved for compatibility. It currently has no effect.
 #'
 #' @seealso [robjc_save()], [base::save.image()]
 #'
@@ -382,6 +399,7 @@ robjc_save_rds <- function(object,
   encoder$refresh()
   encoder$encodeObject(object)
   metadata <- encoder$lockInstance()
+  .prepare_native_collections_for_serialization(metadata)
   wrapped <- list(
     `__object__` = object,
     `__robjc__`  = metadata

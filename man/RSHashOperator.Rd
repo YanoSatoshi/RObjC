@@ -68,7 +68,9 @@ Constructor - must be called once per module
 \if{html}{\out{<a id="method-RSHashOperator-hashForScalar"></a>}}
 \if{latex}{\out{\hypertarget{method-RSHashOperator-hashForScalar}{}}}
 \subsection{Method \code{hashForScalar()}}{
-Computes a hash for a scalar value by converting it to UTF-8 and applying a position-based bitwise XOR.
+Computes a hash for a scalar value after normalizing it to UTF-8 text.
+Integer and double representations of the same value intentionally produce
+the same hash. Missing values use a stable type-specific marker.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSHashOperator$hashForScalar(val)}\if{html}{\out{</div>}}
 }
@@ -88,7 +90,8 @@ An integer hash value.
 \if{html}{\out{<a id="method-RSHashOperator-computeHashCodeWithString"></a>}}
 \if{latex}{\out{\hypertarget{method-RSHashOperator-computeHashCodeWithString}{}}}
 \subsection{Method \code{computeHashCodeWithString()}}{
-Computes a 32-bit signed integer hash code from a UTF-8 string using a simple hash function.
+Computes a non-negative 31-bit hash code from a UTF-8 string.
+Intermediate calculations use doubles to avoid R integer overflow.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSHashOperator$computeHashCodeWithString(string)}\if{html}{\out{</div>}}
 }

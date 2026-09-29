@@ -24,7 +24,7 @@ robjc_save_image(
 
 \item{compress}{Passed to \code{save()}}
 
-\item{compression_level}{Passed to \code{save()}}
+\item{safe}{Reserved for compatibility. It currently has no effect.}
 }
 \description{
 Saves all objects in the given environment along with robjc metadata.

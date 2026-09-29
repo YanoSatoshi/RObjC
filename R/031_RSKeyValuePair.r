@@ -1,32 +1,29 @@
-#' @title Abstract Class for Key-Value Pair
+#' @title Key-Value Pair Class
 #'
 #' @description
-#' `RSKeyValuePair` defines an abstract base class for representing a key-value pair structure
-#' used in robjc's dictionary-like containers. This class provides the minimal core logic for
-#' key-value encapsulation, including accessors and equality/hash operations based solely on the key.
+#' `RSKeyValuePair` is a concrete class representing a key-value pair used in dictionary-like containers
+#' within the `robjc` object system. The key and value must both be instances of `RSObject`.
 #'
-#' Subclasses of `RSKeyValuePair` are responsible for enforcing type or protocol constraints.
-#' For example:
-#' - `RSClassReference` requires the key to conform to the `RSEncoding` protocol.
-#'
-#' This class itself does not perform any protocol checks or validation; it simply stores and compares keys and values.
+#' The class provides read-only accessors for the key and value. Equality and hashing are based
+#' solely on the key, which allows consistent behavior in hashed containers such as dictionaries or sets.
 #'
 #' @section Inheritance:
-#' This class inherits from `RSObject` and is not intended to be instantiated directly.
+#' Inherits from [`RSObject`]. Unlike earlier versions, this class is now concrete and can be instantiated directly.
 #'
 #' @section Fields:
-#' - `key()`: Returns the key object (read-only).
-#' - `value()`: Returns the value object (read-only).
+#' - `key()`: Returns the key object.
+#' - `value()`: Returns the value object.
 #'
 #' @section Methods:
+#' - `setKey(key)`: Replaces the key if the value is `RSNull`. Used during internal construction in mutable dictionaries.
 #' - `isEqual(other)`: Compares equality based on the key only.
 #' - `hash()`: Computes a hash value derived from the key.
+#' - `objectsForEncoding()`: Returns both key and value as a list for serialization.
 #'
-#' @return An abstract class definition. Do not instantiate directly.
+#' @return A concrete instance of `RSKeyValuePair`.
 #'
-#' @seealso [RSKeyValuePair], [RSClassReference]
+#' @seealso [RSObject], [RSClassReference]
 #'
-#' @keywords internal
 RSKeyValuePair <- R6::R6Class(
   "RSKeyValuePair",
   inherit = RSObject,
@@ -64,13 +61,28 @@ RSKeyValuePair <- R6::R6Class(
 
 
     #' @description
-    #' @param key Replacing key
-    #' @note Method for Dictionary slot instance.
+    #' Replaces the key object in this key-value pair.
+    #' This operation is only allowed when the value is \code{RSNull}, which signals that the pair is in a reusable placeholder state.
+    #'
+    #' This method is primarily intended for internal use in dictionary containers.
+    #' Dictionaries often reuse a single \code{RSKeyValuePair} instance with an \code{RSNull} value
+    #' to perform temporary lookups without allocating a new object each time.
+    #'
+    #' @param key An \code{RSObject} to be used as the new key.
+    #'
+    #' @note
+    #' The key can only be replaced if the value is \code{RSNull}. Attempting to change the key
+    #' when the value is bound to a non-null object will result in an error.
+    #'
     #' @examples
-    #' pair <- RSKeyValuePair$new(RSNull$null(), RSNull$null())
-    #' pair$setKey(RSString$new("some_key"))  # OK
+    #' # Safe usage for dictionary lookups
+    #' pair <- robjc:::RSKeyValuePair$new(RSNull$null(), RSNull$null())
+    #' pair$setKey(RSString$stringWith("some_key"))
+    #'
     #' \dontrun{
-    #' pair$setValue(RSNumber$new(123))       # NO: no setValue method
+    #' # This would raise an error
+    #' pair <- RSKeyValuePair$new(RSString$new("a"), RSNumber$new(123))
+    #' pair$setKey(RSString$new("b"))         # Error: not allowed when value is non-null
     #' }
     setKey = function(key) {
       if (!identical(private$.value, RSNull$null())) {
