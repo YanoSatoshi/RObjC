@@ -45,6 +45,9 @@ RSFactor <- R6::R6Class(
     initialize = function(val) {
       if (!is.factor(val)) stop("RSFactor can only wrap factor values.")
       super$initialize(as.character(val))
+      if (is.na(val) && self$isMemberOf(RSFactor)) {
+        stop("Use RSNAFactor$new() for NA factor.")
+      }
       private$.levels  <- levels(val)
       private$.ordered <- is.ordered(val)
       invisible(self)

@@ -8,15 +8,15 @@
 #' @return A `list` if conversion is successful; otherwise, returns the input object as-is.
 #' @examples
 #' # Assuming `x` is an RSObject that supports asList:
-#' # cast_ry_storage_to_list(x)
-#' @export
-cast_ry_storage_to_list <- function(objects) {
-  if (
-    !is.null(objects$isKindOf) &&
-    objects$isKindOf(RSObject) && # nolint
-    objects$respondsTo("asList")
-  )  return(objects$asList())
-  return(objects)
+#' # cast_rs_storage_to_list(x)
+#' 
+#' @keywords internal
+cast_rs_storage_to_list <- function(objects) {
+  if (is.list(objects)) return(objects)
+  stopifnot("Object is not kind of RSObject" = is_robjc_instance(objects))
+  if (objects$respondsTo("asList")) {
+    return(objects$asList())
+  } else {return(NULL)}
 }
 
 

@@ -2,16 +2,21 @@
 % Please edit documentation in R/RSDictionary.r
 \name{RSDictionary}
 \alias{RSDictionary}
-\title{RSDictionary: Immutable Key-Value Store}
+\title{RSDictionary: Native-Backed Immutable Key-Value Store}
 \description{
-\code{RSDictionary} is an immutable subclass of \code{RSMutableDictionary}. Its structure is frozen
-after initialization, and all mutation methods raise errors. It provides efficient access
-via \code{objectForKey()}, and supports deep copying into mutable or immutable versions.
+\code{RSDictionary} is the immutable counterpart of \link{RSMutableDictionary}. It uses
+the same native-backed storage and lookup behavior, while rejecting every
+public mutation operation.
+
+\code{copy()} returns the receiver. \code{mutableCopy()} creates independent native
+storage that initially references the same key and value objects.
 }
-\note{
-Attempting to use \code{setObjectForKey()}, \code{removeObjectForKey()}, or \code{removeAllObjects()}
-will raise an error.
+\section{Convenience Constructor}{
+
+\code{RSDictionary$dictionaryWithDictionary(dictionary)} creates an immutable
+shallow copy with an independent native table.
 }
+
 \section{Super classes}{
 \code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{\link[robjc:RSMutableDictionary]{robjc::RSMutableDictionary}} -> \code{RSDictionary}
 }
@@ -22,35 +27,47 @@ will raise an error.
 \item \href{#method-RSDictionary-setObjectForKey}{\code{RSDictionary$setObjectForKey()}}
 \item \href{#method-RSDictionary-removeObjectForKey}{\code{RSDictionary$removeObjectForKey()}}
 \item \href{#method-RSDictionary-removeAllObjects}{\code{RSDictionary$removeAllObjects()}}
-\item \href{#method-RSDictionary-objectForKey}{\code{RSDictionary$objectForKey()}}
-\item \href{#method-RSDictionary-allEntriesAsList}{\code{RSDictionary$allEntriesAsList()}}
-\item \href{#method-RSDictionary-count}{\code{RSDictionary$count()}}
-\item \href{#method-RSDictionary-copyWithEnv}{\code{RSDictionary$copyWithEnv()}}
-\item \href{#method-RSDictionary-mutableCopyWithEnv}{\code{RSDictionary$mutableCopyWithEnv()}}
+\item \href{#method-RSDictionary-addEntry}{\code{RSDictionary$addEntry()}}
+\item \href{#method-RSDictionary-removeEntry}{\code{RSDictionary$removeEntry()}}
+\item \href{#method-RSDictionary-removeAllEntries}{\code{RSDictionary$removeAllEntries()}}
+\item \href{#method-RSDictionary-copy}{\code{RSDictionary$copy()}}
+\item \href{#method-RSDictionary-mutableCopy}{\code{RSDictionary$mutableCopy()}}
 }
 }
 \if{html}{\out{
 <details><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="hash"><a href='../../robjc/html/RSObject.html#method-RSObject-hash'><code>robjc::RSObject$hash()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isEqual"><a href='../../robjc/html/RSObject.html#method-RSObject-isEqual'><code>robjc::RSObject$isEqual()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allEntries"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allEntries'><code>robjc::RSMutableDictionary$allEntries()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allEntriesAsList"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allEntriesAsList'><code>robjc::RSMutableDictionary$allEntriesAsList()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allKeys"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allKeys'><code>robjc::RSMutableDictionary$allKeys()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allKeysAsList"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allKeysAsList'><code>robjc::RSMutableDictionary$allKeysAsList()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allObjects"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allObjects'><code>robjc::RSMutableDictionary$allObjects()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allObjectsAsList"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allObjectsAsList'><code>robjc::RSMutableDictionary$allObjectsAsList()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allValues"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allValues'><code>robjc::RSMutableDictionary$allValues()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allValuesAsList"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allValuesAsList'><code>robjc::RSMutableDictionary$allValuesAsList()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="asList"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-asList'><code>robjc::RSMutableDictionary$asList()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="containsKey"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-containsKey'><code>robjc::RSMutableDictionary$containsKey()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="count"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-count'><code>robjc::RSMutableDictionary$count()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="description"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-description'><code>robjc::RSMutableDictionary$description()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="dictionaryByExcludingWithDictionary"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-dictionaryByExcludingWithDictionary'><code>robjc::RSMutableDictionary$dictionaryByExcludingWithDictionary()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="dictionaryByMergingWithDictionary"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-dictionaryByMergingWithDictionary'><code>robjc::RSMutableDictionary$dictionaryByMergingWithDictionary()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="hash"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-hash'><code>robjc::RSMutableDictionary$hash()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="isEqual"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-isEqual'><code>robjc::RSMutableDictionary$isEqual()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="objectForKey"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-objectForKey'><code>robjc::RSMutableDictionary$objectForKey()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="objectsForEncoding"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-objectsForEncoding'><code>robjc::RSMutableDictionary$objectsForEncoding()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="prepareForSerialization"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-prepareForSerialization'><code>robjc::RSMutableDictionary$prepareForSerialization()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -58,9 +75,7 @@ will raise an error.
 \if{html}{\out{<a id="method-RSDictionary-new"></a>}}
 \if{latex}{\out{\hypertarget{method-RSDictionary-new}{}}}
 \subsection{Method \code{new()}}{
-Constructs an immutable dictionary using one of three formats: a list of key-value pairs,
-an alternating key-value list, or separate key and value lists.
-Keys and values are wrapped and stored in the internal hash table.
+Constructs an immutable dictionary from one supported input format.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSDictionary$new(
   key_value_pairs = NULL,
@@ -73,23 +88,26 @@ Keys and values are wrapped and stored in the internal hash table.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{key_value_pairs}}{A list of \code{RSKeyValuePair} objects.}
+\item{\code{key_value_pairs}}{A list of \link{RSKeyValuePair} objects.}
 
-\item{\code{objects_and_keys}}{Alternating list of \code{list(key0, value0, key1, value1, ...)}.}
+\item{\code{objects_and_keys}}{Alternating values and keys, for example
+\code{list(value0, key0, value1, key1)}.}
 
-\item{\code{keys}}{List or vector of key objects.}
+\item{\code{keys}}{A collection of keys supplied together with \code{values}.}
 
-\item{\code{values}}{List or vector of value objects.}
+\item{\code{values}}{A collection of values supplied together with \code{keys}.}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A new \code{RSDictionary} instance.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSDictionary-setObjectForKey"></a>}}
 \if{latex}{\out{\hypertarget{method-RSDictionary-setObjectForKey}{}}}
 \subsection{Method \code{setObjectForKey()}}{
-This method is disabled for immutable \code{RSDictionary} objects.
-Attempting to call this method will result in an error.
+Disabled because the dictionary is immutable.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSDictionary$setObjectForKey(value, key)}\if{html}{\out{</div>}}
 }
@@ -103,16 +121,12 @@ Attempting to call this method will result in an error.
 }
 \if{html}{\out{</div>}}
 }
-\subsection{Returns}{
-No return value. Always raises an error.
-}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSDictionary-removeObjectForKey"></a>}}
 \if{latex}{\out{\hypertarget{method-RSDictionary-removeObjectForKey}{}}}
 \subsection{Method \code{removeObjectForKey()}}{
-This method is disabled for immutable \code{RSDictionary} objects.
-Attempting to call this method will result in an error.
+Disabled because the dictionary is immutable.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSDictionary$removeObjectForKey(key)}\if{html}{\out{</div>}}
 }
@@ -124,107 +138,85 @@ Attempting to call this method will result in an error.
 }
 \if{html}{\out{</div>}}
 }
-\subsection{Returns}{
-No return value. Always raises an error.
-}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSDictionary-removeAllObjects"></a>}}
 \if{latex}{\out{\hypertarget{method-RSDictionary-removeAllObjects}{}}}
 \subsection{Method \code{removeAllObjects()}}{
-This method is disabled for immutable \code{RSDictionary} objects.
-Attempting to call this method will result in an error.
+Disabled because the dictionary is immutable.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSDictionary$removeAllObjects()}\if{html}{\out{</div>}}
 }
 
-\subsection{Returns}{
-No return value. Always raises an error.
-}
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSDictionary-objectForKey"></a>}}
-\if{latex}{\out{\hypertarget{method-RSDictionary-objectForKey}{}}}
-\subsection{Method \code{objectForKey()}}{
-Returns the value associated with the specified key, or \code{NULL} if not found.
-The key is normalized via \code{.wrapNull()}.
+\if{html}{\out{<a id="method-RSDictionary-addEntry"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-addEntry}{}}}
+\subsection{Method \code{addEntry()}}{
+Disabled because the dictionary is immutable.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSDictionary$objectForKey(key)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSDictionary$addEntry(entry)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{key}}{An \code{RSObject} key.}
+\item{\code{entry}}{Ignored.}
 }
 \if{html}{\out{</div>}}
 }
-\subsection{Returns}{
-The corresponding value (\code{RSObject}), or \code{NULL}.
-}
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSDictionary-allEntriesAsList"></a>}}
-\if{latex}{\out{\hypertarget{method-RSDictionary-allEntriesAsList}{}}}
-\subsection{Method \code{allEntriesAsList()}}{
-Returns a list of all \code{RSKeyValuePair} entries stored in the dictionary.
+\if{html}{\out{<a id="method-RSDictionary-removeEntry"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-removeEntry}{}}}
+\subsection{Method \code{removeEntry()}}{
+Disabled because the dictionary is immutable.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSDictionary$allEntriesAsList()}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSDictionary-count"></a>}}
-\if{latex}{\out{\hypertarget{method-RSDictionary-count}{}}}
-\subsection{Method \code{count()}}{
-Returns the number of key-value pairs in the dictionary.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSDictionary$count()}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSDictionary-copyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSDictionary-copyWithEnv}{}}}
-\subsection{Method \code{copyWithEnv()}}{
-Returns an identical immutable copy of the current object placed into the specified environment.
-Because the object is already immutable, this method typically returns \code{self} unless an environment
-switch is needed for structural consistency.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSDictionary$copyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSDictionary$removeEntry(entry)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{env}}{The target environment.}
+\item{\code{entry}}{Ignored.}
 }
 \if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A copy of the current immutable object, typically \code{self}.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSDictionary-mutableCopyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSDictionary-mutableCopyWithEnv}{}}}
-\subsection{Method \code{mutableCopyWithEnv()}}{
-Returns a new mutable version of the current object in the specified environment.
-The content is duplicated to allow modifications, and the result is typically
-an instance of the corresponding mutable subclass (e.g., \code{RSMutableArray} for \code{RSArray}).
+\if{html}{\out{<a id="method-RSDictionary-removeAllEntries"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-removeAllEntries}{}}}
+\subsection{Method \code{removeAllEntries()}}{
+Disabled because the dictionary is immutable.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSDictionary$mutableCopyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSDictionary$removeAllEntries()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{The environment in which the new mutable object will be evaluated.}
 }
-\if{html}{\out{</div>}}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-copy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-copy}{}}}
+\subsection{Method \code{copy()}}{
+Returns the receiver because it is immutable.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RSDictionary$copy()}\if{html}{\out{</div>}}
 }
+
 \subsection{Returns}{
-A new mutable copy of the object.
+\code{self}.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-mutableCopy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-mutableCopy}{}}}
+\subsection{Method \code{mutableCopy()}}{
+Returns an independent mutable shallow copy.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RSDictionary$mutableCopy()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+A new \link{RSMutableDictionary}.
 }
 }
 }

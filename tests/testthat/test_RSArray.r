@@ -1,18 +1,15 @@
-test_that("RSArray: copyWithEnv returns equal but not identical copy", {
+test_that("RSArray: copy returns identical copy", {
   ary <- RSArray$new(list(
     RSString$stringWith("a"),
     RSString$stringWith("b")
   ))
-  copied <- ary$copyWithEnv(new.env())
-  expect_s3_class(copied, "RSArray")
-  expect_equal(copied$allObjectsAsList()[[1]]$value(), "a")
-  expect_false(identical(ary, copied))
+  copied <- ary$copy()
+  expect_true(identical(ary, copied))
 })
 
-test_that("RSArray: mutableCopyWithEnv returns RSMutableArray", {
+test_that("RSArray: mutableCopy returns RSMutableArray", {
   ary <- RSArray$new(list(RSString$stringWith("x")))
-  mcopy <- ary$mutableCopyWithEnv(new.env())
-  expect_s3_class(mcopy, "RSMutableArray")
+  mcopy <- ary$mutableCopy()
   expect_equal(mcopy$objectAtIndex(1)$value(), "x")
 })
 

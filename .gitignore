@@ -1,3 +1,9 @@
 .DS_Store
 .Rapp.history
 .vscode
+inst/doc
+/doc/
+/Meta/
+/temp_lib/
+src/*.o
+src/*.so

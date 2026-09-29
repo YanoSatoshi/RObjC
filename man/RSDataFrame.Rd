@@ -9,7 +9,7 @@ are fixed upon creation. Any attempt to modify the data or structure will raise 
 It is intended for safe and consistent use in hash-based containers and comparisons.
 }
 \note{
-Use \code{copyWithEnv()} or \code{mutableCopyWithEnv()} to safely duplicate or convert.
+Use \code{copy()} or \code{mutableCopy()} to safely duplicate or convert.
 }
 \section{Super classes}{
 \code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{\link[robjc:RSMutableDataFrame]{robjc::RSMutableDataFrame}} -> \code{RSDataFrame}
@@ -19,21 +19,27 @@ Use \code{copyWithEnv()} or \code{mutableCopyWithEnv()} to safely duplicate or c
 \itemize{
 \item \href{#method-RSDataFrame-setData}{\code{RSDataFrame$setData()}}
 \item \href{#method-RSDataFrame-setColumn}{\code{RSDataFrame$setColumn()}}
-\item \href{#method-RSDataFrame-copyWithEnv}{\code{RSDataFrame$copyWithEnv()}}
-\item \href{#method-RSDataFrame-mutableCopyWithEnv}{\code{RSDataFrame$mutableCopyWithEnv()}}
+\item \href{#method-RSDataFrame-copy}{\code{RSDataFrame$copy()}}
+\item \href{#method-RSDataFrame-mutableCopy}{\code{RSDataFrame$mutableCopy()}}
 }
 }
 \if{html}{\out{
 <details><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="description"><a href='../../robjc/html/RSObject.html#method-RSObject-description'><code>robjc::RSObject$description()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDataFrame" data-id="colnames"><a href='../../robjc/html/RSMutableDataFrame.html#method-RSMutableDataFrame-colnames'><code>robjc::RSMutableDataFrame$colnames()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDataFrame" data-id="getColumn"><a href='../../robjc/html/RSMutableDataFrame.html#method-RSMutableDataFrame-getColumn'><code>robjc::RSMutableDataFrame$getColumn()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDataFrame" data-id="getData"><a href='../../robjc/html/RSMutableDataFrame.html#method-RSMutableDataFrame-getData'><code>robjc::RSMutableDataFrame$getData()</code></a></span></li>
@@ -86,47 +92,38 @@ Use \code{RSMutableDataFrame} instead.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSDataFrame-copyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSDataFrame-copyWithEnv}{}}}
-\subsection{Method \code{copyWithEnv()}}{
-Returns an identical immutable copy of the current object placed into the specified environment.
-Because the object is already immutable, this method typically returns \code{self} unless an environment
-switch is needed for structural consistency.
+\if{html}{\out{<a id="method-RSDataFrame-copy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDataFrame-copy}{}}}
+\subsection{Method \code{copy()}}{
+Returns the object itself, since \code{RSDataFrame} is immutable.
+
+This is a no-op copy: the method returns \code{self}, as immutable
+objects are safe to reuse without duplication.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSDataFrame$copyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSDataFrame$copy()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{The target environment.}
-}
-\if{html}{\out{</div>}}
-}
 \subsection{Returns}{
-A copy of the current immutable object, typically \code{self}.
+The same \code{RSDataFrame} instance (\code{self}).
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSDataFrame-mutableCopyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSDataFrame-mutableCopyWithEnv}{}}}
-\subsection{Method \code{mutableCopyWithEnv()}}{
-Returns a new mutable version of the current object in the specified environment.
-The content is duplicated to allow modifications, and the result is typically
-an instance of the corresponding mutable subclass (e.g., \code{RSMutableArray} for \code{RSArray}).
+\if{html}{\out{<a id="method-RSDataFrame-mutableCopy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDataFrame-mutableCopy}{}}}
+\subsection{Method \code{mutableCopy()}}{
+Returns a mutable version of the current data frame.
+
+This creates a new \code{RSMutableDataFrame} instance that wraps the same underlying tibble,
+allowing modifications to the data. The copy is shallow: the underlying data is reused.
+
+This method is typically used to transition from an immutable to a mutable form
+when updates are needed.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSDataFrame$mutableCopyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSDataFrame$mutableCopy()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{The environment in which the new mutable object will be evaluated.}
-}
-\if{html}{\out{</div>}}
-}
 \subsection{Returns}{
-A new mutable copy of the object.
+A new \code{RSMutableDataFrame} instance.
 }
 }
 }

@@ -9,19 +9,31 @@ register_rs_protocol(klass, obj)
 \arguments{
 \item{klass}{The R6 class object inheriting from \code{RSProtocol}.}
 
-\item{obj}{The instance of the protocol to register.}
+\item{obj}{The protocol instance to register.}
 }
 \value{
 The registered singleton instance (invisibly).
 }
 \description{
-Registers a singleton instance of an \code{RSProtocol} subclass. It binds the \code{.singleton} field
-and defines the class-level accessor \verb{$protocol()}. The registered instance is locked
-to prevent structural modification.
+Registers a singleton instance of an \code{RSProtocol} subclass and stores it in the
+class's internal \code{robjc_isa$slot} field. An accessor method \verb{$protocol()} is automatically
+defined on the class for retrieving the registered instance.
+
+Unlike \code{RSModule} or \code{RSSingleton}, protocol instances are intended to be declarative
+and immutable. As such, this function calls \code{lockVariables()} on the instance after
+registration to prevent any structural modification.
+
+If the class already has a \verb{$protocol()} accessor, an error is raised to avoid redefinition.
+The \code{slot} binding is also locked using \code{lockBinding()} to ensure singleton integrity.
 }
 \examples{
 \dontrun{
 register_rs_protocol(MyProtocol, MyProtocol$new())
+MyProtocol$protocol()  # Retrieve the registered protocol instance
 }
 
 }
+\seealso{
+\code{\link{RSProtocol}} – The base class for protocol declarations in the robjc system.
+}
+\keyword{internal}

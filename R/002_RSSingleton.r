@@ -10,6 +10,10 @@
 #' explicit accessor method, typically `$instance()`, that internally constructs
 #' and stores the singleton instance in `$singleton`.
 #'
+#' After registration via `register_rs_singleton()`, the singleton instance can be optionally
+#' locked using `lockVariables()` to prevent modification. This protects runtime stability
+#' by ensuring the structure of shared global state cannot change unexpectedly.
+#'
 #' Any instance fields must be assigned before calling `super$initialize()` inside
 #' the subclass constructor. After that, all fields will be locked to preserve shape integrity.
 #'
@@ -35,9 +39,11 @@
 #' }
 #'
 #' @note
-#' The singleton instance is stored in the class field `singleton`, and should be locked
-#' after registration using `register_rs_singleton(SingletonClass, SingletonClass$new())`.
-#' The singleton instance is mutable and intended for shared runtime coordination.
+#' The singleton instance is stored in the class field `robjc_isa$slot`, and may be locked
+#' after registration using `register_rs_singleton(SingletonClass, SingletonClass$new())`
+#' with `lock_all = TRUE` (the default).
+#' Locking ensures that the shared singleton instance remains structurally stable throughout runtime.
+#' You may disable locking during testing or controlled reconfiguration by passing `lock_all = FALSE`.
 #'
 #' @export
 RSSingleton <- R6::R6Class(
@@ -52,7 +58,7 @@ RSSingleton <- R6::R6Class(
     initialize = function() {
       super$initialize()
       klass <- self$class()
-      if (!is.null(klass$.singleton)) {
+      if (!is.null(klass$robjc_isa$slot)) {
         stop(sprintf("Use %s$instance() instead of new().", klass$classname))
       }
     },
@@ -66,4 +72,3 @@ RSSingleton <- R6::R6Class(
     }
   )
 )
-register_rs_singleton(RSSingleton, RSSingleton$new())

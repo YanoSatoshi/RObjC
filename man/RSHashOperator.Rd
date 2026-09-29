@@ -8,7 +8,7 @@ The registered singleton object (invisibly).
 }
 \description{
 Registers a singleton module object on the given class and defines its \verb{$module()} accessor.
-This function also locks the \code{.singleton} slot and the module object itself using \code{lockVariables()}.
+This function also locks the \code{robjc_isa$slot} and the module object itself using \code{lockVariables()}.
 It is invoked internally when registering an instance of an \code{RSModule} subclass.
 }
 \section{Super classes}{
@@ -34,15 +34,22 @@ It is invoked internally when registering an instance of an \code{RSModule} subc
 <details><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="copy"><a href='../../robjc/html/RSObject.html#method-RSObject-copy'><code>robjc::RSObject$copy()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="description"><a href='../../robjc/html/RSObject.html#method-RSObject-description'><code>robjc::RSObject$description()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="hash"><a href='../../robjc/html/RSObject.html#method-RSObject-hash'><code>robjc::RSObject$hash()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isEqual"><a href='../../robjc/html/RSObject.html#method-RSObject-isEqual'><code>robjc::RSObject$isEqual()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSModule" data-id="lockVariables"><a href='../../robjc/html/RSModule.html#method-RSModule-lockVariables'><code>robjc::RSModule$lockVariables()</code></a></span></li>
 </ul>
 </details>
@@ -61,7 +68,9 @@ Constructor - must be called once per module
 \if{html}{\out{<a id="method-RSHashOperator-hashForScalar"></a>}}
 \if{latex}{\out{\hypertarget{method-RSHashOperator-hashForScalar}{}}}
 \subsection{Method \code{hashForScalar()}}{
-Computes a hash for a scalar value by converting it to UTF-8 and applying a position-based bitwise XOR.
+Computes a hash for a scalar value after normalizing it to UTF-8 text.
+Integer and double representations of the same value intentionally produce
+the same hash. Missing values use a stable type-specific marker.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSHashOperator$hashForScalar(val)}\if{html}{\out{</div>}}
 }
@@ -81,7 +90,8 @@ An integer hash value.
 \if{html}{\out{<a id="method-RSHashOperator-computeHashCodeWithString"></a>}}
 \if{latex}{\out{\hypertarget{method-RSHashOperator-computeHashCodeWithString}{}}}
 \subsection{Method \code{computeHashCodeWithString()}}{
-Computes a 32-bit signed integer hash code from a UTF-8 string using a simple hash function.
+Computes a non-negative 31-bit hash code from a UTF-8 string.
+Intermediate calculations use doubles to avoid R integer overflow.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSHashOperator$computeHashCodeWithString(string)}\if{html}{\out{</div>}}
 }

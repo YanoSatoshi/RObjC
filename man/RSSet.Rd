@@ -2,54 +2,66 @@
 % Please edit documentation in R/RSSet.r
 \name{RSSet}
 \alias{RSSet}
-\title{RSSet: Immutable Hash-Based Set of RSObjects}
+\title{RSSet: Native-Backed Immutable Set}
 \description{
-\code{RSSet} is a read-only subclass of \code{RSMutableSet}. Once created, its elements are
-flattened and frozen, and any attempt to modify the structure will result in an error.
+\code{RSSet} is the immutable counterpart of \link{RSMutableSet}. It uses the same
+native-backed storage and membership semantics, while rejecting every public
+mutation operation.
 
-This class provides fast \code{containsObject()} and \code{count()} access, and supports copying.
+Inserted objects are retained rather than copied. \code{copy()} therefore returns
+the receiver, while \code{mutableCopy()} creates independent native storage that
+initially references the same member objects.
 }
-\note{
-All mutation methods such as \code{addObject()} or \code{removeObject()} are disabled and will raise errors.
+\section{Convenience Constructor}{
+
+\code{RSSet$setWithSet(set)} creates an immutable shallow copy with independent
+native storage.
 }
+
 \section{Super classes}{
-\code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{\link[robjc:RSDynamicHash]{robjc::RSDynamicHash}} -> \code{\link[robjc:RSMutableSet]{robjc::RSMutableSet}} -> \code{RSSet}
+\code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{\link[robjc:RSMutableSet]{robjc::RSMutableSet}} -> \code{RSSet}
 }
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-RSSet-new}{\code{RSSet$new()}}
-\item \href{#method-RSSet-containsObject}{\code{RSSet$containsObject()}}
-\item \href{#method-RSSet-count}{\code{RSSet$count()}}
-\item \href{#method-RSSet-allObjectsAsList}{\code{RSSet$allObjectsAsList()}}
-\item \href{#method-RSSet-allObjects}{\code{RSSet$allObjects()}}
 \item \href{#method-RSSet-addObject}{\code{RSSet$addObject()}}
 \item \href{#method-RSSet-removeObject}{\code{RSSet$removeObject()}}
 \item \href{#method-RSSet-removeAllObjects}{\code{RSSet$removeAllObjects()}}
-\item \href{#method-RSSet-copyWithEnv}{\code{RSSet$copyWithEnv()}}
-\item \href{#method-RSSet-mutableCopyWithEnv}{\code{RSSet$mutableCopyWithEnv()}}
+\item \href{#method-RSSet-copy}{\code{RSSet$copy()}}
+\item \href{#method-RSSet-mutableCopy}{\code{RSSet$mutableCopy()}}
 }
 }
 \if{html}{\out{
 <details><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="description"><a href='../../robjc/html/RSObject.html#method-RSObject-description'><code>robjc::RSObject$description()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSDynamicHash" data-id="debugDescription"><a href='../../robjc/html/RSDynamicHash.html#method-RSDynamicHash-debugDescription'><code>robjc::RSDynamicHash$debugDescription()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSDynamicHash" data-id="description"><a href='../../robjc/html/RSDynamicHash.html#method-RSDynamicHash-description'><code>robjc::RSDynamicHash$description()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSDynamicHash" data-id="getEntryMatching"><a href='../../robjc/html/RSDynamicHash.html#method-RSDynamicHash-getEntryMatching'><code>robjc::RSDynamicHash$getEntryMatching()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSDynamicHash" data-id="getObject"><a href='../../robjc/html/RSDynamicHash.html#method-RSDynamicHash-getObject'><code>robjc::RSDynamicHash$getObject()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSDynamicHash" data-id="hash"><a href='../../robjc/html/RSDynamicHash.html#method-RSDynamicHash-hash'><code>robjc::RSDynamicHash$hash()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSDynamicHash" data-id="isEqual"><a href='../../robjc/html/RSDynamicHash.html#method-RSDynamicHash-isEqual'><code>robjc::RSDynamicHash$isEqual()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSDynamicHash" data-id="print"><a href='../../robjc/html/RSDynamicHash.html#method-RSDynamicHash-print'><code>robjc::RSDynamicHash$print()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSDynamicHash" data-id="setObject"><a href='../../robjc/html/RSDynamicHash.html#method-RSDynamicHash-setObject'><code>robjc::RSDynamicHash$setObject()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSDynamicHash" data-id="size"><a href='../../robjc/html/RSDynamicHash.html#method-RSDynamicHash-size'><code>robjc::RSDynamicHash$size()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableSet" data-id="differenceSet"><a href='../../robjc/html/RSMutableSet.html#method-RSMutableSet-differenceSet'><code>robjc::RSMutableSet$differenceSet()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableSet" data-id="allObjects"><a href='../../robjc/html/RSMutableSet.html#method-RSMutableSet-allObjects'><code>robjc::RSMutableSet$allObjects()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableSet" data-id="allObjectsAsList"><a href='../../robjc/html/RSMutableSet.html#method-RSMutableSet-allObjectsAsList'><code>robjc::RSMutableSet$allObjectsAsList()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableSet" data-id="anyObject"><a href='../../robjc/html/RSMutableSet.html#method-RSMutableSet-anyObject'><code>robjc::RSMutableSet$anyObject()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableSet" data-id="asList"><a href='../../robjc/html/RSMutableSet.html#method-RSMutableSet-asList'><code>robjc::RSMutableSet$asList()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableSet" data-id="containsObject"><a href='../../robjc/html/RSMutableSet.html#method-RSMutableSet-containsObject'><code>robjc::RSMutableSet$containsObject()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableSet" data-id="count"><a href='../../robjc/html/RSMutableSet.html#method-RSMutableSet-count'><code>robjc::RSMutableSet$count()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableSet" data-id="hash"><a href='../../robjc/html/RSMutableSet.html#method-RSMutableSet-hash'><code>robjc::RSMutableSet$hash()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableSet" data-id="intersectSet"><a href='../../robjc/html/RSMutableSet.html#method-RSMutableSet-intersectSet'><code>robjc::RSMutableSet$intersectSet()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableSet" data-id="unionSet"><a href='../../robjc/html/RSMutableSet.html#method-RSMutableSet-unionSet'><code>robjc::RSMutableSet$unionSet()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableSet" data-id="isEqual"><a href='../../robjc/html/RSMutableSet.html#method-RSMutableSet-isEqual'><code>robjc::RSMutableSet$isEqual()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableSet" data-id="member"><a href='../../robjc/html/RSMutableSet.html#method-RSMutableSet-member'><code>robjc::RSMutableSet$member()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableSet" data-id="objectsForEncoding"><a href='../../robjc/html/RSMutableSet.html#method-RSMutableSet-objectsForEncoding'><code>robjc::RSMutableSet$objectsForEncoding()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableSet" data-id="prepareForSerialization"><a href='../../robjc/html/RSMutableSet.html#method-RSMutableSet-prepareForSerialization'><code>robjc::RSMutableSet$prepareForSerialization()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableSet" data-id="subtractSet"><a href='../../robjc/html/RSMutableSet.html#method-RSMutableSet-subtractSet'><code>robjc::RSMutableSet$subtractSet()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableSet" data-id="uniteSet"><a href='../../robjc/html/RSMutableSet.html#method-RSMutableSet-uniteSet'><code>robjc::RSMutableSet$uniteSet()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -57,10 +69,7 @@ All mutation methods such as \code{addObject()} or \code{removeObject()} are dis
 \if{html}{\out{<a id="method-RSSet-new"></a>}}
 \if{latex}{\out{\hypertarget{method-RSSet-new}{}}}
 \subsection{Method \code{new()}}{
-Constructs a new mutable set.
-If a list of \code{RSObject}s is provided, each object is copied using \code{copyWithEnv()}
-and stored in the internal hash table as an immutable element, ensuring that the structure
-of the set remains independent from the original input.
+Constructs an immutable set retaining the supplied objects.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSSet$new(objects = list())}\if{html}{\out{</div>}}
 }
@@ -68,172 +77,83 @@ of the set remains independent from the original input.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{objects}}{Optional list of \code{RSObject}s to initialize the set.}
+\item{\code{objects}}{An optional list or RObjC collection of members. \code{NULL}
+elements are represented by \link{RSNull}.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A new \code{RSSet}.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSSet-containsObject"></a>}}
-\if{latex}{\out{\hypertarget{method-RSSet-containsObject}{}}}
-\subsection{Method \code{containsObject()}}{
-Checks whether the specified object exists in the set.
-Equality is determined using both hash and \code{isEqual()}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSSet$containsObject(obj)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{obj}}{An \code{RSObject} to check for.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{TRUE} if found, otherwise \code{FALSE}.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSSet-count"></a>}}
-\if{latex}{\out{\hypertarget{method-RSSet-count}{}}}
-\subsection{Method \code{count()}}{
-Returns the total number of stored objects in the set.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSSet$count()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-Integer count.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSSet-allObjectsAsList"></a>}}
-\if{latex}{\out{\hypertarget{method-RSSet-allObjectsAsList}{}}}
-\subsection{Method \code{allObjectsAsList()}}{
-Returns the set's contents as a list of \code{RSObject} instances.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSSet$allObjectsAsList()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-A list of objects.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSSet-allObjects"></a>}}
-\if{latex}{\out{\hypertarget{method-RSSet-allObjects}{}}}
-\subsection{Method \code{allObjects()}}{
-Returns the contents of the set as an \code{RSArray} object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSSet$allObjects()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-An \code{RSArray} containing all objects.
+A new \code{RSSet} instance.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSSet-addObject"></a>}}
 \if{latex}{\out{\hypertarget{method-RSSet-addObject}{}}}
 \subsection{Method \code{addObject()}}{
-This method is disabled for immutable \code{RSSet} objects.
-Attempting to call this method will result in an error.
+Disabled because the set is immutable.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSSet$addObject(obj)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSSet$addObject(object)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{obj}}{Ignored.}
+\item{\code{object}}{Ignored.}
 }
 \if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-No return value. Always raises an error.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSSet-removeObject"></a>}}
 \if{latex}{\out{\hypertarget{method-RSSet-removeObject}{}}}
 \subsection{Method \code{removeObject()}}{
-This method is disabled for immutable \code{RSSet} objects.
-Attempting to call this method will result in an error.
+Disabled because the set is immutable.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSSet$removeObject(obj)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSSet$removeObject(object)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{obj}}{Ignored.}
+\item{\code{object}}{Ignored.}
 }
 \if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-No return value. Always raises an error.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSSet-removeAllObjects"></a>}}
 \if{latex}{\out{\hypertarget{method-RSSet-removeAllObjects}{}}}
 \subsection{Method \code{removeAllObjects()}}{
-This method is disabled for immutable \code{RSSet} objects.
-Attempting to call this method will result in an error.
+Disabled because the set is immutable.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSSet$removeAllObjects()}\if{html}{\out{</div>}}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSSet-copy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSSet-copy}{}}}
+\subsection{Method \code{copy()}}{
+Returns the receiver because it is immutable.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RSSet$copy()}\if{html}{\out{</div>}}
+}
+
 \subsection{Returns}{
-No return value. Always raises an error.
+\code{self}.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSSet-copyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSSet-copyWithEnv}{}}}
-\subsection{Method \code{copyWithEnv()}}{
-Returns an identical immutable copy of the current object placed into the specified environment.
-Because the object is already immutable, this method typically returns \code{self} unless an environment
-switch is needed for structural consistency.
+\if{html}{\out{<a id="method-RSSet-mutableCopy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSSet-mutableCopy}{}}}
+\subsection{Method \code{mutableCopy()}}{
+Returns an independent mutable shallow copy.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSSet$copyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSSet$mutableCopy()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{The target environment.}
-}
-\if{html}{\out{</div>}}
-}
 \subsection{Returns}{
-A copy of the current immutable object, typically \code{self}.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSSet-mutableCopyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSSet-mutableCopyWithEnv}{}}}
-\subsection{Method \code{mutableCopyWithEnv()}}{
-Returns a new mutable version of the current object in the specified environment.
-The content is duplicated to allow modifications, and the result is typically
-an instance of the corresponding mutable subclass (e.g., \code{RSMutableArray} for \code{RSArray}).
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSSet$mutableCopyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{The environment in which the new mutable object will be evaluated.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new mutable copy of the object.
+A new \link{RSMutableSet}.
 }
 }
 }

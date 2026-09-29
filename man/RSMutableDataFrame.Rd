@@ -40,21 +40,27 @@ hashing and equality comparisons.
 \item \href{#method-RSMutableDataFrame-keyColumns}{\code{RSMutableDataFrame$keyColumns()}}
 \item \href{#method-RSMutableDataFrame-isEqual}{\code{RSMutableDataFrame$isEqual()}}
 \item \href{#method-RSMutableDataFrame-hash}{\code{RSMutableDataFrame$hash()}}
-\item \href{#method-RSMutableDataFrame-copyWithEnv}{\code{RSMutableDataFrame$copyWithEnv()}}
-\item \href{#method-RSMutableDataFrame-mutableCopyWithEnv}{\code{RSMutableDataFrame$mutableCopyWithEnv()}}
+\item \href{#method-RSMutableDataFrame-copy}{\code{RSMutableDataFrame$copy()}}
+\item \href{#method-RSMutableDataFrame-mutableCopy}{\code{RSMutableDataFrame$mutableCopy()}}
 }
 }
 \if{html}{\out{
 <details><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="description"><a href='../../robjc/html/RSObject.html#method-RSObject-description'><code>robjc::RSObject$description()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -247,44 +253,38 @@ Integer hash value.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDataFrame-copyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-copyWithEnv}{}}}
-\subsection{Method \code{copyWithEnv()}}{
-Creates an immutable copy of the data frame as an \code{RSDataFrame} in the specified environment.
+\if{html}{\out{<a id="method-RSMutableDataFrame-copy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-copy}{}}}
+\subsection{Method \code{copy()}}{
+Returns an immutable copy of the data frame as an \code{RSDataFrame}.
+
+This performs a shallow copy: the underlying tibble is shared,
+while the wrapper class is replaced with its immutable counterpart.
+
+This method is typically used to convert a mutable data frame to its immutable form.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableDataFrame$copyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSMutableDataFrame$copy()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{The target environment.}
-}
-\if{html}{\out{</div>}}
-}
 \subsection{Returns}{
 A new \code{RSDataFrame} instance.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDataFrame-mutableCopyWithEnv"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-mutableCopyWithEnv}{}}}
-\subsection{Method \code{mutableCopyWithEnv()}}{
-Creates a new \code{RSMutableDataFrame} in the specified environment.
-If the environment is unchanged, returns \code{self}.
+\if{html}{\out{<a id="method-RSMutableDataFrame-mutableCopy"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-mutableCopy}{}}}
+\subsection{Method \code{mutableCopy()}}{
+Returns a mutable copy of the data frame as an \code{RSMutableDataFrame}.
+
+This performs a shallow copy: the underlying tibble is reused,
+while the wrapper is recreated. If the original is already mutable,
+returning \code{self} would be acceptable depending on context.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableDataFrame$mutableCopyWithEnv(env = parent.frame())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSMutableDataFrame$mutableCopy()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{env}}{The target environment.}
-}
-\if{html}{\out{</div>}}
-}
 \subsection{Returns}{
-A new or current \code{RSMutableDataFrame} instance.
+A new \code{RSMutableDataFrame} instance.
 }
 }
 }

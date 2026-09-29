@@ -1,176 +1,213 @@
-#' @title RSMutableSet: Hash-Based Mutable Set of Unique RSObjects
+#' @title RSMutableSet: Native-Backed Mutable Set
 #'
 #' @description
-#' `RSMutableSet` is a mutable, unordered collection of unique `RSObject` instances.
-#' It uses `RSDynamicHash` internally to guarantee hash-based uniqueness,
-#' with support for insertion, removal, set operations, and object comparison.
+#' `RSMutableSet` is a mutable, unordered collection of unique `RSObject`
+#' instances. Storage is delegated to the internal [RSConcreteSet] adapter,
+#' which uses each member's `hash()` and `isEqual()` methods.
 #'
-#' Elements are deep-copied into the set using the `copyWithEnv()` method of the `RSCopying` protocol.
+#' As with Foundation sets, inserted objects are retained rather than copied.
+#' Consequently, a member's `hash()` and equality-relevant state must not change
+#' while it belongs to a set. R `NULL` is represented by [RSNull].
+#'
+#' Set operations return new immutable [RSSet] objects and leave both operands
+#' unchanged.
 #'
 #' @section Key Operations:
-#' - `addObject()`, `containsObject()`, `removeObject()`, `removeAllObjects()`
-#' - `unionSet()`, `intersectSet()`, `differenceSet()`
-#' - `copyWithEnv()` / `mutableCopyWithEnv()`
+#' - `addObject()`, `member()`, `containsObject()`, and `anyObject()`.
+#' - `removeObject()` and `removeAllObjects()`.
+#' - `uniteSet()`, `intersectSet()`, and `subtractSet()`.
+#' - `copy()` and `mutableCopy()`.
 #'
 #' @export
 RSMutableSet <- R6::R6Class(
   "RSMutableSet",
-  inherit = RSDynamicHash,
   cloneable = FALSE,
+  inherit = RSObject,
   private = list(
-    .copying = NULL
+    .storage = NULL,
+
+    .wrapNull = function(object) {
+      if (is.null(object)) return(RSNull$null())
+      if (is_robjc_instance(object)) return(object)
+      stop(sprintf("Unsupported object type: %s", class(object)[1]))
+    },
+
+    .storeObject = function(item) {
+      private$.storage$add(private$.wrapNull(item))
+      invisible(self)
+    }
   ),
   public = list(
-
-    #' @description
-    #' Constructs a new mutable set.
-    #' If a list of `RSObject`s is provided, each object is copied using `copyWithEnv()`
-    #' and stored in the internal hash table as an immutable element, ensuring that the structure  
-    #' of the set remains independent from the original input.
-    #'
-    #' @param objects Optional list of `RSObject`s to initialize the set.
-    #' @return A new `RSMutableSet`.
+    #' @description Constructs a mutable set retaining the supplied objects.
+    #' @param objects An optional list or RObjC collection of members. `NULL`
+    #'   elements are represented by [RSNull].
+    #' @return A new `RSMutableSet` instance.
     initialize = function(objects = list()) {
-      objects <- cast_ry_storage_to_list(objects)
-      if (
-        length(objects) > 0 &&
-        !all(vapply(
-          objects,
-          function(obj) !is.null(obj$isKindOf) && obj$isKindOf(RSObject),
-          logical(1)
-        ))
-      ) stop("All elements must inherit from RSObject.")
-      super$initialize(objects = objects)
-      private$.copying <- RSCopying$protocol()
+      objects <- cast_rs_storage_to_list(objects)
+      valid <- vapply(
+        objects,
+        function(object) is.null(object) || is_robjc_instance(object),
+        logical(1)
+      )
+      if (!all(valid)) stop("All elements must inherit from RSObject.")
+
+      super$initialize()
+      private$.storage <- RSConcreteSet$new()
+      for (item in objects) private$.storeObject(item)
       invisible(self)
     },
 
+    #' @description Adds an object if no equal member is present.
+    #' @param object An `RSObject`, or `NULL` to add [RSNull].
+    #' @return `self`, invisibly.
+    addObject = function(object) private$.storeObject(object),
 
+    #' @description Returns the number of members.
+    #' @return A non-negative numeric scalar.
+    count = function() private$.storage$count(),
 
-    #' @description
-    #' Adds a new object to the set. The object is copied using `copyWithEnv()` and stored in the hash table.
-    #' Duplicate objects (as defined by `isEqual()`) will not be added.
-    #'
-    #' @param obj An `RSObject` to insert.
-    #' @return Invisible `NULL`.
-    addObject = function(obj) {
-      stopifnot(!is.null(obj$isKindOf), obj$isKindOf(RSObject))
-      copied <- private$.copying$copyObjectWithEnv(obj, environment(self))
-      super$setObject(copied)
+    #' @description Returns the stored member equal to `object`.
+    #' @param object An `RSObject`, or `NULL` to look up [RSNull].
+    #' @return The stored member, or `NULL` when absent.
+    member = function(object) {
+      private$.storage$member(private$.wrapNull(object))
     },
 
-
-
-    #' @description
-    #' Checks whether the specified object exists in the set.
-    #' Equality is determined using both hash and `isEqual()`.
-    #'
-    #' @param obj An `RSObject` to check for.
-    #' @return `TRUE` if found, otherwise `FALSE`.
-    containsObject = function(obj) {
-      !is.null(super$getObject(obj))
+    #' @description Tests whether an equal member is present.
+    #' @param object An `RSObject`, or `NULL` to look up [RSNull].
+    #' @return A logical scalar.
+    containsObject = function(object) {
+      private$.storage$contains(private$.wrapNull(object))
     },
 
+    #' @description Returns an arbitrary stored member.
+    #' @return A stored member, or `NULL` when the set is empty. No ordering is
+    #'   implied and the selected member may change after mutation.
+    anyObject = function() private$.storage$anyObject(),
 
-    #' @description
-    #' Returns the set's contents as a list of `RSObject` instances.
-    #'
-    #' @return A list of objects.
-    allObjectsAsList = function() {
-      super$allObjectsAsList()
+    #' @description Returns all members as a list.
+    #' @return A list in unspecified order.
+    allObjectsAsList = function() private$.storage$allObjects(),
+
+    #' @description Returns all members as a list.
+    #' @return A list in unspecified order.
+    asList = function() self$allObjectsAsList(),
+
+    #' @description Returns all members as an [RSArray].
+    #' @return An `RSArray` in unspecified order.
+    allObjects = function() RSArray$new(self$allObjectsAsList()),
+
+    #' @description Removes the member equal to `object`.
+    #' @param object An `RSObject`, or `NULL` to remove [RSNull].
+    #' @return `TRUE` if a member was removed; otherwise `FALSE`.
+    removeObject = function(object) {
+      private$.storage$remove(private$.wrapNull(object))
     },
 
-
-
-    #' @description
-    #' Returns the contents of the set as an `RSArray` object.
-    #'
-    #' @return An `RSArray` containing all objects.
-    allObjects = function() {
-      RSArray$new(self$allObjectsAsList())
+    #' @description Removes every member.
+    #' @return `self`, invisibly.
+    removeAllObjects = function() {
+      private$.storage$clear()
+      invisible(self)
     },
 
+    #' @description Computes an order-independent aggregate member hash.
+    #' @return An integer hash value.
+    hash = function() private$.storage$contentHash(),
 
-
-    #' @description
-    #' Returns the union of this set and another `RSMutableSet`.
-    #' The result is returned as a new `RSSet` instance.
-    #'
-    #' @param other Another `RSMutableSet`.
-    #' @return An `RSSet` representing the union.
-    unionSet = function(other) {
-      stopifnot(other$isKindOf(RSMutableSet))
-      union <- self$hash_operator$unionOfSets(
-        self$allObjectsAsList(), other$allObjectsAsList()
-      )
-      RSSet$new(union)
+    #' @description Compares two sets by membership.
+    #' @param other Another set.
+    #' @return `TRUE` when both sets contain equal members.
+    isEqual = function(other) {
+      if (!is_robjc_instance(other) ||
+          !other$isKindOf(RSMutableSet) ||
+          self$count() != other$count()) {
+        return(FALSE)
+      }
+      for (item in self$allObjectsAsList()) {
+        if (!other$containsObject(item)) return(FALSE)
+      }
+      TRUE
     },
 
+    #' @description Returns the members required for encoding.
+    #' @return A list of member objects.
+    objectsForEncoding = function() self$allObjectsAsList(),
 
+    #' @description Captures native storage for R serialization.
+    #' @return `self`, invisibly.
+    prepareForSerialization = function() {
+      private$.storage$prepareForSerialization()
+      invisible(self)
+    },
 
-    #' @description
-    #' Returns the intersection of this set and another `RSMutableSet`.
-    #' The result is returned as a new `RSSet` instance.
-    #'
-    #' @param other Another `RSMutableSet`.
-    #' @return An `RSSet` containing common objects.
+    #' @description Returns the union with `other` without changing either set.
+    #' @param other Another mutable or immutable set.
+    #' @return A new [RSSet].
+    uniteSet = function(other) {
+      .rs_assert_set(other)
+      result <- private$.storage$duplicate()
+      result$uniteWith(.rs_set_storage(other))
+      .rs_set_with_storage(RSSet, result)
+    },
+
+    #' @description Returns the intersection with `other` without changing either set.
+    #' @param other Another mutable or immutable set.
+    #' @return A new [RSSet].
     intersectSet = function(other) {
-      stopifnot(other$isKindOf(RSMutableSet))
-      intersection <- self$hash_operator$intersectionOfSets(
-        self$allObjectsAsList(),
-        other$allObjectsAsList()
-      )
-      RSSet$new(intersection)
+      .rs_assert_set(other)
+      result <- private$.storage$duplicate()
+      result$intersectWith(.rs_set_storage(other))
+      .rs_set_with_storage(RSSet, result)
     },
 
-
-
-    #' @description
-    #' Returns the difference between this set and another `RSMutableSet`.
-    #' The result is returned as a new `RSSet` instance.
-    #'
-    #' @param other Another `RSMutableSet`.
-    #' @return An `RSSet` of elements in this set but not in the other.
-    differenceSet = function(other) {
-      stopifnot(other$isKindOf(RSMutableSet))
-      difference <- self$hash_operator$differenceOfSets(
-        self$allObjectsAsList(),
-        other$allObjectsAsList()
-      )
-      RSSet$new(difference)
+    #' @description Returns the members not present in `other`.
+    #' @param other Another mutable or immutable set.
+    #' @return A new [RSSet].
+    subtractSet = function(other) {
+      .rs_assert_set(other)
+      result <- private$.storage$duplicate()
+      result$subtractWith(.rs_set_storage(other))
+      .rs_set_with_storage(RSSet, result)
     },
 
+    #' @description Returns an immutable shallow copy.
+    #' @return A new [RSSet] with independent native storage.
+    copy = function() RSSet$setWithSet(self),
 
-
-    #' @description
-    #' Returns an immutable copy (`RSSet`) of the current set.
-    #' Each element is duplicated using `copyWithEnv()` into the target environment.
-    #'
-    #' @param env Environment to evaluate the copy in.
-    #' @return An `RSSet` copy of the set.
-    copyWithEnv = function(env = parent.frame()) {
-      do.call(
-        RSSet$new,
-        list(objects = self$allObjectsAsList()),
-        envir = env
-      )
-    },
-
-
-
-    #' @description
-    #' Returns a new mutable copy of the current set.
-    #' All elements are duplicated into the target environment.
-    #'
-    #' @param env Environment for the new instance.
-    #' @return A `RSMutableSet` copy.
-    mutableCopyWithEnv = function(env = parent.frame()) {
-      if (identical(env, environment(self))) return(self)
-      do.call(
-        RSMutableSet$new,
-        list(objects = self$allObjectsAsList()),
-        envir = env
-      )
-    }
+    #' @description Returns an independent mutable shallow copy.
+    #' @return A new `RSMutableSet`.
+    mutableCopy = function() RSMutableSet$setWithSet(self)
   )
 )
+
+.rs_assert_set <- function(set) {
+  stopifnot(
+    "Object must be a set" =
+      is_robjc_instance(set) && set$isKindOf(RSMutableSet)
+  )
+  invisible(TRUE)
+}
+
+.rs_set_storage <- function(set) {
+  .rs_assert_set(set)
+  set$.__enclos_env__$private$.storage
+}
+
+.rs_set_with_storage <- function(generator, storage) {
+  stopifnot(inherits(storage, "RSConcreteSet"))
+  result <- generator$new()
+  result$.__enclos_env__$private$.storage <- storage
+  result
+}
+
+# Creates a mutable set with independent native storage.
+RSMutableSet$setWithSet <- function(set) {
+  .rs_set_with_storage(
+    RSMutableSet,
+    .rs_set_storage(set)$duplicate()
+  )
+}
+
+conform_protocol_to_class(RSMutableCopying$protocol(), RSMutableSet)
+conform_protocol_to_class(RSCopying$protocol(), RSMutableSet)

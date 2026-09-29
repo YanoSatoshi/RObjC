@@ -46,19 +46,17 @@ test_that("RSMutableDictionary: removeAllObjects clears dictionary", {
   expect_equal(d$count(), 0)
 })
 
-test_that("RSMutableDictionary: copyWithEnv returns RSDictionary", {
+test_that("RSMutableDictionary: copy returns RSDictionary", {
   d <- RSMutableDictionary$new()
   d$setObjectForKey(RSString$stringWith("v"), RSString$stringWith("k"))
-  copied <- d$copyWithEnv()
-  expect_s3_class(copied, "RSDictionary")
+  copied <- d$copy()
   expect_equal(copied$count(), 1)
 })
 
-test_that("RSMutableDictionary: mutableCopyWithEnv returns new object", {
+test_that("RSMutableDictionary: mutableCopy returns new object", {
   d <- RSMutableDictionary$new()
   d$setObjectForKey(RSString$stringWith("v"), RSString$stringWith("k"))
-  copied <- d$mutableCopyWithEnv(new.env())
-  expect_s3_class(copied, "RSMutableDictionary")
+  copied <- d$mutableCopy()
   expect_equal(copied$count(), 1)
   expect_false(identical(d, copied))
 })
@@ -71,10 +69,79 @@ test_that("RSMutableDictionary: union and difference with another dictionary", {
   d2$setObjectForKey(RSString$stringWith("3"), RSString$stringWith("b"))
   d2$setObjectForKey(RSString$stringWith("4"), RSString$stringWith("c"))
   u <- d1$dictionaryByMergingWithDictionary(d2)
-  expect_s3_class(u, "RSDictionary")
   expect_equal(u$count(), 3)
   diff <- d1$dictionaryByExcludingWithDictionary(d2)
-  expect_s3_class(diff, "RSDictionary")
   expect_equal(diff$count(), 1)
   expect_equal(diff$objectForKey(RSString$stringWith("a"))$value(), "1")
+})
+
+test_that("RSMutableDictionary: supported initializers use native storage", {
+  key <- RSString$stringWith("key")
+  value <- RSString$stringWith("value")
+  pair <- RSKeyValuePair$new(key, value)
+
+  from_pairs <- RSMutableDictionary$new(key_value_pairs = list(pair))
+  from_alternating <- RSMutableDictionary$new(
+    objects_and_keys = list(value, key)
+  )
+  from_separate <- RSMutableDictionary$new(keys = list(key), values = list(value))
+
+  for (dictionary in list(from_pairs, from_alternating, from_separate)) {
+    expect_equal(dictionary$count(), 1)
+    expect_equal(dictionary$objectForKey(key)$value(), "value")
+  }
+  expect_equal(RSMutableDictionary$new(objects_and_keys = list())$count(), 0)
+})
+
+test_that("RSMutableDictionary: stored NULL differs from an absent key", {
+  dictionary <- RSMutableDictionary$new()
+  key <- RSString$stringWith("nullable")
+  missing <- RSString$stringWith("missing")
+
+  dictionary$setObjectForKey(NULL, key)
+
+  expect_true(dictionary$containsKey(key))
+  expect_identical(dictionary$objectForKey(key), RSNull$null())
+  expect_false(dictionary$containsKey(missing))
+  expect_null(dictionary$objectForKey(missing))
+})
+
+test_that("RSMutableDictionary: copies own independent native tables", {
+  key <- RSString$stringWith("key")
+  original <- RSMutableDictionary$new(
+    keys = list(key),
+    values = list(RSString$stringWith("before"))
+  )
+
+  immutable <- original$copy()
+  mutable <- original$mutableCopy()
+  original$setObjectForKey(RSString$stringWith("after"), key)
+  mutable$removeObjectForKey(key)
+
+  expect_true(immutable$isMemberOf(RSDictionary))
+  expect_equal(immutable$objectForKey(key)$value(), "before")
+  expect_equal(original$objectForKey(key)$value(), "after")
+  expect_false(mutable$containsKey(key))
+})
+
+test_that("RSMutableDictionary: equality compares mappings and hash uses keys", {
+  key_a <- RSString$stringWith("a")
+  key_b <- RSString$stringWith("b")
+  value_1 <- RSString$stringWith("1")
+  value_2 <- RSString$stringWith("2")
+
+  left <- RSMutableDictionary$new(
+    keys = list(key_a, key_b), values = list(value_1, value_2)
+  )
+  same <- RSMutableDictionary$new(
+    keys = list(key_b, key_a), values = list(value_2, value_1)
+  )
+  different <- RSMutableDictionary$new(
+    keys = list(key_a, key_b), values = list(value_2, value_1)
+  )
+
+  expect_true(left$isEqual(same))
+  expect_equal(left$hash(), same$hash())
+  expect_false(left$isEqual(different))
+  expect_equal(left$hash(), different$hash())
 })

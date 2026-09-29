@@ -14,6 +14,23 @@ test_that("RSMutableSet: containsObject returns TRUE if present", {
   expect_false(s$containsObject(RSString$stringWith("y")))
 })
 
+test_that("RSMutableSet: retains the inserted representative", {
+  original <- RSString$stringWith("member")
+  equal_object <- RSString$stringWith("member")
+  s <- RSMutableSet$new(list(original, equal_object))
+
+  expect_equal(s$count(), 1)
+  expect_identical(s$member(equal_object), original)
+})
+
+test_that("RSMutableSet: represents NULL with RSNull", {
+  s <- RSMutableSet$new(list(NULL))
+
+  expect_true(s$containsObject(NULL))
+  expect_true(s$member(NULL)$isKindOf(RSNull))
+  expect_true(s$anyObject()$isKindOf(RSNull))
+})
+
 test_that("RSMutableSet: removeObject eliminates element", {
   s <- RSMutableSet$new()
   key <- RSString$stringWith("z")
@@ -37,20 +54,23 @@ test_that("RSMutableSet: removeAllObjects clears all elements", {
   expect_equal(s$count(), 0)
 })
 
-test_that("RSMutableSet: copyWithEnv returns immutable RSSet", {
+test_that("RSMutableSet: copy returns immutable RSSet", {
   s <- RSMutableSet$new()
   s$addObject(RSString$stringWith("x"))
-  copied <- s$copyWithEnv(new.env())
-  expect_s3_class(copied, "RSSet")
+  copied <- s$copy()
   expect_equal(copied$count(), 1)
 })
 
-test_that("RSMutableSet: mutableCopyWithEnv returns RSMutableSet", {
+test_that("RSMutableSet: mutableCopy returns RSMutableSet", {
   s <- RSMutableSet$new()
   s$addObject(RSString$stringWith("x"))
-  mcopy <- s$mutableCopyWithEnv(new.env())
+  mcopy <- s$mutableCopy()
   expect_s3_class(mcopy, "RSMutableSet")
   expect_equal(mcopy$count(), 1)
+
+  mcopy$addObject(RSString$stringWith("y"))
+  expect_equal(s$count(), 1)
+  expect_equal(mcopy$count(), 2)
 })
 
 test_that("RSMutableSet: set operations work (union, intersect, diff)", {
@@ -60,9 +80,9 @@ test_that("RSMutableSet: set operations work (union, intersect, diff)", {
   a$addObject(RSString$stringWith("b"))
   b$addObject(RSString$stringWith("b"))
   b$addObject(RSString$stringWith("c"))
-  u <- a$unionSet(b)
+  u <- a$uniteSet(b)
   i <- a$intersectSet(b)
-  d <- a$differenceSet(b)
+  d <- a$subtractSet(b)
   expect_setequal(
     vapply(u$allObjectsAsList(), function(x) x$value(), character(1)),
     c("a", "b", "c")
@@ -75,4 +95,6 @@ test_that("RSMutableSet: set operations work (union, intersect, diff)", {
     vapply(d$allObjectsAsList(), function(x) x$value(), character(1)),
     c("a")
   )
+  expect_equal(a$count(), 2)
+  expect_equal(b$count(), 2)
 })

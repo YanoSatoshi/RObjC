@@ -16,8 +16,8 @@
 #' - `removeAllObjects()` — Clear entire array
 #' - `objectAtIndex(index)` — Retrieve object by index
 #' - `asList()` — Return list of elements
-#' - `copyWithEnv(env)` — Return immutable copy (RSArray)
-#' - `mutableCopyWithEnv(env)` — Return new mutable copy
+#' - `copy()` — Return immutable copy (RSArray)
+#' - `mutableCopy()` — Return new mutable copy
 #'
 #' @examples
 #' arr <- RSMutableArray$new()
@@ -32,15 +32,13 @@ RSMutableArray <- R6::R6Class(
   cloneable = FALSE,
   private = list(
     .storage = list(),
-    .hash_operator = NULL,
-    .copying = NULL
+    .hash_operator = NULL
   ),
   public = list(
 
     #' @description
     #' Constructs a new mutable array instance. Optionally takes a list of RSObjects
-    #' to initialize the array. Each object in the list is copied using copyWithEnv(),
-    #' and stored as an immutable element within the array.
+    #' to initialize the array. 
     #'
     #' @param objects A list of `RSObject`s to populate the array (default: empty).
     #' @param hash_operator A module for hash operation.
@@ -49,20 +47,15 @@ RSMutableArray <- R6::R6Class(
       objects = list(),
       hash_operator = RSHashOperator$module()
     ) {
-      objects <- cast_ry_storage_to_list(objects)
+      objects <- cast_rs_storage_to_list(objects)
       stopifnot(is.list(objects))
       super$initialize()
       if (
         length(objects) > 0 &&
-        !all(vapply( # nolint
-          objects,
-          function(obj) !is.null(obj$isKindOf) && obj$isKindOf(RSObject),
-          logical(1)
-        ))
+        !all(vapply(objects, is_robjc_instance, logical(1)))
       ) stop("All elements must inherit from RSObject.")
       private$.storage <- objects
       private$.hash_operator <- hash_operator
-      private$.copying <- RSCopying$protocol()
       invisible(self)
     },
 
@@ -70,15 +63,11 @@ RSMutableArray <- R6::R6Class(
 
     #' @description
     #' Appends an object to the end of the array.  
-    #' The object is copied using `copyWithEnv()` and stored as an immutable element,
-    #' ensuring that the internal structure of the array remains independent from the input object.
     #'
-    #' @param obj An `RSObject` implementing `copyWithEnv(env)`.
+    #' @param obj An `RSObject`.
     #' @return Invisible `NULL`.
     addObject = function(obj) {
-      stopifnot(!is.null(obj$isKindOf), obj$isKindOf(RSObject))
-      copied <- private$.copying$copyObjectWithEnv(obj, environment(self))
-      private$.storage <- c(private$.storage, list(copied))
+      private$.storage <- c(private$.storage, list(obj))
       invisible(self)
     },
 
@@ -86,17 +75,14 @@ RSMutableArray <- R6::R6Class(
 
     #' @description
     #' Inserts an object at the specified index, shifting existing elements to the right.  
-    #' The object is copied using `copyWithEnv()` and stored as an immutable element,
-    #' maintaining isolation from the original input.
+
     #'
-    #' @param obj An `RSObject` implementing `copyWithEnv(env)`.
+    #' @param obj An `RSObject`.
     #' @param index Integer position (1-based) where the object will be inserted.
     #' @return Invisible `NULL`.
     insertObjectAtIndex = function(obj, index) {
-      stopifnot(!is.null(obj$isKindOf), obj$isKindOf(RSObject))
       len <- length(private$.storage)
       if (index < 1 || index > len + 1) stop("Index out of bounds.")
-      obj <- private$.copying$copyObjectWithEnv(obj, environment(self))
       private$.storage <-
         append(private$.storage, list(obj), after = index - 1L)
       invisible(self)
@@ -105,18 +91,14 @@ RSMutableArray <- R6::R6Class(
 
 
     #' @description
-    #' Replaces the object at the specified index with a new one.  
-    #' The new object is copied using `copyWithEnv()` and stored as an immutable element,
-    #' replacing the existing content without modifying the input.
+    #' Replaces the object at the specified index with a new one.
     #'
-    #' @param obj An `RSObject` implementing `copyWithEnv(env)`.
+    #' @param obj An `RSObject`.
     #' @param index Integer index (1-based) of the object to replace.
     #' @return Invisible `NULL`.
     replaceObjectAtIndex = function(obj, index) {
-      stopifnot(!is.null(obj$isKindOf), obj$isKindOf(RSObject))
       len <- length(private$.storage)
       if (index < 1 || index > len) stop("Index out of bounds.")
-      obj <- private$.copying$copyObjectWithEnv(obj, environment(self))
       private$.storage[[index]] <- obj
       invisible(self)
     },
@@ -197,7 +179,7 @@ RSMutableArray <- R6::R6Class(
     #'
     #' @return A list of RS objects.
     allObjects = function() {
-      self$copyWithEnv()
+      self$copy()
     },
 
 
@@ -236,38 +218,33 @@ RSMutableArray <- R6::R6Class(
 
     #' @description
     #' Returns an immutable copy of the array (i.e., an `RSArray` instance).
-    #' Each element is copied via `copyWithEnv()` into the given environment.
+    #' This performs a shallow copy: the container is newly created,
+    #' but the elements are shared (not deeply duplicated).
     #'
-    #' @param env An environment into which the copy is placed.
+    #' This method is typically used to convert a mutable array to its immutable form.
+    #'
     #' @return An `RSArray` object.
-    copyWithEnv = function(env = parent.frame()) {
-      do.call(
-        RSArray$new,
-        list(
-          objects = private$.storage,
-          hash_operator = private$.hash_operator
-        ),
-        envir = env
+    copy = function() {
+      RSArray$new(
+        objects = private$.storage,
+        hash_operator = private$.hash_operator
       )
     },
 
 
 
     #' @description
-    #' Returns a new mutable copy of the array.
-    #' Each element is copied into the given environment, preserving the array structure.
+    #' Returns a mutable copy of the array (i.e., an `RSMutableArray` instance).
+    #' This performs a shallow copy: the container is recreated,
+    #' but the elements are shared as-is without deep duplication.
     #'
-    #' @param env An environment for evaluating the copy.
-    #' @return A new `RSMutableArray` object.
-    mutableCopyWithEnv = function(env = parent.frame()) {
-      if (identical(env, environment(self))) return(self)
-      do.call(
-        RSMutableArray$new,
-        list(
-          objects = private$.storage,
-          hash_operator = private$.hash_operator
-        ),
-        envir = env
+    #' If the original array is already mutable, this method may simply return itself.
+    #' 
+    #' @return An `RSMutableArray` object.
+    mutableCopy = function() {
+      RSMutableArray$new(
+        objects = private$.storage,
+        hash_operator = private$.hash_operator
       )
     },
 
@@ -376,3 +353,6 @@ RSMutableArray <- R6::R6Class(
     }
   )
 )
+
+conform_protocol_to_class(RSMutableCopying$protocol(), RSMutableArray)
+conform_protocol_to_class(RSCopying$protocol(), RSMutableArray)

@@ -41,20 +41,42 @@ test_that("RSDictionary: mutation methods are prohibited", {
   )
 })
 
-test_that("RSDictionary: copyWithEnv returns RSDictionary", {
+test_that("RSDictionary: copy returns identical", {
   d <- RSDictionary$new(objects_and_keys = list(
     RSString$stringWith("v"), RSString$stringWith("k")
   ))
-  copy <- d$copyWithEnv()
-  expect_s3_class(copy, "RSDictionary")
-  expect_equal(copy$objectForKey(RSString$stringWith("k"))$value(), "v")
+  copy <- d$copy()
+  expect_identical(d, copy)
 })
 
-test_that("RSDictionary: mutableCopyWithEnv returns RSMutableDictionary", {
+test_that("RSDictionary: mutableCopy returns RSMutableDictionary", {
   d <- RSDictionary$new(objects_and_keys = list(
     RSString$stringWith("v"), RSString$stringWith("k")
   ))
-  mcopy <- d$mutableCopyWithEnv()
-  expect_s3_class(mcopy, "RSMutableDictionary")
+  mcopy <- d$mutableCopy()
   expect_equal(mcopy$objectForKey(RSString$stringWith("k"))$value(), "v")
+})
+
+test_that("RSDictionary: entry mutation aliases are prohibited", {
+  key <- RSString$stringWith("k")
+  entry <- RSKeyValuePair$new(key, RSString$stringWith("v"))
+  dictionary <- RSDictionary$new(key_value_pairs = list(entry))
+  expected <- msg_immutable_try_mutate(dictionary$class())
+
+  expect_error(dictionary$addEntry(entry), expected, fixed = TRUE)
+  expect_error(dictionary$removeEntry(entry), expected, fixed = TRUE)
+  expect_error(dictionary$removeAllEntries(), expected, fixed = TRUE)
+})
+
+test_that("RSDictionary: dictionaryWithDictionary clones native storage", {
+  key <- RSString$stringWith("k")
+  source <- RSMutableDictionary$new(
+    keys = list(key), values = list(RSString$stringWith("before"))
+  )
+
+  dictionary <- RSDictionary$dictionaryWithDictionary(source)
+  source$setObjectForKey(RSString$stringWith("after"), key)
+
+  expect_true(dictionary$isMemberOf(RSDictionary))
+  expect_equal(dictionary$objectForKey(key)$value(), "before")
 })
