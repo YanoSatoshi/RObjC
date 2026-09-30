@@ -31,7 +31,7 @@ cast_rs_storage_to_list <- function(objects) {
 #' @return A character string containing the error message.
 #' @examples
 #' # msg_immutable_try_mutate(RSNumber)
-#' @export
+#' @keywords internal
 msg_immutable_try_mutate <- function(klass) {
   cls_name <- klass$classname
   sprintf(

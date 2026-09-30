@@ -36,4 +36,3 @@ MyProtocol$protocol()  # Retrieve the registered protocol instance
 \seealso{
 \code{\link{RSProtocol}} – The base class for protocol declarations in the robjc system.
 }
-\keyword{internal}

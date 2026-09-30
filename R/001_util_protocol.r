@@ -38,7 +38,7 @@ if (Sys.getenv("DEBUG_MODE") == "TRUE" && exists(tmp, environment(), inherits = 
 #' @seealso
 #' \code{\link{RSProtocol}} – The base class for protocol declarations in the robjc system.
 #'
-#' @keywords internal
+#' @export
 register_rs_protocol <- function(klass, obj) {
   stopifnot(obj$isKindOf(RSProtocol))
   klass$robjc_isa$slot <- obj
@@ -66,9 +66,14 @@ lockBinding("register_rs_protocol", environment())
 #'
 #' Unlike inheritance via `inherit`, this function allows existing classes to retroactively declare
 #' conformance to a given protocol, without modifying their inheritance chain.
+#' 
+#' If klass$robjc_isa has not yet been initialized, the function instantiates klass using args
+#' to initialize its robjc class metadata before registering the protocol.
 #'
 #' @param protocol An object that is an instance of a subclass of `RSProtocol`.
 #' @param klass An RSObject.
+#' @param init_args Named list with arguments to call `klass$new(...)`.
+#' 
 #'
 #' @return None. The class is modified in-place by appending the protocol to `klass$robjc_isa$protocols`.
 #'
@@ -77,6 +82,14 @@ lockBinding("register_rs_protocol", environment())
 #' conform_protocol_to_class(MyEncodingProtocol$protocol(), MyEncoderClass)
 #' obj <- MyEncoderClass$new()
 #' obj$conformsTo("MyEncodingProtocol")  # TRUE
+#' 
+#' conform_protocol_to_class(
+#'   MyNameProtocol$protocol(),
+#'   MyNameClass,
+#'   init_args = list(name = "hoge")
+#' )
+#' obj <- MyNameClass$new("foo")
+#' obj$conformsTo("MyNameProtocol") # TRUE
 #' }
 #'
 #' @seealso
@@ -88,10 +101,10 @@ lockBinding("register_rs_protocol", environment())
 #' have already been initialized. These are typically set during class construction
 #' via `RSObject$initialize()`.
 #'
-#' @keywords internal
-conform_protocol_to_class <- function(protocol, klass, args = list()) {
+#' @export
+conform_protocol_to_class <- function(protocol, klass, init_args = list()) {
   stopifnot(protocol$isKindOf(RSProtocol))
-  if (is.null(klass$robjc_isa)) do.call(klass$new, args)
+  if (is.null(klass$robjc_isa)) do.call(klass$new, init_args)
   prtcl_cls <- if (is_robjc_instance(protocol)) protocol$class() else protocol
   contains <- any(
     vapply(
@@ -121,7 +134,6 @@ conform_protocol_to_class <- function(protocol, klass, args = list()) {
 #'
 #' @return `TRUE` if the object conforms to the protocol, `FALSE` otherwise.
 #'
-#' @keywords internal
 util_confirm_protocol <- function(obj, protocol) {
   stopifnot("Obj is not robjc instance." = is_robjc_instance(obj))
   obj$conformsTo(protocol)

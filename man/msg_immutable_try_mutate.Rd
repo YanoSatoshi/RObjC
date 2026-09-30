@@ -19,3 +19,4 @@ It suggests using the corresponding \verb{RSMutable*} class instead.
 \examples{
 # msg_immutable_try_mutate(RSNumber)
 }
+\keyword{internal}
