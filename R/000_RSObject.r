@@ -1,5 +1,3 @@
-#' @importFrom R6 R6Class
-
 #' @title RSObject: A Fundamental Base Class Inspired by Objective-C's NSObject
 #'
 #' @description

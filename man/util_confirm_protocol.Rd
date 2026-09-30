@@ -18,4 +18,3 @@ util_confirm_protocol(obj, protocol)
 A utility function to confirm whether a given object conforms to a specified protocol.
 It returns \code{FALSE} if the object is not an \code{RSObject}, or does not implement the \code{conformsTo()} method.
 }
-\keyword{internal}

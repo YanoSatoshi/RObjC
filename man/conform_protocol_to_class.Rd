@@ -4,12 +4,14 @@
 \alias{conform_protocol_to_class}
 \title{Declare Protocol Conformance on a Class Object}
 \usage{
-conform_protocol_to_class(protocol, klass, args = list())
+conform_protocol_to_class(protocol, klass, init_args = list())
 }
 \arguments{
 \item{protocol}{An object that is an instance of a subclass of \code{RSProtocol}.}
 
 \item{klass}{An RSObject.}
+
+\item{init_args}{Named list with arguments to call \code{klass$new(...)}.}
 }
 \value{
 None. The class is modified in-place by appending the protocol to \code{klass$robjc_isa$protocols}.
@@ -21,6 +23,9 @@ within the robjc object system. This function updates the class’s internal pro
 
 Unlike inheritance via \code{inherit}, this function allows existing classes to retroactively declare
 conformance to a given protocol, without modifying their inheritance chain.
+
+If klass$robjc_isa has not yet been initialized, the function instantiates klass using args
+to initialize its robjc class metadata before registering the protocol.
 }
 \note{
 This function assumes that \code{klass$robjc_isa$inherit_chain} and \code{klass$robjc_isa$protocols}
@@ -32,6 +37,14 @@ via \code{RSObject$initialize()}.
 conform_protocol_to_class(MyEncodingProtocol$protocol(), MyEncoderClass)
 obj <- MyEncoderClass$new()
 obj$conformsTo("MyEncodingProtocol")  # TRUE
+
+conform_protocol_to_class(
+  MyNameProtocol$protocol(),
+  MyNameClass,
+  init_args = list(name = "hoge")
+)
+obj <- MyNameClass$new("foo")
+obj$conformsTo("MyNameProtocol") # TRUE
 }
 
 }
@@ -39,4 +52,3 @@ obj$conformsTo("MyEncodingProtocol")  # TRUE
 \code{\link[=RSProtocol]{RSProtocol}} – Protocol base class.
 \code{\link[=RSObject]{RSObject}} – See method \code{conformsTo()}.
 }
-\keyword{internal}
