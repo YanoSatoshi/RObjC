@@ -1,3 +1,4 @@
+#' @include RSScalar.r
 #' @title RSDate: Scalar Wrapper for Date Values
 #'
 #' @description
@@ -6,27 +7,27 @@
 #' use in hash-based containers such as `RSSet` and `RSDictionary`.
 #'
 #' The constructor ensures that the value is of class `"Date"`. To construct
-#' safely from a value that may include `NA`, use the factory method `RSDate$dateWith()`.
+#' safely from a value that may include `NA`, use the factory method `RSDate_withDate()`.
 #'
 #' @section Methods:
 #' - `hash()` – Converts the date to an integer representation for hashing.
 #'
 #' @section Usage:
-#' Use \code{RSDate$dateWith(val)} to construct safely from a Date scalar.
+#' Use \code{RSDate_withDate(val)} to construct safely from a Date scalar.
 #' 
 #' @examples
-#' d <- RSDate$dateWith(Sys.Date())
+#' d <- RSDate_withDate(Sys.Date())
 #' d$value()
 #' d$hash()
 #'
 #' @seealso RSNADate
 #'
 #' @export
-RSDate <- R6::R6Class(
-  ### class name ###
+RSDate <- RSScalarClass(
   "RSDate",
-  cloneable = FALSE,
-  inherit = RSScalar,
+  version = "0.0.2 alpha",
+  super_class = RSScalar,
+  is_na_class = FALSE,
   public = list(
 
     #' @description
@@ -54,8 +55,6 @@ RSDate <- R6::R6Class(
     }
   )
 )
-RSDate$isNAClass <- FALSE
-
 
 
 
@@ -67,18 +66,19 @@ RSDate$isNAClass <- FALSE
 #' This class is used internally to distinguish between regular and missing date values
 #' within scalar-aware containers and comparison logic.
 #'
-#' Normally constructed via `RSDate$dateWith()`.
+#' Normally constructed via `RSDate_withDate()`.
 #'
 #' @examples
-#' na_date <- RSDate$dateWith(as.Date(NA))
+#' na_date <- RSDate_withDate(as.Date(NA))
 #' na_date$isKindOf(RSDate)  # TRUE
 #' na_date$value()           # NA
 #'
 #' @export
-RSNADate <- R6::R6Class(
+RSNADate <- RSScalarClass(
   "RSNADate",
-  cloneable = FALSE,
-  inherit = RSDate,
+  version = "0.0.2 alpha",
+  super_class = RSDate,
+  is_na_class = TRUE,
   public = list(
 
     #' @description
@@ -92,26 +92,3 @@ RSNADate <- R6::R6Class(
     }
   )
 )
-RSNADate$isNAClass <- TRUE
-
-
-
-# @title Factory Method for RSDate
-# 
-# @name dateWith
-#
-# @description
-# Creates an `RSDate` object from a `Date` scalar. If the input is `as.Date(NA)`,
-# it returns an instance of `RSNADate`.
-#
-# @param val A `Date` scalar.
-# @return An instance of `RSDate` or `RSNADate`.
-#
-# @examples
-# RSDate$dateWith(as.Date("2023-01-01"))
-# RSDate$dateWith(as.Date(NA))
-# @export
-RSDate$dateWith  <- function(val) {
-  if (is.na(val)) return(RSNADate$new())
-  return(RSDate$new(val))
-}

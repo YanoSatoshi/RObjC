@@ -12,9 +12,6 @@ The encoder uses a mark-and-store traversal strategy, ensuring that each object 
 class is encoded only once. The output is a dictionary of class references that can
 be consumed by the \code{RSClassDecoder}.
 }
-\details{
-RSObject
-}
 \seealso{
 \link{RSClassDecoder}, \link{RSEncoding}, \link{RSClassReference}
 }
@@ -24,7 +21,7 @@ RSObject
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{class_store}}{A mutable \code{RSDictionary} that maps class IDs to \code{RSClassReference} objects.
+\item{\code{class_store}}{An \link{RSMutableDictionary} that maps class IDs to \link{RSClassReference} objects.
 Each entry represents a class and the set of encoded instances belonging to it.}
 
 \item{\code{visited_env}}{An environment used to track visited objects and classes during recursive encoding.
@@ -66,7 +63,6 @@ Once \code{lockInstance()} is called, the encoder is locked from further mutatio
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSModule" data-id="lockVariables"><a href='../../robjc/html/RSModule.html#method-RSModule-lockVariables'><code>robjc::RSModule$lockVariables()</code></a></span></li>
 </ul>
 </details>
 }}

@@ -35,9 +35,9 @@ test_that("RSBoolean: hash() returns integer", {
   expect_type(tf$hash(), "integer")
 })
 
-test_that("RSScalar$valueWith(TRUE/FALSE) returns RSBoolean", {
-  x <- RSScalar$valueWith(TRUE)
-  y <- RSScalar$valueWith(FALSE)
+test_that("RSScalar_withValue(TRUE/FALSE) returns RSBoolean", {
+  x <- RSScalar_withValue(TRUE)
+  y <- RSScalar_withValue(FALSE)
   expect_s3_class(x, "RSBoolean")
   expect_s3_class(y, "RSBoolean")
 })

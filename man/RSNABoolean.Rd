@@ -8,7 +8,7 @@
 This class is typically used internally by factory methods.
 }
 \note{
-Use \code{RSBoolean$boolWith(val)} instead of instantiating directly.
+Use \code{RSBoolean_withBoolean(val)} instead of instantiating directly.
 }
 \section{Super classes}{
 \code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{\link[robjc:RSScalar]{robjc::RSScalar}} -> \code{\link[robjc:RSBoolean]{robjc::RSBoolean}} -> \code{RSNABoolean}

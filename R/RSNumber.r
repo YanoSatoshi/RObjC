@@ -1,3 +1,4 @@
+#' @include RSScalar.r
 #' @title RSNumber: Numeric Scalar Wrapper
 #'
 #' @description
@@ -6,17 +7,18 @@
 #' It disallows `NA` values directly; use `RSNANumber` instead.
 #'
 #' @section Usage:
-#' Use \code{RSNumber$numberWith(val)} to safely construct from a numeric scalar.
+#' Use \code{RSNumber_withValue(val)} to safely construct from a numeric scalar.
 #' If \code{val} is \code{NA}, it returns \code{RSNANumber}.
 #' 
 #' @section See Also:
 #' [RSNANumber] for handling NA values.
 #'
 #' @export
-RSNumber <- R6::R6Class(
+RSNumber <- RSScalarClass(
   "RSNumber",
-  cloneable = FALSE,
-  inherit = RSScalar,
+  version = "0.0.2 alpha",
+  super_class = RSScalar,
+  is_na_class = FALSE,
   public = list(
 
     #' @description
@@ -39,7 +41,6 @@ RSNumber <- R6::R6Class(
     }
   )
 )
-RSNumber$isNAClass  <- FALSE
 
 
 
@@ -52,13 +53,14 @@ RSNumber$isNAClass  <- FALSE
 #'
 #' @note
 #' This class should not be instantiated directly under most circumstances.
-#' Use `RSNumber$numberWith(val)` to safely wrap numeric values.
+#' Use `RSNumber_withValue(val)` to safely wrap numeric values.
 #'
 #' @export
-RSNANumber <- R6::R6Class(
+RSNANumber <- RSScalarClass(
   "RSNANumber",
-  cloneable = FALSE,
-  inherit = RSNumber,
+  version = "0.0.2 alpha",
+  super_class = RSNumber,
+  is_na_class = TRUE,
   public = list(
 
     #' @description
@@ -77,26 +79,3 @@ RSNANumber <- R6::R6Class(
     }
   )
 )
-RSNANumber$isNAClass <- TRUE
-
-
-
-# @title RSNumber: Numeric Scalar Wrapper
-# 
-# @name numberWith
-#
-# @description
-# `RSNumber` wraps a numeric scalar (double or integer) in a value-object style,
-# inheriting common scalar behavior from `RSScalar`.
-# It disallows `NA` values directly; use `RSNANumber` instead.
-#
-# @section Usage:
-# Use `RSNumber$numberWith(val)` to construct an instance safely.
-#
-# @section See Also:
-# [RSNANumber] for handling NA values.
-# @export
-RSNumber$numberWith <- function(val) {
-  if (is.na(val)) return(RSNANumber$new())
-  return(RSNumber$new(val))
-}

@@ -27,9 +27,9 @@ test_that("RSDateTime: hash() returns integer", {
   expect_type(dt$hash(), "integer")
 })
 
-test_that("RSScalar$valueWith(POSIXct) returns RSDateTime", {
+test_that("RSScalar_withValue(POSIXct) returns RSDateTime", {
   dt <- as.POSIXct("2025-01-01 00:00:00")
-  wrapped <- RSScalar$valueWith(dt)
+  wrapped <- RSScalar_withValue(dt)
   expect_true(wrapped$isKindOf(RSDateTime))
 })
 

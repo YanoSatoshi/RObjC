@@ -11,10 +11,10 @@ structured object-oriented manner. This allows \code{NA} to behave consistently 
 The instance has no levels and is not ordered.
 }
 \note{
-Normally, this class is constructed internally via \code{RSFactor$factorWith()}.
+Normally, this class is constructed internally via \code{RSFactor_withFactor()}.
 }
 \examples{
-na_f <- RSFactor$factorWith(factor(NA_character_))
+na_f <- RSFactor_withFactor(factor(NA_character_))
 na_f$ordered()  # FALSE
 na_f$levels()   # NULL
 

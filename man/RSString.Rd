@@ -10,7 +10,7 @@ hashing, and sorting. This class allows factor levels to be treated interchangea
 with character strings at the scalar abstraction level.
 
 The constructor accepts a single-length character or factor value.
-Use the factory method \code{RSString$stringWith()} to construct an instance safely,
+Use the factory method \code{RSString_withValue()} to construct an instance safely,
 especially when the input may be \code{NA}.
 }
 \section{See Also}{
@@ -20,12 +20,12 @@ especially when the input may be \code{NA}.
 
 \section{Usage}{
 
-Use \code{RSString$stringWith(val)} to safely construct from a character or factor.
+Use \code{RSString_withValue(val)} to safely construct from a character or factor.
 If \code{val} is \code{NA}, it returns \code{RSNAString}.
 }
 
 \examples{
-s <- RSString$stringWith("hello")
+s <- RSString_withValue("hello")
 s$value()  # "hello"
 
 }

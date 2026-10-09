@@ -1,6 +1,6 @@
 // src/RSObjectHash.cpp
 #ifndef ROBJC_RSOBJECTHASH_H
-#define  ROBJC_RSOBJECTHASH_H
+#define ROBJC_RSOBJECTHASH_H
 
 #include <Rcpp.h>
 

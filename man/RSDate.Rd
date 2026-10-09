@@ -9,7 +9,7 @@ It inherits from \code{RSScalar} and supports equality checking, hashing, and
 use in hash-based containers such as \code{RSSet} and \code{RSDictionary}.
 
 The constructor ensures that the value is of class \code{"Date"}. To construct
-safely from a value that may include \code{NA}, use the factory method \code{RSDate$dateWith()}.
+safely from a value that may include \code{NA}, use the factory method \code{RSDate_withDate()}.
 }
 \section{Methods}{
 
@@ -20,11 +20,11 @@ safely from a value that may include \code{NA}, use the factory method \code{RSD
 
 \section{Usage}{
 
-Use \code{RSDate$dateWith(val)} to construct safely from a Date scalar.
+Use \code{RSDate_withDate(val)} to construct safely from a Date scalar.
 }
 
 \examples{
-d <- RSDate$dateWith(Sys.Date())
+d <- RSDate_withDate(Sys.Date())
 d$value()
 d$hash()
 

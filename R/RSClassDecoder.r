@@ -1,5 +1,6 @@
+#' @include RSModule.r
+#' @include RSEncoding.r
 #' @title RSClassDecoder
-#'
 #' @description
 #' `RSClassDecoder` is the decoding module in the `robjc` framework.
 #' It interprets serialized metadata produced by `RSClassEncoder` and restores object identity and class bindings.
@@ -7,16 +8,18 @@
 #'
 #' This class conforms to the `RSDecoderProtocol`, and is typically invoked by functions like `robjc_read_rds()` or `robjc_load()`.
 #'
-#' @field class_store An `RSDictionary` containing encoded classID-to-instance mappings (`RSClassReference` entries).
+#' @field class_store A dictionary containing class ID to instance mappings
+#'   ([RSClassReference] entries), or `NULL` before data is loaded.
 #' @field unresolved A character vector of classIDs that could not be resolved during decoding.
 #'
 #' @seealso [RSClassEncoder], [RSClassReference], [RSDecoderProtocol]
 #'
 #' @export
-RSClassDecoder <- R6::R6Class(
+RSClassDecoder <- RSSingletonClass(
   "RSClassDecoder",
-  inherit = RSModule,
-  cloneable = FALSE,
+  version = "0.0.2 alpha",
+  super_class = RSModule,
+  protocols = list(RSDecoderProtocol),
   public = list(
 
     class_store = NULL,      # RSDictionary<String, RSClassReference>
@@ -25,10 +28,10 @@ RSClassDecoder <- R6::R6Class(
 
 
     #' @description
-    #' Initializes the encoder. Creates a new mutable class store and a fresh environment
-    #' to track visited objects and classes. This method is called automatically.
+    #' Initializes the decoder with no encoded class store and an empty list of
+    #' unresolved class IDs. The factory calls this method when creating `$instance`.
     #'
-    #' @return The encoder instance (invisible).
+    #' @return The decoder instance, invisibly.
     initialize = function() {
       self$class_store <- NULL
       self$unresolved <- character(0)
@@ -97,7 +100,7 @@ RSClassDecoder <- R6::R6Class(
       for (entry in entries) {
         instance_map <- entry$value()
         class_id <- entry$key()$value()
-        new_class    <- class_map$objectForKey(RSString$stringWith(class_id))
+        new_class    <- class_map$objectForKey(RSString_withValue(class_id))
         if (is.null(new_class)) {
           self$unresolved <- c(self$unresolved, class_id)
           next
@@ -142,6 +145,3 @@ RSClassDecoder <- R6::R6Class(
     }
   )
 )
-
-register_rs_module(RSClassDecoder, RSClassDecoder$new())
-conform_protocol_to_class(RSDecoderProtocol$protocol(), RSClassDecoder)

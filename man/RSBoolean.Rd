@@ -18,7 +18,7 @@ It rejects NA values; use \code{RSNABoolean} for NA.
 \section{Usage}{
 
 To create an instance, use the static constructor:
-\code{RSBoolean$boolWith(val)}, which returns \code{RSNABoolean} if \code{val} is \code{NA}.
+\code{RSBoolean_withBoolean(val)}, which returns \code{RSNABoolean} if \code{val} is \code{NA}.
 }
 
 \section{Super classes}{

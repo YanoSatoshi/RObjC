@@ -9,7 +9,7 @@ in a safe, class-distinct manner. Instances of this class are recognized by \cod
 }
 \note{
 This class should not be instantiated directly under most circumstances.
-Use \code{RSNumber$numberWith(val)} to safely wrap numeric values.
+Use \code{RSNumber_withValue(val)} to safely wrap numeric values.
 }
 \section{Super classes}{
 \code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{\link[robjc:RSScalar]{robjc::RSScalar}} -> \code{\link[robjc:RSNumber]{robjc::RSNumber}} -> \code{RSNANumber}

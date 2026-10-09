@@ -1,3 +1,4 @@
+#' @include RSMutableDictionary.r
 #' @title RSDictionary: Native-Backed Immutable Key-Value Store
 #'
 #' @description
@@ -13,10 +14,11 @@
 #' shallow copy with an independent native table.
 #'
 #' @export
-RSDictionary <- R6::R6Class(
+RSDictionary <- RSObjectClass(
   "RSDictionary",
-  inherit = RSMutableDictionary,
-  cloneable = FALSE,
+  version = "0.0.2 alpha",
+  super_class = RSMutableDictionary,
+  protocols = list(RSCopying, RSMutableCopying),
   public = list(
     #' @description
     #' Constructs an immutable dictionary from one supported input format.
@@ -92,7 +94,7 @@ RSDictionary <- R6::R6Class(
 RSDictionary$dictionaryWithDictionary <- function(dictionary) {
   stopifnot(
     "Object must be a dictionary" =
-      is_robjc_instance(dictionary) &&
+      robjc_isRobjcObject(dictionary) &&
       dictionary$isKindOf(RSMutableDictionary)
   )
   .rs_dictionary_with_storage(

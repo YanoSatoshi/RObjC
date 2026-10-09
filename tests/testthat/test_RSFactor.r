@@ -29,9 +29,9 @@ test_that("RSFactor: hash() returns consistent int", {
   expect_equal(a$hash(), b$hash())
 })
 
-test_that("RSScalar$valueWith(factor) returns RSFactor", {
+test_that("RSScalar_withValue(factor) returns RSFactor", {
   f <- factor("foo", levels = c("foo", "bar"))
-  wrapped <- RSScalar$valueWith(f)
+  wrapped <- RSScalar_withValue(f)
   expect_true(wrapped$isKindOf(RSFactor))
 })
 

@@ -1,3 +1,4 @@
+#' @include RSString.r
 #' @title RSFactor: Wrapper for R's Factor Scalar Values
 #'
 #' @description
@@ -15,11 +16,11 @@
 #' - `compare(other, na.last = TRUE)` – Compares factor values respecting ordering
 #'
 #' @section Usage:
-#' Use \code{RSFactor$factorWith(val)} to construct safely from a factor value.
+#' Use \code{RSFactor_withFactor(val)} to construct safely from a factor value.
 #'
 #' @examples
 #' f <- factor("low", levels = c("low", "medium", "high"), ordered = TRUE)
-#' obj <- RSFactor$factorWith(f)
+#' obj <- RSFactor_withFactor(f)
 #' obj$levels()      # "low" "medium" "high"
 #' obj$ordered()     # TRUE
 #' obj$asFactor()    # reconstructs original factor
@@ -27,10 +28,11 @@
 #' @seealso RSNAFactor
 #'
 #' @export
-RSFactor <- R6::R6Class(
+RSFactor <- RSScalarClass(
   "RSFactor",
-  cloneable = FALSE,
-  inherit = RSString,
+  version = "0.0.2 alpha",
+  super_class = RSString,
+  is_na_class = FALSE,
   public = list(
 
 
@@ -118,8 +120,6 @@ RSFactor <- R6::R6Class(
     .ordered = NULL
   )
 )
-RSFactor$isNAClass  <- FALSE
-
 
 
 #' @title RSNAFactor: Wrapper for NA Factor Scalar
@@ -132,18 +132,19 @@ RSFactor$isNAClass  <- FALSE
 #' The instance has no levels and is not ordered.
 #'
 #' @note
-#' Normally, this class is constructed internally via `RSFactor$factorWith()`.
+#' Normally, this class is constructed internally via `RSFactor_withFactor()`.
 #'
 #' @examples
-#' na_f <- RSFactor$factorWith(factor(NA_character_))
+#' na_f <- RSFactor_withFactor(factor(NA_character_))
 #' na_f$ordered()  # FALSE
 #' na_f$levels()   # NULL
 #'
 #' @export
-RSNAFactor <- R6::R6Class(
+RSNAFactor <- RSScalarClass(
   "RSNAFactor",
-  cloneable = FALSE,
-  inherit = RSFactor,
+  version = "0.0.2 alpha",
+  super_class = RSFactor,
+  is_na_class = TRUE,
   public = list(
 
     #' @description
@@ -159,27 +160,3 @@ RSNAFactor <- R6::R6Class(
     }
   )
 )
-RSNAFactor$isNAClass <- TRUE
-
-
-
-
-# @title Factory Method for RSFactor
-# 
-# @name factorWith
-#
-# @description
-# Constructs an `RSFactor` from a valid R factor scalar.
-# If the input is `NA`, an `RSNAFactor` is returned instead.
-#
-# @param val A factor value of length 1.
-# @return An instance of `RSFactor` or `RSNAFactor`.
-#
-# @examples
-# RSFactor$factorWith(factor("A"))
-# RSFactor$factorWith(factor(NA_character_))  # returns RSNAFactor
-# @export
-RSFactor$factorWith <- function(val) {
-  if (is.na(val)) return(RSNAFactor$new())
-  return(RSFactor$new(val))
-}

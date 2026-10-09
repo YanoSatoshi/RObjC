@@ -23,12 +23,12 @@ while \code{levels()} and \code{ordered()} provide access to the original factor
 
 \section{Usage}{
 
-Use \code{RSFactor$factorWith(val)} to construct safely from a factor value.
+Use \code{RSFactor_withFactor(val)} to construct safely from a factor value.
 }
 
 \examples{
 f <- factor("low", levels = c("low", "medium", "high"), ordered = TRUE)
-obj <- RSFactor$factorWith(f)
+obj <- RSFactor_withFactor(f)
 obj$levels()      # "low" "medium" "high"
 obj$ordered()     # TRUE
 obj$asFactor()    # reconstructs original factor

@@ -1,0 +1,44 @@
+#' Class and Protocol Index
+#'
+#' @description
+#' Built-in RObjC class and protocol generators, grouped by use. See the
+#' [factory API index][factory_api_index] to declare your own classes.
+#'
+#' @section Base classes and modules:
+#' - [RSObject] is the base object class.
+#' - [RSScalar] is the base scalar wrapper class.
+#' - [RSModule] is the base class for shared utility modules.
+#'
+#' @section Scalar values:
+#' - [RSNull] represents `NULL`.
+#' - [RSBoolean] and [RSNABoolean] represent logical values.
+#' - [RSNumber] and [RSNANumber] represent numeric values.
+#' - [RSString] and [RSNAString] represent character values.
+#' - [RSFactor] and [RSNAFactor] represent factors.
+#' - [RSDate] and [RSNADate] represent dates.
+#' - [RSDateTime] and [RSNADateTime] represent date-times.
+#'
+#' @section Collections:
+#' - [RSArray] and [RSMutableArray] are ordered containers.
+#' - [RSSet] and [RSMutableSet] store unique objects.
+#' - [RSDictionary] and [RSMutableDictionary] store key-value pairs.
+#' - [RSDataFrame] and [RSMutableDataFrame] wrap data frames.
+#'
+#' @section Protocols:
+#' - [RSProtocol] is the root protocol generator.
+#' - [RSCopying] and [RSMutableCopying] define copying contracts.
+#' - [RSEncoding], [RSEncoderProtocol], and [RSDecoderProtocol] define
+#'   structural encoding and decoding contracts.
+#'
+#' @section Serialization classes:
+#' - [RSClassEncoder] and [RSClassDecoder] encode and decode object graphs.
+#' - [RSWrappedClass] represents a class name and version together.
+#'
+#' @section Utility classes:
+#' - [RSHashOperator] provides shared hashing and set operations.
+#' - [RSSorter] provides sorting operations.
+#'
+#' @seealso [robjc-package], [factory_api_index], [runtime_functions]
+#' @name class_index
+#' @aliases robjc_classes
+NULL

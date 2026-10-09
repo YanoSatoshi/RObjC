@@ -9,8 +9,8 @@
 It is used internally in robjc serialization to track which objects were created
 from a given class, supporting reconstruction and encoding workflows.
 
-During initialization, this class verifies that the provided \code{RSWrappedClass} conforms
-to the \code{RSEncoding} protocol, ensuring that all tracked instances are serializable.
+Initialization stores the provided wrapped class and places the instances in
+an \link{RSMutableSet}.
 }
 \note{
 This method should be called exactly once. A second call will result in an warning
@@ -23,11 +23,6 @@ Inherits from \link{RSKeyValuePair}, where:
 \item the key is an \code{RSWrappedClass}
 \item the value is an \code{RSMutableSet} (converted to \code{RSSet} after finalization)
 }
-}
-
-\section{Protocol Conformance}{
-
-The constructor validates that the wrapped class conforms to \code{RSEncoding}.
 }
 
 \section{Lifecycle}{
@@ -57,7 +52,7 @@ map <- RSInstanceMap$new(my_wrapped_class, list(obj1, obj2))
 ## ------------------------------------------------
 
 \dontrun{
-map$classID()  # "MyClass_v1"
+map$classID()$value()  # "MyClass_1.0"
 }
 
 ## ------------------------------------------------
@@ -66,7 +61,7 @@ map$classID()  # "MyClass_v1"
 
 \dontrun{
 cls <- map$wrappedClass()
-cls$classname()  # "MyClass"
+cls$className()  # "MyClass"
 }
 
 ## ------------------------------------------------
@@ -177,18 +172,19 @@ map <- RSInstanceMap$new(my_wrapped_class, list(obj1, obj2))
 \if{html}{\out{<a id="method-RSInstanceMap-classID"></a>}}
 \if{latex}{\out{\hypertarget{method-RSInstanceMap-classID}{}}}
 \subsection{Method \code{classID()}}{
-Returns the string identifier of the wrapped class, typically in the format "ClassName_v1".
+Returns the identifier of the wrapped class, in the format
+\code{ClassName_Version}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSInstanceMap$classID()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
-A character string representing the class ID.
+An \link{RSString} containing the class ID.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{\dontrun{
-map$classID()  # "MyClass_v1"
+map$classID()$value()  # "MyClass_1.0"
 }
 }
 \if{html}{\out{</div>}}
@@ -212,7 +208,7 @@ An object of class \code{RSWrappedClass}.
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{\dontrun{
 cls <- map$wrappedClass()
-cls$classname()  # "MyClass"
+cls$className()  # "MyClass"
 }
 }
 \if{html}{\out{</div>}}
