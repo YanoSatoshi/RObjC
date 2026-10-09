@@ -13,7 +13,7 @@
 #' @keywords internal
 cast_rs_storage_to_list <- function(objects) {
   if (is.list(objects)) return(objects)
-  stopifnot("Object is not kind of RSObject" = is_robjc_instance(objects))
+  stopifnot("Object is not kind of RSObject" = robjc_isRobjcObject(objects))
   if (objects$respondsTo("asList")) {
     return(objects$asList())
   } else {return(NULL)}

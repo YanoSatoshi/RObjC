@@ -1,3 +1,4 @@
+#' @include api_setup.r
 #' @title RSSorter: Sorting Module for Proxy and Compare Functions
 #'
 #' @description
@@ -13,18 +14,15 @@
 #'
 #' @examples
 #' \dontrun{
-#' s <- RSSorter$module()
+#' s <- RSSorter$instance
 #' sorted <- s$sortByProxyKey(entries, function(e) e$hash())
 #' }
 #'
 #' @export
-RSSorter <- R6::R6Class(
+RSSorter <- RSSingletonClass(
   "RSSorter",
-  inherit = RSModule,
-  cloneable = FALSE,
+  super_class = RSObject,
   public = list(
-
-
 
     #' @description
     #' Sorts a list of RS objects by numeric proxy keys extracted using the `key_fn` function.
@@ -95,4 +93,3 @@ RSSorter <- R6::R6Class(
     }
   )
 )
-register_rs_module(RSSorter, RSSorter$new(), lock_all = TRUE)

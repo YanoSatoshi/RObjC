@@ -1,9 +1,9 @@
-#' @title RSEncoding Protocol
-#'
+#' @include api_setup.r
+#' @title RSEncoding: Protocol for Structural Encoding
 #' @description
 #' The `RSEncoding` protocol defines the requirements for any object that supports
-#' structural encoding via the `RSClassEncoder` with `RSEncodingProtocol` and
-#' `RSClassDecoder` with `RSDecodingProtocol`. Conforming classes must explicitly
+#' structural encoding with [RSClassEncoder] and decoding with [RSClassDecoder].
+#' Conforming classes must explicitly
 #' declare which child objects should be recursively encoded, and must support
 #' class substitution during decoding.
 #'
@@ -18,25 +18,10 @@
 #'   class reference (`.__isa`) with the actual runtime class.
 #'
 #' @export
-RSEncoding <- R6::R6Class(
+RSEncoding <- RSProtocolClass(
   "RSEncoding",
-  inherit = RSProtocol,
-  cloneable = FALSE,
-  public = list(
-    #' @description
-    #' Lists the method names required by the `RSEncoding` protocol.
-    #' 
-    #' Conforming classes must implement both:
-    #' - `objectsForEncoding()`: defines the child objects to encode
-    #' - `resolveClassWith(new_cls)`: enables class reassignment on decoding
-    #'
-    #' @return A character vector of required method names.
-    requiredMethods = function() {
-      c("objectsForEncoding", "resolveClassWith")
-    }
-    # objectsForEncoding = function(void) {},
-    # resolveClassWith = function(counter_class) {}
-  )
+  contract_methods = c("objectsForEncoding", "resolveClassWith"),
+  version = "0.0.1 alpha"
 )
 
 
@@ -62,30 +47,11 @@ RSEncoding <- R6::R6Class(
 #' - `encodingContainer(obj)`: Retrieves the class-bound instance storage.
 #'
 #' @export
-RSEncoderProtocol <- R6::R6Class(
+RSEncoderProtocol <- RSProtocolClass(
   "RSEncoderProtocol",
-  inherit = RSProtocol,
-  cloneable = FALSE,
-  public = list(
-
-    #' @description
-    #' Lists the method names that any class claiming conformance to this
-    #' protocol must implement. Specifically, classes conforming to
-    #' `RSEncoderProtocol` are required to define a method called `encodeObject`
-    #' and `finalize`.
-    #'
-    #' @return A character vector of required method names.
-    #'
-    requiredMethods = function() {
-      c("encodeObject", "lockInstance")
-    }
-    # encodeObject = function(instance) {}
-    # finalize = function(void) {}
-    # #' @keywords optional
-    # encodingContainer = function(instance) {}
-  )
+  contract_methods = c("encodeObject", "lockInstance"),
+  version = "0.0.1 alpha"
 )
-
 
 
 
@@ -107,24 +73,8 @@ RSEncoderProtocol <- R6::R6Class(
 #'   with actual runtime classes.
 #'
 #' @export
-RSDecoderProtocol <- R6::R6Class(
+RSDecoderProtocol <- RSProtocolClass(
   "RSDecoderProtocol",
-  inherit = RSProtocol,
-  cloneable = FALSE,
-  public = list(
-
-    #' @description
-    #' Lists the method names that any class claiming conformance to this
-    #' protocol must implement. Specifically, classes conforming to
-    #' `RSDecoderProtocol` are required to define a method called
-    #' `encodedClasses` and `resolveClassesWithDictionary`.
-    #'
-    #' @return A character vector of required method names.
-    #'
-    requiredMethods = function() {
-      c("encodedClasses", "resolveClassesWithDictionary")
-    }
-    # encodedClasses = function(void) {}
-    # resolveClassesWithDictionary = function(counter_classes) {}
-  )
+  contract_methods = c("encodedClasses", "resolveClassesWithDictionary"),
+  version = "0.0.1 alpha"
 )

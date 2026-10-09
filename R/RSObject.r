@@ -1,3 +1,5 @@
+#' @include runtime.r
+#'
 #' @title RSObject: A Fundamental Base Class Inspired by Objective-C's NSObject
 #'
 #' @description
@@ -41,99 +43,45 @@
 #' @export
 RSObject <- R6::R6Class(
   "RSObject",
+  class     = FALSE,
   cloneable = FALSE,
-  public = list(
-
-
-    #' @description
-    #' Initializes a new instance of an `RSObject` subclass.
-    #'
-    #' During initialization, this method sets up the internal `robjc_isa` metadata
-    #' for the class if it has not already been initialized. This includes establishing:
-    #' 
-    #' - The class version (`version`)
-    #' - The full inheritance chain (`inherit_chain`)
-    #' - The immediate superclass (`super_class`)
-    #' - The list of adopted protocols (`protocols`)
-    #' - A general-purpose slot (`slot`)
-    #'
-    #' If the class has already been initialized, this step is skipped to avoid redefinition.
-    #'
-    #' The `.version` argument allows the developer to explicitly set the version string
-    #' associated with the class. If omitted, it defaults to `"0.0"`. This version is used
-    #' for compatibility checks during object deserialization.
-    #'
-    #' @param .version Optional character or numeric version identifier for the class.
-    #'   If `NULL`, defaults to `"0.0"`.
-    #'
+  portable  = TRUE,
+  active    = NULL,
+  inherit   = NULL,
+  public    = list(
+    #' @description Initializes a new instance.
     #' @return The initialized object itself (invisibly).
-    #'
-    #' @keywords internal
-    initialize = function(.version = NULL) {
-      # get Class Object
-      class_name <- class(self)[1]  # Only here, get classname from func class().  # nolint
-      base_env   <- environment(self$initialize)
-      search_env <- NULL
-      if (identical(base_env, .GlobalEnv)) {
-        search_env <- parent.env(base_env)
-      } else {
-        search_env <- base_env
-      }
-      private$.__isa <- get(class_name, envir = search_env, inherits = TRUE)
-      # ATTENTION! Now, `private$.__isa` == Environment of class object.
-      if (is.null(private$.__isa$robjc_isa)) {
-        private$.__isa$robjc_isa <- new.env(parent = emptyenv())
-        ## inside robjc_isa ##
-        #   char version;       Version string
-        #   list inherit_chain; List starts with class of itself and ends with RSObject.
-        #                       [CurrentClass, SuperClass, .., RSObject]
-        #   Class super         Super class.
-        #   list protocols;     List of declarating protocol adoptation.
-        #                       [SomeProtocol, .., RSCopying, RSEncoding]
-        #   var  slot;          A slot. In singleton pattern, the slot stores
-        #                       singleton instance.
-        ### end ###
-        isa <- private$.__isa$robjc_isa
-        # class version setting
-        isa$version <- if (is.null(.version)) "0.0" else as.character(.version)
-        # class-chain setting
-        isa$inherit_chain <- resolve_class_ancestors(private$.__isa)
-        # super class
-        isa$super_class <- isa$inherit_chain[[2]]
-        # delegate protocol setting
-        isa$protocols <- resolve_protocol_ancestors(private$.__isa)
-        # slot
-        isa$slot <- NULL
-      }
+    initialize = function() {
+      class(self) <- vapply(
+        robjc_inheritChain(private$.__isa),
+        function(klass) klass$classname,
+        character(1)
+      )
       invisible(self)
     },
 
 
-
-    #' @description
-    #' Returns the internal class object.
-    #' @return The object's class definition.
-    class = function() private$.__isa,
+    #' @description Returns the class-object.
+    #' @return The class-object (generator).
+    class = function() private$.__isa$class,
 
 
-
-    #' @description
-    #' Returns the super-class object.
-    #' @return The object's super-class definition.
-    superClass = function() self$class()$robjc_isa$super_class,
+    #' @description Returns the super-class.
+    #' @return The object's super-class (generator).
+    superClass = function() self$class()$robjc_isa$super,
 
 
-
-    #' @description
-    #' Checks if object conforms to a given protocol.
+    #' @description Checks if object conforms to a given protocol.
     #' @param protocol A character string naming the protocol.
     #' @return TRUE if conforms, FALSE otherwise.
     conformsTo = function(protocol) {
-      cls <- self$class()
-      if (is.null(cls$robjc_isa$protocols)) return(FALSE)
-      if (is.function(protocol$class)) protocol <- protocol$class()
-      if (!is.character(protocol)) protocol <- protocol$classname
-      protocol %in% names(cls$robjc_isa$protocols)
+      if (!robjc_isProtocol(protocol))
+        stop("`protocol` must be a kind of RSProtocol.")
+      myProtocols <- private$.__isa$protocols
+      for (aProtocol in myProtocols)
+        if (protocol_conformsTo(aProtocol, protocol))
+          return(TRUE)
+      return(FALSE)
     },
 
 
@@ -198,10 +146,7 @@ RSObject <- R6::R6Class(
     #' Checks if object is an exact instance of class `cls`.
     #' @param cls A class object.
     #' @return TRUE if the class matches exactly.
-    isMemberOf = function(cls) {
-      my_cls <- self$class()
-      identical(my_cls, cls)
-    },
+    isMemberOf = function(cls) identical(self$class(), cls),
 
 
 
@@ -225,9 +170,7 @@ RSObject <- R6::R6Class(
     #' Compares object identity with another.
     #' @param other Another object to compare.
     #' @return TRUE if they are the same reference.
-    isEqual = function(other) {
-      identical(self, other)
-    },
+    isEqual = function(other) identical(self, other),
 
 
 
@@ -262,9 +205,7 @@ RSObject <- R6::R6Class(
     #' @description
     #' Returns the list of ancestor classes.
     #' @return list of inheriting classes
-    inheritClassesAsList = function() {
-      return(self$class()$robjc_isa$inherit_chain)
-    },
+    inheritClassesAsList = function() robjc_inheritChain(private$.__isa),
 
 
 
@@ -319,7 +260,7 @@ RSObject <- R6::R6Class(
     #'
     #' @examples
     #' \dontrun{
-    #' MyContainerClass <- R6::R6Class("MyContainerClass", inherit = RSObject,
+    #' MyContainerClass <- RSObjectClass("MyContainerClass", super_class = RSObject,
     #' public = list(
     #'   instance1 = NULL,
     #'   instance2 = NULL,
@@ -345,7 +286,7 @@ RSObject <- R6::R6Class(
     #' Do not include class objects or static class-level state in this list.
     #'
     #' @keywords internal
-    objectsForEncoding = function() return(list()),
+    objectsForEncoding = function() list(),
 
 
     #' @description
@@ -358,7 +299,7 @@ RSObject <- R6::R6Class(
       stopifnot(
         "Class version check." = can_resolve_class(self$class(), new_cls)
       )
-      private$.__isa <- new_cls
+      private$.__isa <- new_cls$robjc_isa
       invisible(self)
     }
   ),

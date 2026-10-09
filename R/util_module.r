@@ -10,6 +10,7 @@ if (Sys.getenv("DEBUG_MODE") == "TRUE" && exists(tmp, environment(), inherits = 
 }
 
 
+#' @include RSModule.r
 #' @title Register a Singleton Instance of an RSModule Subclass
 #'
 #' @description
@@ -22,7 +23,8 @@ if (Sys.getenv("DEBUG_MODE") == "TRUE" && exists(tmp, environment(), inherits = 
 #' The `slot` field itself is locked using `lockBinding()` to prevent reassignment.
 #'
 #' This function is intended for internal use as part of the module initialization
-#' process in the `robjc` framework.
+#' process in the legacy registration workflow. New module classes use
+#' `RSSingletonClass()`, which creates and stores `$instance` during declaration.
 #'
 #' @param klass The R6 class object (must inherit from `RSModule`)
 #' @param obj The singleton instance of the module to register
@@ -30,12 +32,6 @@ if (Sys.getenv("DEBUG_MODE") == "TRUE" && exists(tmp, environment(), inherits = 
 #'        Defaults to `FALSE`.
 #'
 #' @return The registered singleton object (invisibly).
-#'
-#' @examples
-#' \dontrun{
-#' register_rs_module(ConfigModule, ConfigModule$new())
-#' ConfigModule$module()  # Access the singleton instance
-#' }
 #'
 #' @seealso
 #' \code{\link{RSModule}} – The base class for singleton modules in the robjc system.

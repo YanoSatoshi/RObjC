@@ -1,3 +1,4 @@
+#' @include api_setup.r
 #' @title RSHashOperatorProtocol Protocol
 #'
 #' @description
@@ -79,24 +80,19 @@
 #' dictionary classes.
 #'
 #' @seealso \code{\link{RSHashOperator}} for a reference implementation.
-RSHashOperatorProtocol <- R6::R6Class(
+RSHashOperatorProtocol <- RSProtocolClass(
   "RSHashOperatorProtocol",
-  inherit = RSProtocol,
-  cloneable = FALSE,
-  public = list(
-    #' @description Required method for RSHashOperatin conformance.
-    #' @return required method name
-    requiredMethods = function() c(
-      "hashForScalar",
-      "computeHashCodeWithString",
-      "hashesOfEachObject",
-      "hashFromObjects",
-      "areEqualSets",
-      "objectsAlsoIn",
-      "objectsNotIn",
-      "unionOfSets",
-      "intersectionOfSets",
-      "differenceOfSets"
-    )
-  )
+  contract_methods = c(
+    "hashForScalar",
+    "computeHashCodeWithString",
+    "hashesOfEachObject",
+    "hashFromObjects",
+    "areEqualSets",
+    "objectsAlsoIn",
+    "objectsNotIn",
+    "unionOfSets",
+    "intersectionOfSets",
+    "differenceOfSets"
+  ),
+  version = "0.0.1 alpha"
 )

@@ -1,23 +1,23 @@
-#' @title Register a Singleton Instance of an RSModule Subclass
+#' @include RSHashOperatorProtocol.r
+#' @include RSModule.r
+#' @title RSHashOperator: Shared Hash and Set Operations
 #'
 #' @description
-#' Registers a singleton module object on the given class and defines its `$module()` accessor.
-#' This function also locks the `robjc_isa$slot` and the module object itself using `lockVariables()`.
-#' It is invoked internally when registering an instance of an `RSModule` subclass.
+#' `RSHashOperator` provides scalar hashing and operations on lists of hashable
+#' RObjC objects. `RSSingletonClass()` creates the shared instance eagerly;
+#' access it through `RSHashOperator$instance`.
 #'
-#' @param klass The R6 class object (subclass of `RSModule`)
-#' @param obj The instance of the module to register
-#'
-#' @return The registered singleton object (invisibly).
+#' @return The `RSHashOperator` class generator.
 #'
 #' @export
-RSHashOperator <- R6::R6Class(
+RSHashOperator <- RSSingletonClass(
   "RSHashOperator",
-  inherit = RSModule,
-  cloneable = FALSE,
+  super_class = RSObject,
+  protocols   = list(RSHashOperatorProtocol),
   public = list(
     #' @description
-    #' Constructor - must be called once per module
+    #' Initializes an operator instance.
+    #' @return The initialized instance, invisibly.
     initialize = function() {
       super$initialize()
       invisible(self)
@@ -31,14 +31,11 @@ RSHashOperator <- R6::R6Class(
     #' @param val A scalar value (e.g., number, string).
     #' @return An integer hash value.
     hashForScalar = function(val) {
-      if (length(val) != 1L) {
-        stop("val must be a scalar")
-      }
-      string <- if (is.na(val)) {
-        sprintf("<NA:%s>", typeof(val))
-      } else {
-        enc2utf8(as.character(val))
-      }
+      if (length(val) != 1L)  stop("val must be a scalar")
+      if (is.na(val))
+        string <- sprintf("<NA:%s>", typeof(val))
+      else
+        string <- enc2utf8(as.character(val))
       self$computeHashCodeWithString(string)
     },
 
@@ -195,5 +192,3 @@ RSHashOperator <- R6::R6Class(
     }
   )
 )
-register_rs_module(RSHashOperator, RSHashOperator$new(), lock_all = TRUE)
-conform_protocol_to_class(RSHashOperatorProtocol$protocol(), RSHashOperator)

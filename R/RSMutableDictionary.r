@@ -1,3 +1,8 @@
+#' @include api_setup.r
+#' @include RSConcreteDictionary.r
+#' @include RSCopying.r
+#' @include RSMutableCopying.r
+#' 
 #' @title RSMutableDictionary: Native-Backed Mutable Key-Value Store
 #'
 #' @description
@@ -19,16 +24,16 @@
 #' shallow copy with an independent native table.
 #'
 #' @export
-RSMutableDictionary <- R6::R6Class(
+RSMutableDictionary <- RSObjectClass(
   "RSMutableDictionary",
-  cloneable = FALSE,
-  inherit = RSObject,
+  super_class = RSObject,
+  protocols   = list(RSMutableCopying, RSCopying),
   private = list(
     .storage = NULL,
 
     .wrapNull = function(object) {
-      if (is.null(object)) return(RSNull$null())
-      if (is_robjc_instance(object)) return(object)
+      if (is.null(object)) return(RSNull$null)
+      if (robjc_isRobjcObject(object)) return(object)
       stop(sprintf("Unsupported object type: %s", class(object)[1]))
     },
 
@@ -102,7 +107,7 @@ RSMutableDictionary <- R6::R6Class(
         valid <- vapply(
           key_value_pairs,
           function(pair) {
-            is_robjc_instance(pair) && pair$isKindOf(RSKeyValuePair)
+            robjc_isRobjcObject(pair) && pair$isKindOf(RSKeyValuePair)
           },
           logical(1)
         )
@@ -160,7 +165,7 @@ RSMutableDictionary <- R6::R6Class(
     addEntry = function(entry) {
       stopifnot(
         "Entry must be a kind of RSKeyValuePair" =
-          is_robjc_instance(entry) && entry$isKindOf(RSKeyValuePair)
+          robjc_isRobjcObject(entry) && entry$isKindOf(RSKeyValuePair)
       )
       private$.storeObjectForKey(entry$value(), entry$key(), copy_key = FALSE)
     },
@@ -171,7 +176,7 @@ RSMutableDictionary <- R6::R6Class(
     removeEntry = function(entry) {
       stopifnot(
         "Entry must be a kind of RSKeyValuePair" =
-          is_robjc_instance(entry) && entry$isKindOf(RSKeyValuePair)
+          robjc_isRobjcObject(entry) && entry$isKindOf(RSKeyValuePair)
       )
       self$removeObjectForKey(entry$key())
     },
@@ -242,7 +247,7 @@ RSMutableDictionary <- R6::R6Class(
     #' @param other Another dictionary.
     #' @return `TRUE` when both mappings are equal.
     isEqual = function(other) {
-      if (!is_robjc_instance(other) ||
+      if (!robjc_isRobjcObject(other) ||
           !other$isKindOf(RSMutableDictionary) ||
           self$count() != other$count()) {
         return(FALSE)
@@ -269,7 +274,7 @@ RSMutableDictionary <- R6::R6Class(
     dictionaryByMergingWithDictionary = function(other) {
       stopifnot(
         "Other must be a dictionary" =
-          is_robjc_instance(other) && other$isKindOf(RSMutableDictionary)
+          robjc_isRobjcObject(other) && other$isKindOf(RSMutableDictionary)
       )
       merged <- self$mutableCopy()
       for (entry in other$allEntriesAsList()) merged$addEntry(entry)
@@ -282,7 +287,7 @@ RSMutableDictionary <- R6::R6Class(
     dictionaryByExcludingWithDictionary = function(other) {
       stopifnot(
         "Other must be a dictionary" =
-          is_robjc_instance(other) && other$isKindOf(RSMutableDictionary)
+          robjc_isRobjcObject(other) && other$isKindOf(RSMutableDictionary)
       )
       result <- self$mutableCopy()
       for (key in other$allKeysAsList()) result$removeObjectForKey(key)
@@ -301,9 +306,6 @@ RSMutableDictionary <- R6::R6Class(
     }
   )
 )
-conform_protocol_to_class(RSMutableCopying$protocol(), RSMutableDictionary)
-conform_protocol_to_class(RSCopying$protocol(), RSMutableDictionary)
-
 
 .rs_dictionary_storage <- function(dictionary) {
   dictionary$.__enclos_env__$private$.storage
@@ -320,7 +322,7 @@ conform_protocol_to_class(RSCopying$protocol(), RSMutableDictionary)
 RSMutableDictionary$dictionaryWithDictionary <- function(dictionary) {
   stopifnot(
     "Object must be a dictionary" =
-      is_robjc_instance(dictionary) &&
+      robjc_isRobjcObject(dictionary) &&
       dictionary$isKindOf(RSMutableDictionary)
   )
   .rs_dictionary_with_storage(

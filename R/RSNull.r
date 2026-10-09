@@ -1,3 +1,5 @@
+#' @include api_setup.r
+#' @include RSScalar.r
 #' @title RSNull: Singleton Wrapper Representing R's NULL
 #'
 #' @description
@@ -5,8 +7,8 @@
 #' It provides a uniform object-based null placeholder, similar to `NSNull` in Objective-C,
 #' and is designed to be used where scalar-wrapping behavior is required even for `NULL`.
 #'
-#' Instantiation is restricted to a single shared instance accessed via `RSNull$null()`.
-#' Attempting to call `RSNull$new()` directly will raise an error.
+#' [RSScalarClass()] creates the shared instance when `RSNull` is declared.
+#' Access it through `RSNull$null` (an alias of `RSNull$instance`).
 #'
 #' @section Methods:
 #' - `value()` – Always returns `NULL`
@@ -15,40 +17,34 @@
 #' - `lockVariables()` – Prevents structural modification
 #' 
 #' @section Usage:
-#' Use \code{RSNull$null()} to retrieve the singleton instance. Do not call \code{RSNull$new()} directly.
+#' Use `RSNull$null` to retrieve the shared instance. The current factory does
+#' not disable `$new()`, so constructing another instance is possible.
 #'
 #' @note
-#' The singleton instance is assigned to `RSNull$instance` and locked after initialization.
+#' The `RSNull$instance` and `RSNull$null` bindings are locked after creation.
 #'
 #' @examples
-#' x <- RSNull$null()
+#' x <- RSNull$null
 #' x$value()      # returns NULL
-#' x$isEqual(RSNull$null())  # TRUE
+#' x$isEqual(RSNull$null)  # TRUE
 #'
 #' @export
-RSNull <- R6::R6Class(
+RSNull <- RSScalarClass(
   "RSNull",
-  cloneable = FALSE,
-  inherit = RSScalar,
+  super_class = RSScalar,
+  is_na_class = NA,
+  singleton = TRUE,
   public = list(
-
     #' @description
-    #' Initializes the singleton instance of `RSNull`. This constructor should not be called
-    #' directly. Instead, use `RSNull$null()` to retrieve the unique instance.
-    #' If an instance already exists, this method raises an error.
+    #' Initializes an `RSNull` instance. The factory invokes it to create the
+    #' shared instance; use `RSNull$null` to retrieve that instance.
     #'
-    #' Internally, it sets `.val` to `NULL`, registers the singleton instance,
-    #' and locks the object to prevent further modification.
+    #' It delegates scalar initialization, then stores `NULL` as the value.
     #'
     #' @return The initialized `RSNull` instance (invisible).
     initialize = function() {
-      if (!is.null(RSNull$robjc_isa$slot)) {
-        stop("Use RSNull$null() instead of new().")
-      }
       super$initialize(0L)
       private$.val <- NULL
-      klass <- self$class()
-      klass$null <- function() klass$robjc_isa$slot
       invisible(self)
     },
 
@@ -94,21 +90,5 @@ RSNull <- R6::R6Class(
     }
   )
 )
-RSNull$isNAClass <- NA
-register_rs_singleton(RSNull, RSNull$new())
-
-
-# # @title Return the Singleton Instance of RSNull
-# #
-# # @name null
-# # 
-# # @description
-# # Returns the shared singleton instance of `RSNull`. If not yet created,
-# # it is initialized and stored in `RSNull$instance`.
-# #
-# # @return An instance of `RSNull`.
-# # @export
-# RSNull$null <- function() {
-#   if (is.null(RSNull$instance)) return(RSNull$new())
-#   RSNull$instance
-# }
+RSNull$null <- RSNull$instance
+lockBinding("null", RSNull)

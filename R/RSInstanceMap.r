@@ -1,3 +1,4 @@
+#' @include RSKeyValuePair.r
 #' @title RSInstanceMap: Mapping from Wrapped Class to Instance Set
 #'
 #' @description
@@ -6,16 +7,13 @@
 #' It is used internally in robjc serialization to track which objects were created
 #' from a given class, supporting reconstruction and encoding workflows.
 #'
-#' During initialization, this class verifies that the provided `RSWrappedClass` conforms
-#' to the `RSEncoding` protocol, ensuring that all tracked instances are serializable.
+#' Initialization stores the provided wrapped class and places the instances in
+#' an [RSMutableSet].
 #'
 #' @section Inheritance:
 #' Inherits from [RSKeyValuePair], where:
 #' - the key is an `RSWrappedClass`
 #' - the value is an `RSMutableSet` (converted to `RSSet` after finalization)
-#'
-#' @section Protocol Conformance:
-#' The constructor validates that the wrapped class conforms to `RSEncoding`.
 #'
 #' @section Lifecycle:
 #' Use `$lockInstance()` to convert the map to an immutable state. Once finalized, the set of
@@ -33,10 +31,9 @@
 #' }
 #'
 #' @keywords internal
-RSInstanceMap <- R6::R6Class(
+RSInstanceMap <- RSObjectClass(
   "RSInstanceMap",
-  inherit = RSKeyValuePair,
-  cloneable = FALSE,
+  super_class = RSKeyValuePair,
   public = list(
 
     #' @description
@@ -61,13 +58,14 @@ RSInstanceMap <- R6::R6Class(
 
 
     #' @description
-    #' Returns the string identifier of the wrapped class, typically in the format "ClassName_v1".
+    #' Returns the identifier of the wrapped class, in the format
+    #' `ClassName_Version`.
     #'
-    #' @return A character string representing the class ID.
+    #' @return An [RSString] containing the class ID.
     #'
     #' @examples
     #' \dontrun{
-    #' map$classID()  # "MyClass_v1"
+    #' map$classID()$value()  # "MyClass_1.0"
     #' }
     classID      = function() private$.key$classID(),
 
@@ -81,7 +79,7 @@ RSInstanceMap <- R6::R6Class(
     #' @examples
     #' \dontrun{
     #' cls <- map$wrappedClass()
-    #' cls$classname()  # "MyClass"
+    #' cls$className()  # "MyClass"
     #' }
     wrappedClass = function() private$.key,
 

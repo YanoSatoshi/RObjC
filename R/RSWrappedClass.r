@@ -1,16 +1,17 @@
+#' @include RSObject.r
 #' @title RSWrappedClass: Immutable Identifier for Class Definitions
 #'
 #' @description
 #' `RSWrappedClass` is an immutable wrapper that uniquely identifies a class definition
 #' using a combination of the class name and version string.
-#' This identifier, stored as an `RSString` in `class_id()`, serves as a stable reference
+#' This identifier, stored as an `RSString` in `class_id`, serves as a stable reference
 #' for use in serialization maps, class registries, and instance tracking structures.
 #'
 #' The wrapper holds a reference to the class generator (`classObject()`) and generates
 #' the identifier in the format `<ClassName>_<Version>`. The version string must not contain underscores.
-#' If a class does not define a `classVersion()` method, `"0.0"` is used as the default version.
+#' The version comes from the generator's `robjc_isa$version` field.
 #'
-#' Once created, the `RSWrappedClass` object is read-only and cannot be modified.
+#' Once created, its `class_ref` and `class_id` bindings are locked.
 #'
 #' @section Inheritance:
 #' Inherits from [RSObject].
@@ -23,11 +24,11 @@
 #' - `classObject()`: Returns the R6 class generator object (e.g., `MyClass`).
 #' - `classID()`: Returns the class identifier as an [RSString].
 #' - `className()`: Returns the class name as a character string.
-#' - `classVersion()`: Returns the version portion of the identifier string.
+#' - `version()`: Returns the version portion of the identifier string.
 #'
 #' @section Constraints:
 #' - Version strings must not contain underscores.
-#' - The class being wrapped must inherit from [RSObject].
+#' - The input must be an RObjC class generator or an object with a `class()` method.
 #'
 #' @seealso [RSClassReference], [RSInstanceMap], [RSObject]
 #'
@@ -36,14 +37,13 @@
 #' wrapped <- RSWrappedClass$new(obj)
 #' wrapped$classID()      # => RSString: "MyClass_1.0"
 #' wrapped$className()    # => "MyClass"
-#' wrapped$classVersion() # => "1.0"
+#' wrapped$version()      # => "1.0"
 #' }
 #'
 #' @export
-RSWrappedClass <- R6::R6Class(
+RSWrappedClass <- RSObjectClass(
   "RSWrappedClass",
-  inherit = RSObject,
-  cloneable = FALSE,
+  super_class = RSObject,
   public = list(
 
     #' @field class_ref
@@ -55,7 +55,7 @@ RSWrappedClass <- R6::R6Class(
 
     #' @field class_id [RSString]
     #'   A string identifier uniquely representing the class. It is constructed as `<ClassName>_<Version>`.
-    #'   If the class does not implement `classVersion()`, the default version `"0.0"` is used.
+    #'   The version comes from the class generator's `robjc_isa$version` field.
     #'   The underscore character is reserved as a separator and must not appear in version strings.
     class_id  = NULL,
 
@@ -66,13 +66,13 @@ RSWrappedClass <- R6::R6Class(
     #' The wrapper records the class generator and constructs a unique identifier
     #' from the class name and version.
     #'
-    #' @param object An object that inherits from `RSObject`, from which the class and version will be extracted.
+    #' @param object An RObjC object or its class generator.
     #'
     #' @return The locked `RSWrappedClass` object (invisibly).
     #'
     #' @section Constraints:
     #' - The version string must not contain an underscore ("_").
-    #' - If version is `NULL`, it is treated as `"0.0"`.
+    #' - The version is read from the generator's `robjc_isa$version` field.
     #'
     #' @examples
     #' \dontrun{
@@ -146,7 +146,7 @@ RSWrappedClass <- R6::R6Class(
     #'
     #' @examples
     #' \dontrun{
-    #' wrapped$classVersion()  # "1.0"
+    #' wrapped$version()  # "1.0"
     #' }
     version   = function() sub(".*_", "", self$class_id$value())
   )

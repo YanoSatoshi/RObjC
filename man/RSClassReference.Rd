@@ -7,17 +7,16 @@
 \code{RSClassReference} acts as a reference entry in a serialization context (e.g., inside
 an \code{RSClassEncoder}) that maps a unique class ID string to a corresponding \code{RSInstanceMap}.
 
-The key is a string identifier such as \code{"MyClass_v1"}, and the value is an \code{RSInstanceMap}
+The key is an \link{RSString} identifier such as \code{"MyClass_1.0"}, and the value is an \code{RSInstanceMap}
 that manages all known instances of that class.
 
-This class assumes that the wrapped class conforms to the \code{RSEncoding} protocol;
-actual validation is delegated to the \code{RSInstanceMap} created during initialization.
+Initialization validates that \code{class_ref} is an \link{RSWrappedClass} instance.
 }
 \section{Inheritance}{
 
 Inherits from \link{RSKeyValuePair}, which enforces that the key conforms to the \link{RSCopying} protocol.
 \itemize{
-\item the key is a character string
+\item the key is an \link{RSString}
 \item the value is an \link{RSInstanceMap}
 }
 }
@@ -25,7 +24,7 @@ Inherits from \link{RSKeyValuePair}, which enforces that the key conforms to the
 \section{Fields}{
 
 \itemize{
-\item \code{classID()}: Returns the unique class ID string.
+\item \code{classID()}: Returns the unique class ID as an \link{RSString}.
 \item \code{classRef()}: Returns the associated \code{RSWrappedClass} (via instance map).
 \item \code{instanceMap()}: Returns the instance map containing the object set.
 }
@@ -38,13 +37,13 @@ This method validates that \code{class_ref} is an instance of \code{RSWrappedCla
 
 \section{Locking}{
 
-The resulting object is locked using \code{lockObject(self)} to ensure structural immutability.
+The private key and value bindings are locked after initialization.
 }
 
 \examples{
 \dontrun{
 ref <- RSClassReference$new(my_wrapped_class, list(inst1, inst2))
-ref$classID()         # "MyClass_v1"
+ref$classID()$value() # "MyClass_1.0"
 ref$classRef()        # RSWrappedClass
 ref$instanceMap()$objects()$count()  # => 2
 }
@@ -56,7 +55,7 @@ ref$instanceMap()$objects()$count()  # => 2
 
 \dontrun{
 ref <- RSClassReference$new(my_wrapped_class, list(instance1, instance2))
-ref$classID()        # "MyClass_v1"
+ref$classID()$value() # "MyClass_1.0"
 ref$instanceMap()    # RSInstanceMap
 }
 
@@ -66,7 +65,7 @@ ref$instanceMap()    # RSInstanceMap
 ## ------------------------------------------------
 
 \dontrun{
-ref$classID()  # "MyClass_v1"
+ref$classID()$value()  # "MyClass_1.0"
 }
 
 ## ------------------------------------------------
@@ -75,7 +74,7 @@ ref$classID()  # "MyClass_v1"
 
 \dontrun{
 wrapped_cls <- ref$classRef()
-wrapped_cls$classname()  # "MyClass"
+wrapped_cls$className()  # "MyClass"
 }
 
 ## ------------------------------------------------
@@ -135,7 +134,7 @@ map$objects()$count()  # number of instances
 \subsection{Method \code{new()}}{
 Initializes a new \code{RSClassReference} object by associating a wrapped class definition
 with a collection of instances. This method constructs an \code{RSInstanceMap} internally,
-sets the class identifier as the key, and locks the reference object to make it immutable.
+sets the class identifier as the key, and locks the private key and value bindings.
 
 The input \code{objects} can be a plain list of instances or a robjc-compatible container
 (such as \code{RSMutableSet}) that responds to \code{asList()}. The internal instance map always
@@ -154,13 +153,13 @@ stores the instances as an \code{RSMutableSet}.
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A new, locked \code{RSClassReference} object.
+A new \code{RSClassReference} object.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{\dontrun{
 ref <- RSClassReference$new(my_wrapped_class, list(instance1, instance2))
-ref$classID()        # "MyClass_v1"
+ref$classID()$value() # "MyClass_1.0"
 ref$instanceMap()    # RSInstanceMap
 }
 
@@ -174,19 +173,19 @@ ref$instanceMap()    # RSInstanceMap
 \if{html}{\out{<a id="method-RSClassReference-classID"></a>}}
 \if{latex}{\out{\hypertarget{method-RSClassReference-classID}{}}}
 \subsection{Method \code{classID()}}{
-Returns the unique class identifier string used as the key for this class reference.
-The value typically includes the class name and version (e.g., "MyClass_v1").
+Returns the class identifier stored as the key for this reference.
+It includes the class name and version (e.g., "MyClass_1.0").
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSClassReference$classID()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
-A character string representing the class ID.
+An \link{RSString} containing the class ID.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{\dontrun{
-ref$classID()  # "MyClass_v1"
+ref$classID()$value()  # "MyClass_1.0"
 }
 }
 \if{html}{\out{</div>}}
@@ -212,7 +211,7 @@ An object of class \code{RSWrappedClass}.
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{\dontrun{
 wrapped_cls <- ref$classRef()
-wrapped_cls$classname()  # "MyClass"
+wrapped_cls$className()  # "MyClass"
 }
 }
 \if{html}{\out{</div>}}

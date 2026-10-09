@@ -1,3 +1,4 @@
+#' @include api_setup.r
 #' @title Key-Value Pair Class
 #'
 #' @description
@@ -24,16 +25,14 @@
 #'
 #' @seealso [RSObject], [RSClassReference]
 #'
-RSKeyValuePair <- R6::R6Class(
+RSKeyValuePair <- RSObjectClass(
   "RSKeyValuePair",
-  inherit = RSObject,
-  cloneable = FALSE,
-  private   = list(
+  super_class = RSObject,
+  private     = list(
     .key    = NULL,
     .value  = NULL
   ),
   public = list(
-
 
     #' @description
     #' Constructs a new key-value pair object. Both key and value must inherit from `RSObject`.
@@ -42,8 +41,10 @@ RSKeyValuePair <- R6::R6Class(
     #' @param value An `RSObject` to be associated as the value.
     #' @return A new `RSKeyValuePair` instance.
     initialize = function(key, value) {
-      stopifnot("Key is not kind of RSObject." = is_robjc_instance(key))
-      stopifnot("Value is not kind of RSObject." = is_robjc_instance(value))
+      stopifnot(
+        "Key is not kind of RSObject."    = robjc_isRobjcObject(key),
+        "Value is not kind of RSObject."  = robjc_isRobjcObject(value)
+      )
       super$initialize()
       private$.key <- key
       private$.value <- value
@@ -76,7 +77,7 @@ RSKeyValuePair <- R6::R6Class(
     #'
     #' @examples
     #' # Safe usage for dictionary lookups
-    #' pair <- robjc:::RSKeyValuePair$new(RSNull$null(), RSNull$null())
+    #' pair <- robjc:::RSKeyValuePair$new(RSNull$null, RSNull$null)
     #' pair$setKey(RSString$stringWith("some_key"))
     #'
     #' \dontrun{
@@ -85,7 +86,7 @@ RSKeyValuePair <- R6::R6Class(
     #' pair$setKey(RSString$new("b"))         # Error: not allowed when value is non-null
     #' }
     setKey = function(key) {
-      if (!identical(private$.value, RSNull$null())) {
+      if (!identical(private$.value, RSNull$null)) {
         stop("Key replacing available only when value is RSNull. RSKeyValuePair")
       }
       private$.key <- key

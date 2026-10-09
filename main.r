@@ -4,7 +4,7 @@ library(devtools)
 library(robjc)
 
 
-op <- RSHashOperator$module()
+op <- RSHashOperator$instance
 h1 <- op$hashForScalar("hello")           # スカラー値（文字列）のハッシュ
 h2 <- op$computeHashCodeWithString("hello")  # 32bit 符号付き版ハッシュ
 print(h2)

@@ -1,13 +1,15 @@
+#' @include api_setup.r
 #' @title RSScalar: Abstract Scalar Wrapper Base Class
 #'
 #' @description
-#' `RSScalar` is the abstract base clas for all scalar wrapper classes in the RS framework,
+#' `RSScalar` is the abstract base class for scalar wrappers in the RS framework,
 #' designed to emulate Objective-C's value object philosophy.
 #' It provides standard scalar behavior such as comparison, equality, hashing, and internal value access,
 #' and acts as a foundation for types like `RSNumber`, `RSString`, `RSDate`, etc.
 #'
-#' Subclasses are expected to define a class-level field `isNAClass` (TRUE/FALSE) to distinguish
-#' between regular values and NA-wrapper variants (e.g., `RSNumber` vs `RSNANumber`).
+#' Declare subclasses with [RSScalarClass()], which sets and locks the class-level
+#' `isNAClass` flag. It distinguishes regular values from NA-wrapper variants
+#' (e.g., `RSNumber` and `RSNANumber`).
 #' The constructor enforces length-1 scalar input and prohibits NA unless allowed by the subclass.
 #'
 #' @section Public Methods:
@@ -32,11 +34,9 @@
 #' num$compare(RSNumber$numberWith(100))  # returns -1
 #'
 #' @export
-RSScalar <- R6::R6Class(
-  ### class name ###
+RSScalar <- RSObjectClass(
   "RSScalar",
-  cloneable = FALSE,
-  inherit = RSObject,
+  super_class = RSObject,
   public = list(
 
     #' @description
@@ -44,9 +44,9 @@ RSScalar <- R6::R6Class(
     #' This constructor enforces that the input value has a length of exactly 1, and
     #' verifies whether NA values are allowed based on the class's `isNAClass` flag.
     #'
-    #' For inheriting classes (e.g., `RSNumber`, `RSString`), the `isNAClass` field must be
-    #' defined explicitly to distinguish between regular scalar classes (`isNAClass = FALSE`)
-    #' and their NA counterparts (`isNAClass = TRUE`). If a class does not allow NA values
+    #' For inheriting classes (e.g., `RSNumber`, `RSString`), set `is_na_class`
+    #' when calling [RSScalarClass()]. Use `FALSE` for regular scalar classes and
+    #' `TRUE` for their NA counterparts. If a class does not allow NA values
     #' but receives one, the constructor will raise an informative error suggesting the
     #' appropriate NA class.
     #'
@@ -58,24 +58,19 @@ RSScalar <- R6::R6Class(
       super$initialize()
       ## CHECK LENGTH ARG.
       ## IF NOT 1, THEN
-      if (length(val) != 1L) {
+      if (length(val) != 1L)
         stop(
-          sprintf(
-            "%s can only accept length 1L vector.",
-            self$class()$classname
-          )
+          sprintf("%s can only accept length 1L vector.", self$class()$classname)
         )
-      }
       called_as_scalar_or_na <-
         self$isMemberOf(RSScalar) || !is.null(self$class()$isNAClass)
-      if (!called_as_scalar_or_na) {
-        msg <-
+      if (!called_as_scalar_or_na)
+        stop(
           sprintf("%s$initialize() is not implemented", self$class()$classname)
-        stop(msg)
-      }
+        )
       # IN INHERITING, CLASS DO AS FOLLOWS
-      #   SomeClass <- R6::R6Class(...)  # nolint
-      #   SomeClass$isNAClass <- TRUE/FALSE  ... TRUE on RS*** class, FALSE on RSNA*** class  # nolint
+      #   SomeClass <- RSScalarClass("SomeClass", is_na_class = FALSE, ...) # nolint
+      #   RSNASomeClass <- RSScalarClass("RSNASomeClass", is_na_class = TRUE, ...) # nolint
       #   # additonary option
       #   SomeClass$***With <- function(val) {
       #     if (is.na(val)) return(RSNA***$new())
@@ -89,7 +84,7 @@ RSScalar <- R6::R6Class(
       ## SET VAL
       private$.val <- val
       cls <- self$class()
-      if (is.null(cls$.hash_operator)) cls$.hash_operator <- RSHashOperator$module()
+      if (is.null(cls$.hash_operator)) cls$.hash_operator <- RSHashOperator$instance
       invisible(self)
       ## IN INHERITING CLASS, DO AS FOLLOWS
       # initialize = functin(val) {
@@ -185,7 +180,8 @@ RSScalar <- R6::R6Class(
     }
   )
 )
-RSScalar$isNAClass = NULL  # nolint
+RSScalar$isNAClass = NULL
+lockBinding("isNAClass", RSScalar)
 
 
 
@@ -211,7 +207,7 @@ RSScalar$isNAClass = NULL  # nolint
 # @export
 RSScalar$valueWith <- function(val) {
   if (is.null(val)) {
-    return(RSNull$null())
+    return(RSNull$null)
   }
   if (length(val) != 1) {
     stop(sprintf(

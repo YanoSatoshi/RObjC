@@ -1,3 +1,4 @@
+#' @include RSScalar.r
 #' @title RSNumber: Numeric Scalar Wrapper
 #'
 #' @description
@@ -13,10 +14,10 @@
 #' [RSNANumber] for handling NA values.
 #'
 #' @export
-RSNumber <- R6::R6Class(
+RSNumber <- RSScalarClass(
   "RSNumber",
-  cloneable = FALSE,
-  inherit = RSScalar,
+  super_class = RSScalar,
+  is_na_class = FALSE,
   public = list(
 
     #' @description
@@ -39,7 +40,6 @@ RSNumber <- R6::R6Class(
     }
   )
 )
-RSNumber$isNAClass  <- FALSE
 
 
 
@@ -55,10 +55,10 @@ RSNumber$isNAClass  <- FALSE
 #' Use `RSNumber$numberWith(val)` to safely wrap numeric values.
 #'
 #' @export
-RSNANumber <- R6::R6Class(
+RSNANumber <- RSScalarClass(
   "RSNANumber",
-  cloneable = FALSE,
-  inherit = RSNumber,
+  super_class = RSNumber,
+  is_na_class = TRUE,
   public = list(
 
     #' @description
@@ -77,8 +77,6 @@ RSNANumber <- R6::R6Class(
     }
   )
 )
-RSNANumber$isNAClass <- TRUE
-
 
 
 # @title RSNumber: Numeric Scalar Wrapper

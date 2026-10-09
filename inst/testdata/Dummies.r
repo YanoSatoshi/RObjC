@@ -23,7 +23,7 @@ BadVersionClass <- R6::R6Class("BadVersionClass", inherit = RSObject,
 NestedDummy <- R6::R6Class("NestedDummy", inherit = RSObject,
   public = list(
     initialize = function(child) {
-      stopifnot(is_robjc_instance(child))
+      stopifnot(robjc_isRobjcObject(child))
       super$initialize(.version = "1.0")
       private$.child <- child
       invisible(self)

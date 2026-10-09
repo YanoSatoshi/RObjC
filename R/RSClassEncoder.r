@@ -1,4 +1,4 @@
-#' RSObject
+#  RSObject
 #   └── RSWrappedClass
 #
 # RSClassEncoder$class_store : RSDictionary<RSString, RSClassReference>
@@ -8,6 +8,11 @@
 #                     ├─ key   = RSWrappedClass;       alias_getter: wrappedClass() #nolint
 #                     └─ value = RS**Set;              alias_getter: objects()      #nolint
 
+
+#' @include RSModule.r
+#' @include RSEncoding.r
+#' @include RSMutableDictionary.r
+#'
 #' @title RSClassEncoder
 #'
 #' @description
@@ -20,7 +25,7 @@
 #' be consumed by the `RSClassDecoder`.
 #'
 #' @field class_store
-#' A mutable `RSDictionary` that maps class IDs to `RSClassReference` objects.
+#' An [RSMutableDictionary] that maps class IDs to [RSClassReference] objects.
 #' Each entry represents a class and the set of encoded instances belonging to it.
 #'
 #' @field visited_env
@@ -34,10 +39,10 @@
 #' @seealso [RSClassDecoder], [RSEncoding], [RSClassReference]
 #'
 #' @export
-RSClassEncoder <- R6::R6Class(
+RSClassEncoder <- RSSingletonClass(
   "RSClassEncoder",
-  inherit = RSModule,
-  cloneable = FALSE,
+  super_class = RSModule,
+  protocols = list(RSEncoderProtocol),
   public = list(
 
 
@@ -193,5 +198,3 @@ RSClassEncoder <- R6::R6Class(
     }
   )
 )
-register_rs_module(RSClassEncoder, RSClassEncoder$new())
-conform_protocol_to_class(RSEncoderProtocol$protocol(), RSClassEncoder)

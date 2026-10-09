@@ -1,5 +1,8 @@
 #' @importFrom tibble tibble
-
+#' @include api_setup.r
+#' @include RSMutableCopying.r
+#' @include RSCopying.r
+#' 
 #' @title RSMutableDataFrame: Mutable Data Frame Object with Key Column Semantics
 #'
 #' @description
@@ -18,27 +21,24 @@
 #' - Conversion to immutable `RSDataFrame`
 #'
 #' @export
-RSMutableDataFrame <- R6::R6Class(
+RSMutableDataFrame <- RSObjectClass(
   "RSMutableDataFrame",
-  inherit = RSObject,
-  cloneable = FALSE,
+  super_class = RSObject,
+  protocols = list(RSMutableCopying, RSCopying),
   private = list(
     .df = NULL,
     .key_columns = character(),
     .checkDataFrame = function(df) {
-      if (!requireNamespace("tibble", quietly = TRUE)) {
+      if (!requireNamespace("tibble", quietly = TRUE))
         stop("Package 'tibble' is required.")
-      }
       tibble::as_tibble(df)
     },
     .validateKeys = function() {
-      if (!all(private$.key_columns %in% colnames(private$.df))) {
+      if (!all(private$.key_columns %in% colnames(private$.df)))
         stop("Invalid key_columns: some columns do not exist in the data frame.") # nolint
-      }
     }
   ),
   public = list(
-
 
 #' @description
 #' Initializes the object with a tibble and a vector of key column names.
@@ -135,7 +135,7 @@ RSMutableDataFrame <- R6::R6Class(
 #' @param other Another `RSMutableDataFrame`.
 #' @return `TRUE` if equal; otherwise `FALSE`.
     isEqual = function(other) {
-      if (is_robjc_instance(other) || !other$isKindOf(RSMutableDataFrame)) return(FALSE)
+      if (robjc_isRobjcObject(other) || !other$isKindOf(RSMutableDataFrame)) return(FALSE)
       private$.validateKeys()
       df1 <- private$.df
       df2 <- other$getData()
@@ -199,5 +199,3 @@ RSMutableDataFrame <- R6::R6Class(
     }
   )
 )
-conform_protocol_to_class(RSMutableCopying$protocol(), RSMutableDataFrame)
-conform_protocol_to_class(RSCopying$protocol(), RSMutableDataFrame)

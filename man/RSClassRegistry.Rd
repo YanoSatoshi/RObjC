@@ -5,38 +5,37 @@
 \title{RSClassRegistry: Singleton Registry for robjc Standard Classes}
 \description{
 \code{RSClassRegistry} is an internal singleton class that manages the list of class names
-considered "standard" within the robjc framework. These typically correspond to
-core framework classes such as \code{RSObject}, \code{RSString}, \code{RSDateTime}, and others
-bundled with the robjc package.
+considered "standard" within the robjc framework. The current collector
+selects exported R6 generators that inherit directly from \code{RSObject}.
 
 This registry is used during class resolution (e.g., in \code{robjc_load()} and \code{robjc_read_rds()})
 to determine whether a serialized object's class name should be looked up in the
 robjc namespace or treated as a user-defined/global class.
 
-The registry is automatically initialized during package loading via \code{.onLoad()}.
+\code{RSSingletonClass()} creates the registry while package classes are loaded.
 }
 \section{Usage}{
 
 You can access the singleton instance via:
 \preformatted{
-  RSClassRegistry$instance()
+  RSClassRegistry$instance
 }
 }
 
 \section{Methods}{
 
 \describe{
-\item{initialize()}{Constructs the registry and collects class names using \code{detect_standard_robjc_classes()}.}
+\item{initialize()}{Constructs the registry and collects class names using \code{get_standard_robjc_classes()}.}
 \item{isStandardClass(classname)}{Returns TRUE if the given class name is a registered standard robjc class.}
 }
 }
 
 \seealso{
-\code{\link[=robjc_load]{robjc_load()}}, \code{\link[=robjc_read_rds]{robjc_read_rds()}}, \code{\link[=register_rs_singleton]{register_rs_singleton()}}
+\code{\link[=robjc_load]{robjc_load()}}, \code{\link[=robjc_read_rds]{robjc_read_rds()}}
 }
 \keyword{internal}
-\section{Super classes}{
-\code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{\link[robjc:RSSingleton]{robjc::RSSingleton}} -> \code{RSClassRegistry}
+\section{Super class}{
+\code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{RSClassRegistry}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -44,7 +43,7 @@ You can access the singleton instance via:
 \item{\code{std_classes}}{A character vector containing the names of all robjc standard classes.
 These class names are automatically detected from the robjc namespace
 and include all classes that inherit directly from \code{RSObject}.
-This field is initialized during \code{.onLoad()} via \code{detect_standard_robjc_classes()}.}
+This field is populated by \code{initialize()} via \code{get_standard_robjc_classes()}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -53,7 +52,6 @@ This field is initialized during \code{.onLoad()} via \code{detect_standard_robj
 \itemize{
 \item \href{#method-RSClassRegistry-new}{\code{RSClassRegistry$new()}}
 \item \href{#method-RSClassRegistry-isStandardClass}{\code{RSClassRegistry$isStandardClass()}}
-\item \href{#method-RSClassRegistry-clone}{\code{RSClassRegistry$clone()}}
 }
 }
 \if{html}{\out{
@@ -76,7 +74,6 @@ This field is initialized during \code{.onLoad()} via \code{detect_standard_robj
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSSingleton" data-id="lockVariables"><a href='../../robjc/html/RSSingleton.html#method-RSSingleton-lockVariables'><code>robjc::RSSingleton$lockVariables()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -113,23 +110,6 @@ from the robjc namespace or from the global/user environment.
 }
 \subsection{Returns}{
 TRUE if the class is a standard robjc class; FALSE otherwise.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSClassRegistry-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-RSClassRegistry-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSClassRegistry$clone(deep = FALSE)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
 }
 }
 }

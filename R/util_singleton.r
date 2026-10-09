@@ -23,6 +23,8 @@ if (Sys.getenv("DEBUG_MODE") == "TRUE" && exists(tmp, environment(), inherits = 
 #'
 #' This helper is intended for internal use within the robjc system and supports
 #' both singleton-style objects and placeholder values such as `RSNull`.
+#' New singleton classes use `RSSingletonClass()` and access `$instance`
+#' directly; they do not require this registration helper.
 #'
 #' @param klass The R6 class object to which the singleton belongs.
 #' @param obj The singleton instance to register.
@@ -31,12 +33,6 @@ if (Sys.getenv("DEBUG_MODE") == "TRUE" && exists(tmp, environment(), inherits = 
 #'   or dynamic reconfiguration.
 #'
 #' @return The registered singleton instance (invisibly).
-#'
-#' @examples
-#' \dontrun{
-#' register_rs_singleton(MyManager, MyManager$new())
-#' MyManager$instance()  # Retrieve the singleton
-#' }
 #'
 #' @seealso
 #' \code{\link{RSSingleton}} – The base class for robjc-style singletons.

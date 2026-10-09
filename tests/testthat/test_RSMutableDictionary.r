@@ -101,7 +101,7 @@ test_that("RSMutableDictionary: stored NULL differs from an absent key", {
   dictionary$setObjectForKey(NULL, key)
 
   expect_true(dictionary$containsKey(key))
-  expect_identical(dictionary$objectForKey(key), RSNull$null())
+  expect_identical(dictionary$objectForKey(key), RSNull$null)
   expect_false(dictionary$containsKey(missing))
   expect_null(dictionary$objectForKey(missing))
 })

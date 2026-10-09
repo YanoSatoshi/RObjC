@@ -1,3 +1,4 @@
+#' @include api_setup.r
 #' @title RSMutableCopying: Protocol for Mutable Copying
 #'
 #' @description
@@ -10,15 +11,8 @@
 #' - `mutableCopy()` — Returns a mutable copy of the object.
 #'
 #' @export
-RSMutableCopying <- R6::R6Class(
+RSMutableCopying <- RSProtocolClass(
   "RSMutableCopying",
-  inherit = RSProtocol,
-  cloneable = FALSE,
-  public = list(
-    #' @description Required method for RSMutableCopying conformance.
-    #' @return required method name
-    requiredMethods = function() {
-      c("mutableCopy")
-    }
-  )
+  contract_methods = c("mutableCopy"),
+  version = "0.0.1 alpha"
 )

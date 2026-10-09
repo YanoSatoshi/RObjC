@@ -2,7 +2,7 @@
 # This file defines the `.onLoad()` hook to register internal singletons such as RSClassRegistry.
 
 .onLoad <- function(libname, pkgname) {
-  register_rs_singleton(RSClassRegistry, RSClassRegistry$new())
+  NULL # do nothing
 }
 
 .onAttach <- function(libname, pkgname) {

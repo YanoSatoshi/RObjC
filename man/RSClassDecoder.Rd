@@ -19,7 +19,8 @@ This class conforms to the \code{RSDecoderProtocol}, and is typically invoked by
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{class_store}}{An \code{RSDictionary} containing encoded classID-to-instance mappings (\code{RSClassReference} entries).}
+\item{\code{class_store}}{A dictionary containing class ID to instance mappings
+(\link{RSClassReference} entries), or \code{NULL} before data is loaded.}
 
 \item{\code{unresolved}}{A character vector of classIDs that could not be resolved during decoding.}
 }
@@ -56,7 +57,6 @@ This class conforms to the \code{RSDecoderProtocol}, and is typically invoked by
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSModule" data-id="lockVariables"><a href='../../robjc/html/RSModule.html#method-RSModule-lockVariables'><code>robjc::RSModule$lockVariables()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -64,14 +64,14 @@ This class conforms to the \code{RSDecoderProtocol}, and is typically invoked by
 \if{html}{\out{<a id="method-RSClassDecoder-new"></a>}}
 \if{latex}{\out{\hypertarget{method-RSClassDecoder-new}{}}}
 \subsection{Method \code{new()}}{
-Initializes the encoder. Creates a new mutable class store and a fresh environment
-to track visited objects and classes. This method is called automatically.
+Initializes the decoder with no encoded class store and an empty list of
+unresolved class IDs. The factory calls this method when creating \verb{$instance}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSClassDecoder$new()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
-The encoder instance (invisible).
+The decoder instance, invisibly.
 }
 }
 \if{html}{\out{<hr>}}

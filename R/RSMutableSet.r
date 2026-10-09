@@ -1,3 +1,8 @@
+#' @include api_setup.r
+#' @include RSConcreteSet.r
+#' @include RSCopying.r
+#' @include RSMutableCopying.r
+#' 
 #' @title RSMutableSet: Native-Backed Mutable Set
 #'
 #' @description
@@ -19,16 +24,16 @@
 #' - `copy()` and `mutableCopy()`.
 #'
 #' @export
-RSMutableSet <- R6::R6Class(
+RSMutableSet <- RSObjectClass(
   "RSMutableSet",
-  cloneable = FALSE,
-  inherit = RSObject,
+  super_class = RSObject,
+  protocols   = list(RSCopying, RSMutableCopying),
   private = list(
     .storage = NULL,
 
     .wrapNull = function(object) {
-      if (is.null(object)) return(RSNull$null())
-      if (is_robjc_instance(object)) return(object)
+      if (is.null(object)) return(RSNull$null)
+      if (robjc_isRobjcObject(object)) return(object)
       stop(sprintf("Unsupported object type: %s", class(object)[1]))
     },
 
@@ -46,7 +51,7 @@ RSMutableSet <- R6::R6Class(
       objects <- cast_rs_storage_to_list(objects)
       valid <- vapply(
         objects,
-        function(object) is.null(object) || is_robjc_instance(object),
+        function(object) is.null(object) || robjc_isRobjcObject(object),
         logical(1)
       )
       if (!all(valid)) stop("All elements must inherit from RSObject.")
@@ -119,7 +124,7 @@ RSMutableSet <- R6::R6Class(
     #' @param other Another set.
     #' @return `TRUE` when both sets contain equal members.
     isEqual = function(other) {
-      if (!is_robjc_instance(other) ||
+      if (!robjc_isRobjcObject(other) ||
           !other$isKindOf(RSMutableSet) ||
           self$count() != other$count()) {
         return(FALSE)
@@ -184,7 +189,7 @@ RSMutableSet <- R6::R6Class(
 .rs_assert_set <- function(set) {
   stopifnot(
     "Object must be a set" =
-      is_robjc_instance(set) && set$isKindOf(RSMutableSet)
+      robjc_isRobjcObject(set) && set$isKindOf(RSMutableSet)
   )
   invisible(TRUE)
 }
@@ -209,5 +214,3 @@ RSMutableSet$setWithSet <- function(set) {
   )
 }
 
-conform_protocol_to_class(RSMutableCopying$protocol(), RSMutableSet)
-conform_protocol_to_class(RSCopying$protocol(), RSMutableSet)

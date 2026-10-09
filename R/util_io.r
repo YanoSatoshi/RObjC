@@ -247,7 +247,7 @@ robjc_encode_and_save <- function(objects,
   # robjc encode
   encoder <- RSClassEncoder$module()$refresh()
   for (obj in objects) {
-    if (is_robjc_instance(obj)) encoder$encodeObject(obj)
+    if (robjc_isRobjcObject(obj)) encoder$encodeObject(obj)
   }
   metadata <- encoder$lockInstance()
   .prepare_native_collections_for_serialization(metadata)

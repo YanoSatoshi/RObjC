@@ -1,3 +1,4 @@
+#' @include RSMutableArray.r
 #' @title RSArray: Immutable, Ordered Object Container
 #'
 #' @description
@@ -20,10 +21,10 @@
 #' )
 #'
 #' @export
-RSArray <- R6::R6Class(
+RSArray <- RSObjectClass(
   "RSArray",
-  inherit = RSMutableArray,
-  cloneable = FALSE,
+  super_class = RSMutableArray,
+  protocols = list(RSCopying, RSMutableCopying),
   public = list(
 
     #' @description

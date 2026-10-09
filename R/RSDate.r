@@ -1,3 +1,4 @@
+#' @include RSScalar.r
 #' @title RSDate: Scalar Wrapper for Date Values
 #'
 #' @description
@@ -22,11 +23,10 @@
 #' @seealso RSNADate
 #'
 #' @export
-RSDate <- R6::R6Class(
-  ### class name ###
+RSDate <- RSScalarClass(
   "RSDate",
-  cloneable = FALSE,
-  inherit = RSScalar,
+  super_class = RSScalar,
+  is_na_class = FALSE,
   public = list(
 
     #' @description
@@ -54,8 +54,6 @@ RSDate <- R6::R6Class(
     }
   )
 )
-RSDate$isNAClass <- FALSE
-
 
 
 
@@ -75,10 +73,10 @@ RSDate$isNAClass <- FALSE
 #' na_date$value()           # NA
 #'
 #' @export
-RSNADate <- R6::R6Class(
+RSNADate <- RSScalarClass(
   "RSNADate",
-  cloneable = FALSE,
-  inherit = RSDate,
+  super_class = RSDate,
+  is_na_class = TRUE,
   public = list(
 
     #' @description
@@ -92,8 +90,6 @@ RSNADate <- R6::R6Class(
     }
   )
 )
-RSNADate$isNAClass <- TRUE
-
 
 
 # @title Factory Method for RSDate

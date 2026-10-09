@@ -1,5 +1,5 @@
 #' @importFrom utils capture.output
-
+#' 
 #' @title Get Environment Pointer Hex for R6 or Function Objects
 #'
 #' @description
@@ -52,9 +52,9 @@ get_pointer_hex <- function(some_obj, obj_name = NULL) {
   }
   get_label <- function() {
     tryCatch({
-      if (is_robjc_instance(some_obj)) {
+      if (robjc_isRobjcObject(some_obj)) {
         some_obj$class()$classname
-      } else if (inherits(some_obj, "R6ClassGenerator")) {
+      } else if (robjc_isRobjcClass(some_obj)) {
         some_obj$classname
       } else if (is.function(some_obj)) {
         paste0("function ", obj_name)
@@ -90,64 +90,8 @@ get_pointer_hex <- function(some_obj, obj_name = NULL) {
 
 
 
-#' @title Check if an Object is a robjc-Based Instance
-#'
-#' @description
-#' Determines whether the given object is a valid instance of the `robjc` object-oriented system.
-#' This is done by verifying two conditions: the object must implement a `class()` method,
-#' and the corresponding class object must possess a `robjc_isa` structure—
-#' both of which are characteristic of robjc-based objects.
-#'
-#' @param obj Any R object.
-#'
-#' @return `TRUE` if the object is recognized as a robjc object, `FALSE` otherwise.
-#'
-#' @examples
-#' obj <- RSObject$new()
-#' is_robjc_instance(obj)  # Returns TRUE
-#' is_robjc_instance(list())  # Returns FALSE
-#'
-#' @export
-is_robjc_instance <- function(obj) {
-  tryCatch(!is.null(obj$class()$robjc_isa), error = function(e) FALSE)
-}
 
 
 
 
 
-
-
-
-
-#' @title Check if an Object is a robjc Class Object
-#'
-#' @description
-#' Determines whether the given object is a class definition created within the `robjc` object-oriented system.
-#' Specifically, it checks for the presence of the internal `robjc_isa` metadata structure,
-#' which is a characteristic of all robjc class objects.
-#'
-#' @param obj Any R object.
-#'
-#' @return `TRUE` if the object is recognized as a robjc class object, `FALSE` otherwise.
-#'
-#' @examples
-#' cls <- RSObject
-#' is_robjc_class(cls)  # Returns TRUE
-#' is_robjc_class(R6::R6Class("NotRobjc"))  # Returns FALSE
-#'
-#' @export
-is_robjc_class <- function(obj) {
-  tryCatch(
-    {
-      if (!is.null(obj$robjc_isa)) return(TRUE)
-      super_class <- obj$get_inherit()
-      while (!is.null(super_class)) {
-        if (identical(super_class, RSObject)) return(TRUE)
-        super_class <- super_class$get_inherit()
-      }
-      return(FALSE)
-    },
-    error = function(e) FALSE
-  )
-}

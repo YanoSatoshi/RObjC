@@ -1,3 +1,4 @@
+#' @include RSString.r
 #' @title RSFactor: Wrapper for R's Factor Scalar Values
 #'
 #' @description
@@ -27,10 +28,10 @@
 #' @seealso RSNAFactor
 #'
 #' @export
-RSFactor <- R6::R6Class(
+RSFactor <- RSScalarClass(
   "RSFactor",
-  cloneable = FALSE,
-  inherit = RSString,
+  super_class = RSString,
+  is_na_class = FALSE,
   public = list(
 
 
@@ -118,8 +119,6 @@ RSFactor <- R6::R6Class(
     .ordered = NULL
   )
 )
-RSFactor$isNAClass  <- FALSE
-
 
 
 #' @title RSNAFactor: Wrapper for NA Factor Scalar
@@ -140,10 +139,10 @@ RSFactor$isNAClass  <- FALSE
 #' na_f$levels()   # NULL
 #'
 #' @export
-RSNAFactor <- R6::R6Class(
+RSNAFactor <- RSScalarClass(
   "RSNAFactor",
-  cloneable = FALSE,
-  inherit = RSFactor,
+  super_class = RSFactor,
+  is_na_class = TRUE,
   public = list(
 
     #' @description
@@ -159,8 +158,6 @@ RSNAFactor <- R6::R6Class(
     }
   )
 )
-RSNAFactor$isNAClass <- TRUE
-
 
 
 

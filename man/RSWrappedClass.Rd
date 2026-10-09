@@ -6,14 +6,14 @@
 \description{
 \code{RSWrappedClass} is an immutable wrapper that uniquely identifies a class definition
 using a combination of the class name and version string.
-This identifier, stored as an \code{RSString} in \code{class_id()}, serves as a stable reference
+This identifier, stored as an \code{RSString} in \code{class_id}, serves as a stable reference
 for use in serialization maps, class registries, and instance tracking structures.
 
 The wrapper holds a reference to the class generator (\code{classObject()}) and generates
 the identifier in the format \verb{<ClassName>_<Version>}. The version string must not contain underscores.
-If a class does not define a \code{classVersion()} method, \code{"0.0"} is used as the default version.
+The version comes from the generator's \code{robjc_isa$version} field.
 
-Once created, the \code{RSWrappedClass} object is read-only and cannot be modified.
+Once created, its \code{class_ref} and \code{class_id} bindings are locked.
 }
 \section{Inheritance}{
 
@@ -34,7 +34,7 @@ Inherits from \link{RSObject}.
 \item \code{classObject()}: Returns the R6 class generator object (e.g., \code{MyClass}).
 \item \code{classID()}: Returns the class identifier as an \link{RSString}.
 \item \code{className()}: Returns the class name as a character string.
-\item \code{classVersion()}: Returns the version portion of the identifier string.
+\item \code{version()}: Returns the version portion of the identifier string.
 }
 }
 
@@ -42,13 +42,13 @@ Inherits from \link{RSObject}.
 
 \itemize{
 \item Version strings must not contain underscores.
-\item The class being wrapped must inherit from \link{RSObject}.
+\item The input must be an RObjC class generator or an object with a \code{class()} method.
 }
 
 
 \itemize{
 \item The version string must not contain an underscore ("_").
-\item If version is \code{NULL}, it is treated as \code{"0.0"}.
+\item The version is read from the generator's \code{robjc_isa$version} field.
 }
 }
 
@@ -57,7 +57,7 @@ Inherits from \link{RSObject}.
 wrapped <- RSWrappedClass$new(obj)
 wrapped$classID()      # => RSString: "MyClass_1.0"
 wrapped$className()    # => "MyClass"
-wrapped$classVersion() # => "1.0"
+wrapped$version()      # => "1.0"
 }
 
 
@@ -98,7 +98,7 @@ wrapped$className()  # "RSUser"
 ## ------------------------------------------------
 
 \dontrun{
-wrapped$classVersion()  # "1.0"
+wrapped$version()  # "1.0"
 }
 }
 \seealso{
@@ -115,7 +115,7 @@ It must inherit from \code{RSObject}. Used for accessing metadata or generating 
 
 \item{\code{class_id}}{\link{RSString}
 A string identifier uniquely representing the class. It is constructed as \verb{<ClassName>_<Version>}.
-If the class does not implement \code{classVersion()}, the default version \code{"0.0"} is used.
+The version comes from the class generator's \code{robjc_isa$version} field.
 The underscore character is reserved as a separator and must not appear in version strings.}
 }
 \if{html}{\out{</div>}}
@@ -167,7 +167,7 @@ from the class name and version.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{object}}{An object that inherits from \code{RSObject}, from which the class and version will be extracted.}
+\item{\code{object}}{An RObjC object or its class generator.}
 }
 \if{html}{\out{</div>}}
 }
@@ -271,7 +271,7 @@ A character string representing the version (e.g., \code{"1.0"}).
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{\dontrun{
-wrapped$classVersion()  # "1.0"
+wrapped$version()  # "1.0"
 }
 }
 \if{html}{\out{</div>}}

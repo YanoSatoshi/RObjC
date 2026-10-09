@@ -1,3 +1,4 @@
+#' @include RSMutableDataFrame.r
 #' @title RSDataFrame: Immutable Data Frame Object
 #'
 #' @description
@@ -8,10 +9,10 @@
 #' @note Use `copy()` or `mutableCopy()` to safely duplicate or convert.
 #'
 #' @export
-RSDataFrame <- R6::R6Class(
+RSDataFrame <- RSObjectClass(
   "RSDataFrame",
-  inherit = RSMutableDataFrame,
-  cloneable = FALSE,
+  super = RSMutableDataFrame,
+  protocols = list(RSCopying, RSMutableCopying),
   public = list(
 
     #' @description
@@ -61,5 +62,3 @@ RSDataFrame <- R6::R6Class(
     mutableCopy = function() RSMutableDataFrame$new(df = private$.df, key_columns = private$.key_columns)
   )
 )
-conform_protocol_to_class(RSMutableCopying$protocol(), RSDataFrame)
-conform_protocol_to_class(RSCopying$protocol(), RSDataFrame)

@@ -1,3 +1,4 @@
+#' @include RSScalar.r
 #' @title RSString: Character or Factor Scalar Wrapper
 #'
 #' @description
@@ -22,10 +23,10 @@
 #' s$value()  # "hello"
 #'
 #' @export
-RSString <- R6::R6Class(
+RSString <- RSScalarClass(
   "RSString",
-  cloneable = FALSE,
-  inherit = RSScalar,
+  super_class = RSScalar,
+  is_na_class = FALSE,
   public = list(
 
     #' @description
@@ -47,8 +48,6 @@ RSString <- R6::R6Class(
     }
   )
 )
-RSString$isNAClass  <- FALSE
-
 
 
 
@@ -69,10 +68,10 @@ RSString$isNAClass  <- FALSE
 #' na_str$value()             # NA
 #'
 #' @export
-RSNAString <- R6::R6Class(
+RSNAString <- RSScalarClass(
   "RSNAString",
-  cloneable = FALSE,
-  inherit = RSString,
+  super_class = RSString,
+  is_na_class = TRUE,
   public = list(
 
     #' @description
@@ -89,8 +88,6 @@ RSNAString <- R6::R6Class(
     }
   )
 )
-RSNAString$isNAClass <- TRUE
-
 
 
 # @title Factory Method for RSString

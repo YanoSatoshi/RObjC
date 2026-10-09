@@ -1,3 +1,4 @@
+#' @include RSMutableSet.r
 #' @title RSSet: Native-Backed Immutable Set
 #'
 #' @description
@@ -14,10 +15,10 @@
 #' native storage.
 #'
 #' @export
-RSSet <- R6::R6Class(
+RSSet <- RSObjectClass(
   "RSSet",
-  inherit = RSMutableSet,
-  cloneable = FALSE,
+  super_class = RSMutableSet,
+  protocols = list(RSCopying, RSMutableCopying),
   public = list(
     #' @description Constructs an immutable set retaining the supplied objects.
     #' @param objects An optional list or RObjC collection of members. `NULL`

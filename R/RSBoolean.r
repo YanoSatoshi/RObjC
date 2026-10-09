@@ -1,3 +1,4 @@
+#' @include RSScalar.r
 #' @title RSBoolean: Logical Scalar Wrapper
 #'
 #' @description
@@ -13,10 +14,10 @@
 #' \code{RSBoolean$boolWith(val)}, which returns \code{RSNABoolean} if \code{val} is \code{NA}.
 #' 
 #' @export
-RSBoolean <- R6::R6Class(
+RSBoolean <- RSScalarClass(
   "RSBoolean",
-  cloneable = FALSE,
-  inherit = RSScalar,
+  super_class = RSScalar,
+  is_na_class = FALSE,
   public = list(
 
     #' @description
@@ -42,7 +43,6 @@ RSBoolean <- R6::R6Class(
 
   )
 )
-RSBoolean$isNAClass <- FALSE
 
 
 #' @title RSNABoolean: Wrapper for NA-logical Scalar
@@ -54,10 +54,10 @@ RSBoolean$isNAClass <- FALSE
 #' Use `RSBoolean$boolWith(val)` instead of instantiating directly.
 #'
 #' @export
-RSNABoolean <- R6::R6Class(
+RSNABoolean <- RSScalarClass(
   "RSNABoolean",
-  cloneable = FALSE,
-  inherit = RSBoolean,
+  super_class = RSBoolean,
+  is_na_class = TRUE,
   public = list(
 
     #' @description
@@ -71,8 +71,6 @@ RSNABoolean <- R6::R6Class(
     }
   )
 )
-RSNABoolean$isNAClass <- TRUE
-
 
 
 

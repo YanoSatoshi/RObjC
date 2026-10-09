@@ -32,7 +32,11 @@
 #' @return An `RSConcreteSet` instance.
 RSConcreteSet <- R6::R6Class(
   "RSConcreteSet",
+  class     = FALSE,
   cloneable = FALSE,
+  portable  = TRUE,
+  active    = NULL,
+  inherit   = NULL,
   private = list(
     .native_ptr = NULL,
     .serialized_objects = NULL,
@@ -173,7 +177,7 @@ RSConcreteSet <- R6::R6Class(
     #' @description Computes an order-independent aggregate member hash.
     #' @return An integer hash value.
     contentHash = function() {
-      RSHashOperator$module()$hashFromObjects(self$allObjects())
+      RSHashOperator$instance$hashFromObjects(self$allObjects())
     },
 
     #' @description Captures data needed to rebuild storage after serialization.

@@ -1,3 +1,4 @@
+#' @include RSProtocol.r
 #' @title RSCopying: Protocol for Object Copying
 #'
 #' @description
@@ -12,26 +13,22 @@
 #'
 #' @examples
 #' \dontrun{
-#' MyClass <- R6::R6Class("MyClass", inherit = RSObject, public = list(
+#' MyClass <- RSObjectClass("MyClass", super_class = RSObject,
+#'   protocols = list(RSCopying), public = list(
 #'   value = NULL,
-#'   initialize = function(val) { self$value <- val },
+#'   initialize = function(val) { super$initialize(); self$value <- val },
 #'   copy = function() {
 #'     MyClass$new(self$value)
 #'   }
 #' ))
-#' MyClass$protocols <- c("RSCopying")
 #' }
 #'
 #' @export
 RSCopying <- R6::R6Class(
   "RSCopying",
-  inherit = RSProtocol,
+  class     = FALSE,
   cloneable = FALSE,
-  public = list(
-    #' @description Required method for RSCopying conformance.
-    #' @return required method name
-    requiredMethods = function() {
-      c("copy")
-    }
-  )
+  portable  = TRUE,
+  active    = NULL,
+  inherit   = RSProtocol
 )

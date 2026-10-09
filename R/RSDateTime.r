@@ -1,3 +1,4 @@
+#' @include RSScalar.r
 #' @title RSDateTime: Scalar Wrapper for POSIXct Timestamps
 #'
 #' @description
@@ -21,11 +22,10 @@
 #' @seealso RSNADateTime
 #'
 #' @export
-RSDateTime <- R6::R6Class(
-  ### class name ###
+RSDateTime <- RSScalarClass(
   "RSDateTime",
-  cloneable = FALSE,
-  inherit = RSScalar,
+  super_class = RSScalar,
+  is_na_class = FALSE,
   public = list(
 
     #' @description
@@ -58,8 +58,6 @@ RSDateTime <- R6::R6Class(
     }
   )
 )
-RSDateTime$isNAClass <- FALSE
-
 
 
 
@@ -78,10 +76,10 @@ RSDateTime$isNAClass <- FALSE
 #' na_dt$value()               # NA
 #'
 #' @export
-RSNADateTime <- R6::R6Class(
+RSNADateTime <- RSScalarClass(
   "RSNADateTime",
-  cloneable = FALSE,
-  inherit = RSDateTime,
+  super_class = RSDateTime,
+  is_na_class = TRUE,
   public = list(
 
     #' @description
@@ -95,8 +93,6 @@ RSNADateTime <- R6::R6Class(
     }
   )
 )
-RSNADateTime$isNAClass <- TRUE
-
 
 
 

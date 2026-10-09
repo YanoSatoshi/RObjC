@@ -5,6 +5,8 @@
 #' [RSDictionary] and [RSMutableDictionary]. It lazily owns an external pointer
 #' to a C++ `NativeDictionary` and keeps all Rcpp bridge calls out of the public
 #' dictionary classes.
+#' The native table calls each key's `hash()` and `isEqual()` methods for
+#' lookup; keys must keep their hash and equality state stable while stored.
 #'
 #' This class provides storage semantics only. It does not inherit from
 #' [RSObject], copy keys, translate `NULL` to [RSNull], or impose mutable versus
@@ -28,7 +30,11 @@
 #' @return An `RSConcreteDictionary` instance.
 RSConcreteDictionary <- R6::R6Class(
   "RSConcreteDictionary",
+  class     = FALSE,
   cloneable = FALSE,
+  portable  = TRUE,
+  active    = NULL,
+  inherit   = NULL,
   private = list(
     .native_ptr = NULL,
     .serialized_keys = NULL,
@@ -143,7 +149,7 @@ RSConcreteDictionary <- R6::R6Class(
     #' @description Computes an order-independent aggregate hash of the keys.
     #' @return An integer hash value.
     contentHash = function() {
-      RSHashOperator$module()$hashFromObjects(self$keys())
+      RSHashOperator$instance$hashFromObjects(self$keys())
     },
 
     #' @description Captures data needed to rebuild storage after serialization.

@@ -1,3 +1,8 @@
+#' @include api_setup.r
+#' @include RSMutableCopying.r
+#' @include RSCopying.r
+#' @include RSHashOperator.r
+#' 
 #' @title RSMutableArray: Ordered, Mutable Object Container
 #'
 #' @description
@@ -26,10 +31,10 @@
 #' arr$objectAtIndex(1)$value()  # "b"
 #'
 #' @export
-RSMutableArray <- R6::R6Class(
+RSMutableArray <- RSObjectClass(
   "RSMutableArray",
-  inherit = RSObject,
-  cloneable = FALSE,
+  super_class = RSObject,
+  protocols   = list(RSMutableCopying, RSCopying),
   private = list(
     .storage = list(),
     .hash_operator = NULL
@@ -45,15 +50,13 @@ RSMutableArray <- R6::R6Class(
     #' @return A new `RSMutableArray` instance.
     initialize = function(
       objects = list(),
-      hash_operator = RSHashOperator$module()
+      hash_operator = RSHashOperator$instance
     ) {
       objects <- cast_rs_storage_to_list(objects)
       stopifnot(is.list(objects))
       super$initialize()
-      if (
-        length(objects) > 0 &&
-        !all(vapply(objects, is_robjc_instance, logical(1)))
-      ) stop("All elements must inherit from RSObject.")
+      if (length(objects) > 0 && !all(vapply(objects, robjc_isRobjcObject, logical(1))))
+        stop("All elements must inherit from RSObject.")
       private$.storage <- objects
       private$.hash_operator <- hash_operator
       invisible(self)
@@ -75,7 +78,6 @@ RSMutableArray <- R6::R6Class(
 
     #' @description
     #' Inserts an object at the specified index, shifting existing elements to the right.  
-
     #'
     #' @param obj An `RSObject`.
     #' @param index Integer position (1-based) where the object will be inserted.
@@ -353,6 +355,3 @@ RSMutableArray <- R6::R6Class(
     }
   )
 )
-
-conform_protocol_to_class(RSMutableCopying$protocol(), RSMutableArray)
-conform_protocol_to_class(RSCopying$protocol(), RSMutableArray)
