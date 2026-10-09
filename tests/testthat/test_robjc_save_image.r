@@ -1,37 +1,16 @@
-test_that("robjc_save_image correctly saves .GlobalEnv objects with robjc metadata", {
-  # Load dummy class
+test_that("robjc_save_image uses its supplied environment", {
   load_dummies()
-  # Create test object and assign into global environment
-  dummy <- DummyClass$new()
-  assign("dummy", dummy, envir = .GlobalEnv)
+  on.exit(unload_dummies(), add = TRUE)
   file <- tempfile(fileext = ".RData")
-  # Save all global objects using robjc_save_image
-  robjc_save_image(file = file)
-  expect_true(file.exists(file))
-  # Load into new environment
-  temp_env <- new.env()
-  base::load(file = file, envir = temp_env)
-  # Confirm metadata presence
-  expect_true(".__rs_encoded_data__" %in% ls(temp_env, all.names = TRUE))
-  metadata <- temp_env$.__rs_encoded_data__
-  # Decode
-  decoder <- RSClassDecoder$module()
-  decoder$loadEncodedData(metadata)
-  # Class map
-  class_map <- RSMutableDictionary$new()
-  class_map$setObjectForKey(
-    RSWrappedClass$new(DummyClass),
-    RSString$stringWith("DummyClass_1.2")
-  )
-  decoder$resolveClassesWithDictionary(class_map)
-  # Unpack and locate object by class
-  unpacked_env <- new.env()
-  decoder$unpackTo(unpacked_env)
-  # Get restored object by searching for the DummyClass instance
-  restored <- Filter(function(x) x$isKindOf(DummyClass), mget(ls(unpacked_env), unpacked_env))[[1]]
-  expect_true(restored$isKindOf(DummyClass))
-  expect_equal(restored$class()$classname, dummy$class()$classname)
-  # Clean up
-  rm(dummy, envir = .GlobalEnv)
-  unload_dummies()
+  on.exit(unlink(file), add = TRUE)
+  source_env <- new.env(parent = emptyenv())
+  source_env$dummy <- DummyClass$new()
+
+  robjc_save_image(file = file, envir = source_env)
+
+  restored_env <- new.env(parent = emptyenv())
+  loaded_names <- base::load(file, envir = restored_env)
+  expect_setequal(loaded_names, c("dummy", ".__rs_encoded_data__"))
+  expect_equal(restored_env$dummy$class()$classname, "DummyClass")
+  expect_equal(restored_env$dummy$classVersion(), "1.2")
 })

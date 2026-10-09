@@ -34,6 +34,7 @@
 #' @keywords internal
 RSClassReference <- RSObjectClass(
   "RSClassReference",
+  version = "0.0.2 alpha",
   super_class = RSKeyValuePair,
   public = list(
 

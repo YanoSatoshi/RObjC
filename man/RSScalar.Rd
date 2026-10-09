@@ -32,14 +32,14 @@ A companion \verb{RSNA*} class should be provided for representing NA values saf
 
 \section{Usage}{
 
-Use \code{RSScalar$valueWith(val)} as a convenience constructor.
+Use \code{RSScalar_withValue(val)} as a convenience constructor.
 It automatically routes to the appropriate RS*** subclass based on the type of \code{val}.
 }
 
 \examples{
-num <- RSNumber$numberWith(42)
-str <- RSString$stringWith("hello")
-num$compare(RSNumber$numberWith(100))  # returns -1
+num <- RSNumber_withValue(42)
+str <- RSString_withValue("hello")
+num$compare(RSNumber_withValue(100))  # returns -1
 
 }
 \section{Super class}{

@@ -31,6 +31,7 @@
 #' @export
 RSNull <- RSScalarClass(
   "RSNull",
+  version = "0.0.2 alpha",
   super_class = RSScalar,
   is_na_class = NA,
   singleton = TRUE,

@@ -26,8 +26,8 @@ test_that("RSNumber: hash() generates integer", {
   expect_type(h, "integer")
 })
 
-test_that("RSScalar$valueWith() dispatches numeric correctly", {
-  wrapped <- RSScalar$valueWith(3.14)
+test_that("RSScalar_withValue() dispatches numeric correctly", {
+  wrapped <- RSScalar_withValue(3.14)
   expect_true(wrapped$isKindOf(RSNumber))
   expect_equal(wrapped$value(), 3.14)
 })
@@ -59,7 +59,7 @@ test_that("RSNANumber: hash() returns fixed hash", {
   expect_equal(a$hash(), b$hash())
 })
 
-test_that("RSScalar$valueWith(as.numeric(NA)) returns RSNANumber", {
-  val <- RSScalar$valueWith(as.numeric(NA))
+test_that("RSScalar_withValue(as.numeric(NA)) returns RSNANumber", {
+  val <- RSScalar_withValue(as.numeric(NA))
   expect_true(val$isKindOf(RSNANumber))
 })

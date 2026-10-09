@@ -54,8 +54,38 @@ Unresolved class IDs are recorded in the decoder's `unresolved` field.
 
 ## Current I/O integration
 
-The factories expose singleton instances as `$instance`. The `robjc_save*()`
-and `robjc_read_rds()`/`robjc_load()` implementations still call the older
-`$module()` accessor on the encoder and decoder. Those entry points need to be
-updated before the workflow described above is available through the public
-save and restore functions.
+The factories expose singleton instances as `$instance`, and the public
+`robjc_save*()` and `robjc_read_rds()`/`robjc_load()` entry points use that
+accessor. Restoring an object against a changed class definition remains
+unresolved: `resolveClassWith()` updates class metadata, but does not rebuild
+the R6 instance's methods or fields.
+
+## Example: encode, save, and read
+
+The following example first inspects the encoded metadata, then saves the
+object and reads the RDS payload. `robjc_save_rds()` performs its own encoding,
+so the manual encoding step is for inspection.
+
+```{r}
+library(robjc)
+
+obj <- RSString_withValue("hello")
+encoder <- RSClassEncoder$instance$refresh()
+encoder$encodeObject(obj)
+metadata <- encoder$lockInstance()
+stopifnot(metadata$count() > 0L)
+
+path <- tempfile(fileext = ".rds")
+robjc_save_rds(obj, path)
+payload <- readRDS(path)
+stopifnot(all(c("__object__", "__robjc__") %in% names(payload)))
+loaded <- payload[["__object__"]]
+stopifnot(identical(loaded$value(), "hello"))
+unlink(path)
+```
+
+`readRDS()` reads the serialized object and metadata as they were stored; it
+does not resolve saved class definitions against the current runtime. Full
+class-aware restoration through `robjc_read_rds()` is still under development;
+it currently fails for this `RSString` example. Restoration after a class
+definition changes also remains unresolved.

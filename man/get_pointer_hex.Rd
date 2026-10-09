@@ -2,52 +2,35 @@
 % Please edit documentation in R/runtime_util.r
 \name{get_pointer_hex}
 \alias{get_pointer_hex}
-\title{Get Environment Pointer Hex for R6 or Function Objects}
+\title{Get an R6 Object's Environment Address}
 \usage{
 get_pointer_hex(some_obj, obj_name = NULL)
 }
 \arguments{
-\item{some_obj}{An object, typically an R6 instance or R6 class generator. It may
-also be a plain function. If a function is passed, a helpful error message will
-be shown when the pointer cannot be extracted.}
+\item{some_obj}{An R6 instance or class generator with a \verb{$print} method.}
 
-\item{obj_name}{(Optional) A character string indicating the object name or
-source expression. This is auto-filled by \code{deparse(substitute(...))} when omitted.
-Only used for more informative error reporting.}
+\item{obj_name}{Optional label used in error messages. By default, the input
+expression is captured.}
 }
 \value{
-A character string like \code{"0x55abcde12345"} representing the object's internal environment pointer.
+A character string containing a hexadecimal address, such as
+\code{"0x55abcde12345"}.
 }
 \description{
-Returns a hexadecimal string representing the memory address of an R6 object's
-bound method environment (typically the \code{$print} method), or produces
-an informative error if the pointer cannot be resolved.
+Returns a hexadecimal address for the environment enclosing an R6 object's
+\verb{$print} method. The address can identify an object during the current R
+session; it is not a persistent identifier across sessions.
 
-This function is primarily used within the robjc framework to generate
-stable identity keys (e.g., for hashing or visited tracking) based on internal
-object environments.
-
-If the input object is an R6 instance (typically inheriting from \code{RSObject}),
-its environment is extracted from the bound \code{$print} method.
-For R6 class definitions (\code{R6ClassGenerator}), the environment of the
-class-level \code{$print} may also be used.
-
-If the object is a function or closure that lacks a \code{$print} method,
-the function fails gracefully with a label showing the name or expression passed.
+RObjC uses this address for in-session object identity checks. An object
+without a \verb{$print} method raises an error.
 }
 \examples{
-\dontrun{
 obj <- RSObject$new()
-get_pointer_hex(obj)             # e.g., "0x55abcde12345"
-
-get_pointer_hex(RSObject)        # class generator
-
-get_pointer_hex(mean)            # → error with "function mean"
-
-get_pointer_hex(function(x) x)   # → error with full expression
-}
+robjc:::get_pointer_hex(obj)
+robjc:::get_pointer_hex(RSObject)
 
 }
 \seealso{
-\code{\link[=RSObject]{objectID}}, \code{\link{RSObject}}, \code{\link{RSClassEncoder}}
+\link{RSObject}
 }
+\keyword{internal}

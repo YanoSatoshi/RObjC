@@ -12,6 +12,7 @@
 #' @export
 RSHashOperator <- RSSingletonClass(
   "RSHashOperator",
+  version = "0.0.2 alpha",
   super_class = RSObject,
   protocols   = list(RSHashOperatorProtocol),
   public = list(

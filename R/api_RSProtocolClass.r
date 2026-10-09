@@ -1,9 +1,31 @@
 #' @include primary_class_setup.r
-#' @title RSProtocolClass
-#' @description TODO: document protocol-class construction.
-#' @param protocol_name,super_protocols,contract_methods,parent_env,version TODO.
-#' @return TODO.
-#' @noRd
+#' @title Declare an RObjC Protocol
+#'
+#' @description
+#' Creates a protocol class generator whose contract is a set of required method
+#' names. A protocol can inherit requirements from other protocols through
+#' `super_protocols`.
+#'
+#' @param protocol_name One character string naming the protocol.
+#' @param super_protocols A list of RObjC protocol class generators whose
+#'   contracts are inherited.
+#' @param contract_methods Character vector of required method names declared
+#'   directly by this protocol.
+#' @param parent_env Parent environment for the generated R6 class.
+#' @param version Protocol version. It must not contain `_`.
+#'
+#' @return The protocol class generator, invisibly.
+#'
+#' @section Implementation details:
+#' The generator inherits from `RSProtocol`. Method names inherited from parent
+#' protocols are removed from its own contract, which is stored in
+#' `robjc_isa$slot`. Parent protocols and the version are also stored in
+#' `robjc_isa`; the metadata is locked after declaration.
+#'
+#' @examples
+#' Printable <- RSProtocolClass("Printable", contract_methods = "print")
+#' Printable$classname
+#'
 #' @export
 RSProtocolClass <- function(
   protocol_name,                # character
@@ -19,7 +41,9 @@ RSProtocolClass <- function(
     "`contract_methods` must be character vector." =
       is.character(contract_methods),
     "`super_protocols` must be a list." =
-      is.list(super_protocols)
+      is.list(super_protocols),
+    "Version string must not contain '_'." =
+      !grepl("_", version)
   )
   # check super_protocol existances
   flag <- vapply(super_protocols, robjc_isProtocol, logical(1)) 

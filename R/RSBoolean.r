@@ -11,11 +11,12 @@
 #' 
 #' @section Usage:
 #' To create an instance, use the static constructor:
-#' \code{RSBoolean$boolWith(val)}, which returns \code{RSNABoolean} if \code{val} is \code{NA}.
+#' \code{RSBoolean_withBoolean(val)}, which returns \code{RSNABoolean} if \code{val} is \code{NA}.
 #' 
 #' @export
 RSBoolean <- RSScalarClass(
   "RSBoolean",
+  version = "0.0.2 alpha",
   super_class = RSScalar,
   is_na_class = FALSE,
   public = list(
@@ -51,11 +52,12 @@ RSBoolean <- RSScalarClass(
 #' This class is typically used internally by factory methods.
 #'
 #' @note
-#' Use `RSBoolean$boolWith(val)` instead of instantiating directly.
+#' Use `RSBoolean_withBoolean(val)` instead of instantiating directly.
 #'
 #' @export
 RSNABoolean <- RSScalarClass(
   "RSNABoolean",
+  version = "0.0.2 alpha",
   super_class = RSBoolean,
   is_na_class = TRUE,
   public = list(
@@ -71,19 +73,3 @@ RSNABoolean <- RSScalarClass(
     }
   )
 )
-
-
-
-# Create an RSBoolean instance safely
-# @description Wraps a logical scalar into an `RSBoolean` object. If the value is `NA`, returns an `RSNABoolean`.
-#
-# @param val A logical value (length 1).
-# @return An `RSBoolean` or `RSNABoolean` object.
-#
-# @name boolWith
-# @rdname boolWith
-# @export
-RSBoolean$boolWith  <- function(val) {
-  if (is.na(val)) return(RSNABoolean$new())
-  return(RSBoolean$new(as.logical(val)))
-}

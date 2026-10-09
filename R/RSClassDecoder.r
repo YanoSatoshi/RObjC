@@ -17,6 +17,7 @@
 #' @export
 RSClassDecoder <- RSSingletonClass(
   "RSClassDecoder",
+  version = "0.0.2 alpha",
   super_class = RSModule,
   protocols = list(RSDecoderProtocol),
   public = list(
@@ -99,7 +100,7 @@ RSClassDecoder <- RSSingletonClass(
       for (entry in entries) {
         instance_map <- entry$value()
         class_id <- entry$key()$value()
-        new_class    <- class_map$objectForKey(RSString$stringWith(class_id))
+        new_class    <- class_map$objectForKey(RSString_withValue(class_id))
         if (is.null(new_class)) {
           self$unresolved <- c(self$unresolved, class_id)
           next

@@ -7,16 +7,16 @@
 #' use in hash-based containers such as `RSSet` and `RSDictionary`.
 #'
 #' The constructor ensures that the value is of class `"Date"`. To construct
-#' safely from a value that may include `NA`, use the factory method `RSDate$dateWith()`.
+#' safely from a value that may include `NA`, use the factory method `RSDate_withDate()`.
 #'
 #' @section Methods:
 #' - `hash()` – Converts the date to an integer representation for hashing.
 #'
 #' @section Usage:
-#' Use \code{RSDate$dateWith(val)} to construct safely from a Date scalar.
+#' Use \code{RSDate_withDate(val)} to construct safely from a Date scalar.
 #' 
 #' @examples
-#' d <- RSDate$dateWith(Sys.Date())
+#' d <- RSDate_withDate(Sys.Date())
 #' d$value()
 #' d$hash()
 #'
@@ -25,6 +25,7 @@
 #' @export
 RSDate <- RSScalarClass(
   "RSDate",
+  version = "0.0.2 alpha",
   super_class = RSScalar,
   is_na_class = FALSE,
   public = list(
@@ -65,16 +66,17 @@ RSDate <- RSScalarClass(
 #' This class is used internally to distinguish between regular and missing date values
 #' within scalar-aware containers and comparison logic.
 #'
-#' Normally constructed via `RSDate$dateWith()`.
+#' Normally constructed via `RSDate_withDate()`.
 #'
 #' @examples
-#' na_date <- RSDate$dateWith(as.Date(NA))
+#' na_date <- RSDate_withDate(as.Date(NA))
 #' na_date$isKindOf(RSDate)  # TRUE
 #' na_date$value()           # NA
 #'
 #' @export
 RSNADate <- RSScalarClass(
   "RSNADate",
+  version = "0.0.2 alpha",
   super_class = RSDate,
   is_na_class = TRUE,
   public = list(
@@ -90,24 +92,3 @@ RSNADate <- RSScalarClass(
     }
   )
 )
-
-
-# @title Factory Method for RSDate
-# 
-# @name dateWith
-#
-# @description
-# Creates an `RSDate` object from a `Date` scalar. If the input is `as.Date(NA)`,
-# it returns an instance of `RSNADate`.
-#
-# @param val A `Date` scalar.
-# @return An instance of `RSDate` or `RSNADate`.
-#
-# @examples
-# RSDate$dateWith(as.Date("2023-01-01"))
-# RSDate$dateWith(as.Date(NA))
-# @export
-RSDate$dateWith  <- function(val) {
-  if (is.na(val)) return(RSNADate$new())
-  return(RSDate$new(val))
-}

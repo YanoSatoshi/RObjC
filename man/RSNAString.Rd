@@ -8,11 +8,11 @@
 values. This class conforms to the \code{RSScalar} interface while clearly indicating
 that it wraps a missing string value.
 
-This class is typically instantiated internally via \code{RSString$stringWith()}.
+This class is typically instantiated internally via \code{RSString_withValue()}.
 The \code{isNAClass} flag is set to TRUE to enable differentiated behavior in comparison logic.
 }
 \examples{
-na_str <- RSString$stringWith(NA_character_)
+na_str <- RSString_withValue(NA_character_)
 na_str$isKindOf(RSString)  # TRUE
 na_str$value()             # NA
 

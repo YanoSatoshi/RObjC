@@ -30,7 +30,7 @@
 #' @return An `RSConcreteDictionary` instance.
 RSConcreteDictionary <- R6::R6Class(
   "RSConcreteDictionary",
-  class     = FALSE,
+  class     = TRUE,
   cloneable = FALSE,
   portable  = TRUE,
   active    = NULL,

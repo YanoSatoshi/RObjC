@@ -31,5 +31,5 @@ MyClass <- RSObjectClass("MyClass", super_class = RSObject,
 
 }
 \section{Super class}{
-\code{robjc::RSProtocol} -> \code{RSCopying}
+\code{\link[robjc:RSProtocol]{robjc::RSProtocol}} -> \code{RSCopying}
 }

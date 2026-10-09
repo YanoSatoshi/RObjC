@@ -8,10 +8,10 @@
 This class is used internally to distinguish between regular and missing date values
 within scalar-aware containers and comparison logic.
 
-Normally constructed via \code{RSDate$dateWith()}.
+Normally constructed via \code{RSDate_withDate()}.
 }
 \examples{
-na_date <- RSDate$dateWith(as.Date(NA))
+na_date <- RSDate_withDate(as.Date(NA))
 na_date$isKindOf(RSDate)  # TRUE
 na_date$value()           # NA
 

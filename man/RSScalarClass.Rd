@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_RSScalarClass.r
 \name{RSScalarClass}
 \alias{RSScalarClass}
-\title{Declare a Scalar Class}
+\title{Declare an RObjC Scalar Class}
 \usage{
 RSScalarClass(
   class_name,
@@ -19,28 +19,50 @@ RSScalarClass(
 )
 }
 \arguments{
-\item{class_name}{Name of the class.}
+\item{class_name}{One character string naming the class.}
 
-\item{super_class}{An RSScalar class generator or one of its subclasses.}
+\item{super_class}{\link{RSScalar} or one of its subclass generators.}
 
-\item{is_na_class}{Logical scalar. \code{NA} is allowed for classes such as RSNull.}
+\item{is_na_class}{One logical value. \code{NA} is allowed; use \code{TRUE} for a class
+whose instances may wrap missing values.}
 
-\item{singleton}{Whether to create a singleton instance immediately.}
+\item{singleton}{Whether to create an instance immediately and expose it as
+\code{Class$instance}.}
 
-\item{singleton_accessor}{Reserved for a future accessor; currently unused.}
+\item{singleton_accessor}{Reserved for a future accessor; currently unused.
+It can be supplied only when \code{singleton = TRUE}.}
 
-\item{protocols}{Protocols adopted by the class.}
+\item{protocols}{A list of protocol class generators adopted by the class.}
 
-\item{public, private, active}{R6 class members.}
+\item{public, private, active}{R6 public members, private members, and active
+bindings passed to \code{\link[R6:R6Class]{R6::R6Class()}}.}
 
-\item{parent_env}{Parent environment for R6 methods.}
+\item{parent_env}{Parent environment for the generated R6 methods.}
 
-\item{version}{Class version.}
+\item{version}{Class version. It must not contain \verb{_}.}
 }
 \value{
-The class generator.
+The scalar class generator, invisibly. Its \code{isNAClass} binding is
+locked; when \code{singleton = TRUE}, its \code{instance} binding is also locked.
 }
 \description{
-Set the scalar class flag before its first instance is created. This is
-necessary for singleton scalars, whose instance is created by the factory.
+Creates a subclass of \link{RSScalar} and sets its class-level \code{isNAClass} flag.
+The flag is locked after declaration. For a singleton scalar, the factory
+sets the flag before creating the first instance, so scalar initialization
+can read it. In singleton mode, the class's initializer must work without
+arguments because the factory calls \verb{$new()} without arguments.
+}
+\section{Implementation details}{
+
+Non-singleton classes are built through \code{\link[=RSObjectClass]{RSObjectClass()}}. In singleton mode,
+the factory sets \code{isNAClass} before creating the instance. The class
+identity is held in \code{robjc_isa} on the generator and \code{.__isa} in its private
+fields; the instance is also stored in \code{robjc_isa$slot}.
+}
+
+\examples{
+ExampleScalar <- RSScalarClass("ExampleScalar", is_na_class = FALSE,
+  version = "0.0.2 alpha")
+ExampleScalar$isNAClass
+
 }

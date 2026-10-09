@@ -41,6 +41,7 @@
 #' @export
 RSClassEncoder <- RSSingletonClass(
   "RSClassEncoder",
+  version = "0.0.2 alpha",
   super_class = RSModule,
   protocols = list(RSEncoderProtocol),
   public = list(
@@ -84,7 +85,7 @@ RSClassEncoder <- RSSingletonClass(
     encodingContainer = function(obj) {
       version <- tryCatch(obj$classVersion(), error = function(e) "0.0")
       stopifnot("Version string must not contain '_'." = !grepl("_", version))
-      cls_name_var <- RSString$stringWith(
+      cls_name_var <- RSString_withValue(
         sprintf("%s_%s", obj$class()$classname, version)
       )
       instance_map <- self$class_store$objectForKey(cls_name_var)

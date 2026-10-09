@@ -1,4 +1,4 @@
-#' @include runtime.r
+#' @include robjc-runtime.r
 #'
 #' @title RSObject: A Fundamental Base Class Inspired by Objective-C's NSObject
 #'
@@ -72,15 +72,17 @@ RSObject <- R6::R6Class(
 
 
     #' @description Checks if object conforms to a given protocol.
-    #' @param protocol A character string naming the protocol.
+    #' @param protocol A protocol class generator.
     #' @return TRUE if conforms, FALSE otherwise.
     conformsTo = function(protocol) {
       if (!robjc_isProtocol(protocol))
         stop("`protocol` must be a kind of RSProtocol.")
-      myProtocols <- private$.__isa$protocols
-      for (aProtocol in myProtocols)
-        if (protocol_conformsTo(aProtocol, protocol))
-          return(TRUE)
+      for (klass in robjc_inheritChain(private$.__isa)) {
+        for (aProtocol in klass$robjc_isa$protocols) {
+          if (protocol_conformsTo(aProtocol, protocol))
+            return(TRUE)
+        }
+      }
       return(FALSE)
     },
 

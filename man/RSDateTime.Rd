@@ -17,11 +17,11 @@ collections such as \code{RSSet} or \code{RSDictionary}.
 }
 
 #' @section Usage:
-Use \code{RSDateTime$dateTimeWith(val)} to construct safely from a POSIXct scalar.
+Use \code{RSDateTime_withDateTime(val)} to construct safely from a POSIXct scalar.
 }
 
 \examples{
-dt <- RSDateTime$dateTimeWith(Sys.time())
+dt <- RSDateTime_withDateTime(Sys.time())
 dt$value()
 dt$hash()
 

@@ -27,6 +27,7 @@
 #'
 RSKeyValuePair <- RSObjectClass(
   "RSKeyValuePair",
+  version = "0.0.2 alpha",
   super_class = RSObject,
   private     = list(
     .key    = NULL,
@@ -78,7 +79,7 @@ RSKeyValuePair <- RSObjectClass(
     #' @examples
     #' # Safe usage for dictionary lookups
     #' pair <- robjc:::RSKeyValuePair$new(RSNull$null, RSNull$null)
-    #' pair$setKey(RSString$stringWith("some_key"))
+    #' pair$setKey(RSString_withValue("some_key"))
     #'
     #' \dontrun{
     #' # This would raise an error

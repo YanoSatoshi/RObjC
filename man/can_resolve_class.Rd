@@ -31,16 +31,6 @@ This function currently performs strict matching by class name and version.
 Future extensions may support more flexible compatibility checks, such as
 structural subsetting or explicit migration strategies.
 }
-\examples{
-\dontrun{
-old <- MyClass
-old$robjc_isa$version <- "1.0"
-new <- MyClass
-new$robjc_isa$version <- "1.0"
-can_resolve_class(old, new)  # TRUE
-}
-
-}
 \seealso{
 \code{\link{RSObject}} – The base class that implements \code{resolveClassWith()} for
 version-based decoding logic.

@@ -2,7 +2,7 @@
 % Please edit documentation in R/runtime_robjc.r
 \name{robjc_isMetaClass}
 \alias{robjc_isMetaClass}
-\title{Check if an Object is a robjc Class Object}
+\title{Check for an RObjC Class Generator}
 \usage{
 robjc_isMetaClass(obj)
 }
@@ -10,16 +10,20 @@ robjc_isMetaClass(obj)
 \item{obj}{Any R object.}
 }
 \value{
-\code{TRUE} if the object is recognized as a robjc class object, \code{FALSE} otherwise.
+\code{TRUE} for an RObjC generator, \code{FALSE} otherwise.
 }
 \description{
-Determines whether the given object is a class definition created within the \code{robjc} object-oriented system.
-Specifically, it checks for the presence of the internal \code{robjc_isa} metadata structure,
-which is a characteristic of all robjc class objects.
+Tests whether an object is a class or protocol generator created by RObjC.
+This includes both object classes and protocol classes.
 }
+\section{Implementation details}{
+
+The check requires an environment with the \code{RobjcClass} marker and an
+\code{robjc_isa} environment with the \code{RSIsA} marker.
+}
+
 \examples{
-cls <- RSObject
-robjc_isMetaClass(cls)  # Returns TRUE
-robjc_isMetaClass(R6::R6Class("NotRobjc"))  # Returns FALSE
+robjc_isMetaClass(RSObject)
+robjc_isMetaClass(R6::R6Class("NotRobjc"))
 
 }

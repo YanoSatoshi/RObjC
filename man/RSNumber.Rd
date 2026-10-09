@@ -10,7 +10,7 @@ It disallows \code{NA} values directly; use \code{RSNANumber} instead.
 }
 \section{Usage}{
 
-Use \code{RSNumber$numberWith(val)} to safely construct from a numeric scalar.
+Use \code{RSNumber_withValue(val)} to safely construct from a numeric scalar.
 If \code{val} is \code{NA}, it returns \code{RSNANumber}.
 }
 

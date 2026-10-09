@@ -1,6 +1,6 @@
 Package: robjc
 Title: Objective-C Inspired OOP Framework for R Using R6
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: 
     person("Satoshi", "Yano", , "yanosatoshi@gmail.com", role = c("aut", "cre"))
 Description: Provides a lightweight object-oriented programming framework in R,
@@ -15,7 +15,7 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-Imports: utils, R6, tibble, digest, Rcpp
+Imports: utils, R6, tibble, Rcpp
 LinkingTo: Rcpp
 VignetteBuilder: knitr
 Collate: 
@@ -23,15 +23,15 @@ Collate:
     'util_io.r'
     'Rcpp.r'
     'runtime_util.r'
+    'runtime_robjc.r'
     'runtime_object.r'
     'runtime_class.r'
     'runtime_protocol.r'
-    'runtime_robjc.r'
-    'runtime.r'
-    'RSObject.r'
-    'RSSingleton.r'
+    'runtime_print.r'
+    'robjc-runtime.r'
     'RSProtocol.r'
     'RSCopying.r'
+    'RSObject.r'
     'primary_class_setup.r'
     'api_RSScalarClass.r'
     'api_RSSingletonClass.r'
@@ -70,7 +70,17 @@ Collate:
     'RSSorter.r'
     'RSWrappedClass.r'
     'RcppExports.R'
-    'util_module.r'
-    'util_protocol.r'
-    'util_singleton.r'
+    'api_RSArray.r'
+    'api_RSBoolean.r'
+    'api_RSDate.r'
+    'api_RSDateTime.r'
+    'api_RSDictionary.r'
+    'api_RSNull.r'
+    'api_RSNumber.r'
+    'api_RSString.r'
+    'api_RSScalar.r'
+    'api_RSSet.r'
+    'robjc-classes.r'
+    'robjc-factories.r'
+    'robjc-package.R'
     'zzz.r'

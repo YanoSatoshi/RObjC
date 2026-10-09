@@ -16,6 +16,7 @@
 #' @export
 RSDictionary <- RSObjectClass(
   "RSDictionary",
+  version = "0.0.2 alpha",
   super_class = RSMutableDictionary,
   protocols = list(RSCopying, RSMutableCopying),
   public = list(

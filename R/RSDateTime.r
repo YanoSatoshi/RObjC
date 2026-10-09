@@ -12,10 +12,10 @@
 #' - `hash()` – Uses the numeric representation (UNIX time) as integer hash.
 #'
 #' #' @section Usage:
-#' Use \code{RSDateTime$dateTimeWith(val)} to construct safely from a POSIXct scalar.
+#' Use \code{RSDateTime_withDateTime(val)} to construct safely from a POSIXct scalar.
 #' 
 #' @examples
-#' dt <- RSDateTime$dateTimeWith(Sys.time())
+#' dt <- RSDateTime_withDateTime(Sys.time())
 #' dt$value()
 #' dt$hash()
 #'
@@ -24,6 +24,7 @@
 #' @export
 RSDateTime <- RSScalarClass(
   "RSDateTime",
+  version = "0.0.2 alpha",
   super_class = RSScalar,
   is_na_class = FALSE,
   public = list(
@@ -68,16 +69,17 @@ RSDateTime <- RSScalarClass(
 #' `RSNADateTime` is a subclass of `RSDateTime` used to represent missing datetime values.
 #' It ensures that `NA` timestamps behave correctly in comparison, hashing, and collection operations.
 #'
-#' This class is typically constructed via `RSDateTime$dateTimeWith()`.
+#' This class is typically constructed via `RSDateTime_withDateTime()`.
 #'
 #' @examples
-#' na_dt <- RSDateTime$dateTimeWith(as.POSIXct(NA))
+#' na_dt <- RSDateTime_withDateTime(as.POSIXct(NA))
 #' na_dt$isKindOf(RSDateTime)  # TRUE
 #' na_dt$value()               # NA
 #'
 #' @export
 RSNADateTime <- RSScalarClass(
   "RSNADateTime",
+  version = "0.0.2 alpha",
   super_class = RSDateTime,
   is_na_class = TRUE,
   public = list(
@@ -93,21 +95,3 @@ RSNADateTime <- RSScalarClass(
     }
   )
 )
-
-
-
-# @title Factory Method for RSDateTime
-#
-# @name dateTimeWith
-#
-# @description
-# Creates an `RSDateTime` object from a `POSIXct` scalar. If the value is
-# `NA`, returns an `RSNADateTime` instance instead.
-#
-# @param val A `POSIXct` timestamp scalar.
-# @return An instance of `RSDateTime` or `RSNADateTime`.
-# @export
-RSDateTime$dateTimeWith <- function(val) {
-  if (is.na(val)) return(RSNADateTime$new())
-  return(RSDateTime$new(val))
-}

@@ -26,8 +26,8 @@ test_that("RSDate: hash() returns integer", {
   expect_type(d$hash(), "integer")
 })
 
-test_that("RSScalar$valueWith(Date) returns RSDate", {
-  wrapped <- RSScalar$valueWith(as.Date("2024-04-01"))
+test_that("RSScalar_withValue(Date) returns RSDate", {
+  wrapped <- RSScalar_withValue(as.Date("2024-04-01"))
   expect_true(wrapped$isKindOf(RSDate))
 })
 

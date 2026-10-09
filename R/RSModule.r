@@ -4,7 +4,7 @@
 #' @description
 #' `RSModule` is a singleton base class for shared utilities. The
 #' `RSSingletonClass()` factory creates its instance when the class is declared
-#' and stores it in `$instance` and `robjc_isa$slot`.
+#' and stores it in `$instance`.
 #'
 #' Subclasses can be declared with `RSSingletonClass()` and accessed through
 #' `Class$instance`. The current factory does not disable `$new()`, so callers
@@ -21,7 +21,7 @@
 #'   public = list(
 #'     base_path = NULL,
 #'     initialize = function() {
-#'       self$base_path <- RSString$stringWith("/opt/app/")
+#'       self$base_path <- RSString_withValue("/opt/app/")
 #'       super$initialize()
 #'       invisible(self)
 #'     },
@@ -36,7 +36,7 @@
 RSModule <- RSSingletonClass(
   "RSModule",
   super_class = RSObject,
-  version     = "0.0.1 alpha",
+  version     = "0.0.2 alpha",
   public      = list(
     #' @description Initializes the shared module instance.
     #' @return The initialized instance, invisibly.

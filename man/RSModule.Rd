@@ -6,7 +6,7 @@
 \description{
 \code{RSModule} is a singleton base class for shared utilities. The
 \code{RSSingletonClass()} factory creates its instance when the class is declared
-and stores it in \verb{$instance} and \code{robjc_isa$slot}.
+and stores it in \verb{$instance}.
 
 Subclasses can be declared with \code{RSSingletonClass()} and accessed through
 \code{Class$instance}. The current factory does not disable \verb{$new()}, so callers
@@ -23,7 +23,7 @@ ConfigModule <- RSSingletonClass(
   public = list(
     base_path = NULL,
     initialize = function() {
-      self$base_path <- RSString$stringWith("/opt/app/")
+      self$base_path <- RSString_withValue("/opt/app/")
       super$initialize()
       invisible(self)
     },

@@ -27,8 +27,8 @@ test_that("RSString: hash() returns consistent integer", {
   expect_equal(a$hash(), b$hash())
 })
 
-test_that("RSScalar$valueWith('char') returns RSString", {
-  wrapped <- RSScalar$valueWith("X")
+test_that("RSScalar_withValue('char') returns RSString", {
+  wrapped <- RSScalar_withValue("X")
   expect_true(wrapped$isKindOf(RSString))
   expect_equal(wrapped$value(), "X")
 })

@@ -1,21 +1,42 @@
 #' @include primary_class_setup.r
 #'
-#' @title Declare a Scalar Class
+#' @title Declare an RObjC Scalar Class
 #'
 #' @description
-#' Set the scalar class flag before its first instance is created. This is
-#' necessary for singleton scalars, whose instance is created by the factory.
+#' Creates a subclass of [RSScalar] and sets its class-level `isNAClass` flag.
+#' The flag is locked after declaration. For a singleton scalar, the factory
+#' sets the flag before creating the first instance, so scalar initialization
+#' can read it. In singleton mode, the class's initializer must work without
+#' arguments because the factory calls `$new()` without arguments.
 #'
-#' @param class_name Name of the class.
-#' @param super_class An RSScalar class generator or one of its subclasses.
-#' @param is_na_class Logical scalar. `NA` is allowed for classes such as RSNull.
-#' @param singleton Whether to create a singleton instance immediately.
+#' @param class_name One character string naming the class.
+#' @param super_class [RSScalar] or one of its subclass generators.
+#' @param is_na_class One logical value. `NA` is allowed; use `TRUE` for a class
+#'   whose instances may wrap missing values.
+#' @param singleton Whether to create an instance immediately and expose it as
+#'   `Class$instance`.
 #' @param singleton_accessor Reserved for a future accessor; currently unused.
-#' @param protocols Protocols adopted by the class.
-#' @param public,private,active R6 class members.
-#' @param parent_env Parent environment for R6 methods.
-#' @param version Class version.
-#' @return The class generator.
+#'   It can be supplied only when `singleton = TRUE`.
+#' @param protocols A list of protocol class generators adopted by the class.
+#' @param public,private,active R6 public members, private members, and active
+#'   bindings passed to [R6::R6Class()].
+#' @param parent_env Parent environment for the generated R6 methods.
+#' @param version Class version. It must not contain `_`.
+#'
+#' @return The scalar class generator, invisibly. Its `isNAClass` binding is
+#'   locked; when `singleton = TRUE`, its `instance` binding is also locked.
+#'
+#' @section Implementation details:
+#' Non-singleton classes are built through [RSObjectClass()]. In singleton mode,
+#' the factory sets `isNAClass` before creating the instance. The class
+#' identity is held in `robjc_isa` on the generator and `.__isa` in its private
+#' fields; the instance is also stored in `robjc_isa$slot`.
+#'
+#' @examples
+#' ExampleScalar <- RSScalarClass("ExampleScalar", is_na_class = FALSE,
+#'   version = "0.0.2 alpha")
+#' ExampleScalar$isNAClass
+#'
 #' @export
 RSScalarClass <- function(
   class_name,
@@ -37,6 +58,8 @@ RSScalarClass <- function(
       is.logical(singleton) && length(singleton) == 1L && !is.na(singleton),
     "`singleton_accessor` requires `singleton = TRUE`." =
       singleton || is.null(singleton_accessor),
+    "Version string must not contain '_'." =
+      !grepl("_", version),
     "`super_class` must inherit from RSScalar." =
       robjc_isClass(super_class) &&
       any(vapply(

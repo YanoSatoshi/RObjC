@@ -26,7 +26,7 @@ test_that("RSHashOperator: equal numeric scalars have equal hashes", {
 })
 
 test_that("RSHashOperator: hashesOfEachObject returns correct hashes", {
-  nums <- lapply(1:3, RSNumber$numberWith)
+  nums <- lapply(1:3, RSNumber_withValue)
   op <- RSHashOperator$instance
   hashes <- op$hashesOfEachObject(nums)
   expect_type(hashes, "integer")
@@ -35,25 +35,25 @@ test_that("RSHashOperator: hashesOfEachObject returns correct hashes", {
 })
 
 test_that("RSHashOperator: areEqualSets detects equality correctly", {
-  a <- lapply(c("a", "b", "c"), RSString$stringWith)
-  b <- lapply(c("c", "b", "a"), RSString$stringWith)
-  c <- lapply(c("a", "b", "d"), RSString$stringWith)
+  a <- lapply(c("a", "b", "c"), RSString_withValue)
+  b <- lapply(c("c", "b", "a"), RSString_withValue)
+  c <- lapply(c("a", "b", "d"), RSString_withValue)
   op <- RSHashOperator$instance
   expect_true(op$areEqualSets(a, b))
   expect_false(op$areEqualSets(a, c))
 })
 
 test_that("RSHashOperator: objectsNotIn works as expected", {
-  a <- lapply(c("a", "b", "c"), RSString$stringWith)
-  b <- lapply(c("b", "c"), RSString$stringWith)
+  a <- lapply(c("a", "b", "c"), RSString_withValue)
+  b <- lapply(c("b", "c"), RSString_withValue)
   result <- RSHashOperator$instance$objectsNotIn(a, b)
   expect_length(result, 1)
   expect_equal(result[[1]]$value(), "a")
 })
 
 test_that("RSHashOperator: objectsAlsoIn filters common elements", {
-  a <- lapply(c("x", "y", "z"), RSString$stringWith)
-  b <- lapply(c("y", "z", "w"), RSString$stringWith)
+  a <- lapply(c("x", "y", "z"), RSString_withValue)
+  b <- lapply(c("y", "z", "w"), RSString_withValue)
   common <- RSHashOperator$instance$objectsAlsoIn(a, b)
   expect_length(common, 2)
   values <- vapply(common, function(obj) obj$value(), character(1))
@@ -61,16 +61,16 @@ test_that("RSHashOperator: objectsAlsoIn filters common elements", {
 })
 
 test_that("RSHashOperator: unionOfSets combines without duplicates", {
-  a <- lapply(c("a", "b"), RSString$stringWith)
-  b <- lapply(c("b", "c"), RSString$stringWith)
+  a <- lapply(c("a", "b"), RSString_withValue)
+  b <- lapply(c("b", "c"), RSString_withValue)
   unioned <- RSHashOperator$instance$unionOfSets(a, b)
   values <- vapply(unioned, function(obj) obj$value(), character(1))
   expect_setequal(values, c("a", "b", "c"))
 })
 
 test_that("RSHashOperator: differenceOfSets returns unique part", {
-  a <- lapply(c("a", "b", "c"), RSString$stringWith)
-  b <- lapply(c("b", "c"), RSString$stringWith)
+  a <- lapply(c("a", "b", "c"), RSString_withValue)
+  b <- lapply(c("b", "c"), RSString_withValue)
   diff <- RSHashOperator$instance$differenceOfSets(a, b)
   expect_length(diff, 1)
   expect_equal(diff[[1]]$value(), "a")

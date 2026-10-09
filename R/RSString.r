@@ -8,23 +8,24 @@
 #' with character strings at the scalar abstraction level.
 #'
 #' The constructor accepts a single-length character or factor value.
-#' Use the factory method `RSString$stringWith()` to construct an instance safely,
+#' Use the factory method `RSString_withValue()` to construct an instance safely,
 #' especially when the input may be `NA`.
 #'
 #' @section See Also:
 #' [RSNAString] for representing `NA_character_` values in a class-based form.
 #'
 #' @section Usage:
-#' Use \code{RSString$stringWith(val)} to safely construct from a character or factor.
+#' Use \code{RSString_withValue(val)} to safely construct from a character or factor.
 #' If \code{val} is \code{NA}, it returns \code{RSNAString}.
 #' 
 #' @examples
-#' s <- RSString$stringWith("hello")
+#' s <- RSString_withValue("hello")
 #' s$value()  # "hello"
 #'
 #' @export
 RSString <- RSScalarClass(
   "RSString",
+  version = "0.0.2 alpha",
   super_class = RSScalar,
   is_na_class = FALSE,
   public = list(
@@ -59,17 +60,18 @@ RSString <- RSScalarClass(
 #' values. This class conforms to the `RSScalar` interface while clearly indicating
 #' that it wraps a missing string value.
 #'
-#' This class is typically instantiated internally via `RSString$stringWith()`.
+#' This class is typically instantiated internally via `RSString_withValue()`.
 #' The `isNAClass` flag is set to TRUE to enable differentiated behavior in comparison logic.
 #'
 #' @examples
-#' na_str <- RSString$stringWith(NA_character_)
+#' na_str <- RSString_withValue(NA_character_)
 #' na_str$isKindOf(RSString)  # TRUE
 #' na_str$value()             # NA
 #'
 #' @export
 RSNAString <- RSScalarClass(
   "RSNAString",
+  version = "0.0.2 alpha",
   super_class = RSString,
   is_na_class = TRUE,
   public = list(
@@ -88,24 +90,3 @@ RSNAString <- RSScalarClass(
     }
   )
 )
-
-
-# @title Factory Method for RSString
-#
-# @name stringWith
-# 
-# @description
-# Constructs an `RSString` instance from a character or factor value.
-# If the input is `NA`, returns an `RSNAString` instance instead.
-#
-# @param val A scalar character or factor value.
-# @return An instance of `RSString` or `RSNAString`.
-#
-# @examples
-# RSString$stringWith("example")        # RSString
-# RSString$stringWith(NA_character_)    # RSNAString
-# @export
-RSString$stringWith <- function(val) {
-  if (is.na(val)) return(RSNAString$new())
-  return(RSString$new(val))
-}

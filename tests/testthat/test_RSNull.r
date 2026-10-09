@@ -27,7 +27,7 @@ test_that("RSNull: singleton identity is enforced", {
   expect_identical(a, b)
 })
 
-test_that("RSScalar$valueWith(NULL) returns RSNull", {
-  wrapped <- RSScalar$valueWith(NULL)
+test_that("RSScalar_withValue(NULL) returns RSNull", {
+  wrapped <- RSScalar_withValue(NULL)
   expect_true(wrapped$isKindOf(RSNull))
 })

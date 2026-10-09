@@ -2,3 +2,5 @@
 ^doc$
 ^Meta$
 ^temp_lib$
+^ALPHA_STATUS\.md$
+^vignettes_jp$

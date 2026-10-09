@@ -7,10 +7,10 @@
 \code{RSNADateTime} is a subclass of \code{RSDateTime} used to represent missing datetime values.
 It ensures that \code{NA} timestamps behave correctly in comparison, hashing, and collection operations.
 
-This class is typically constructed via \code{RSDateTime$dateTimeWith()}.
+This class is typically constructed via \code{RSDateTime_withDateTime()}.
 }
 \examples{
-na_dt <- RSDateTime$dateTimeWith(as.POSIXct(NA))
+na_dt <- RSDateTime_withDateTime(as.POSIXct(NA))
 na_dt$isKindOf(RSDateTime)  # TRUE
 na_dt$value()               # NA
 

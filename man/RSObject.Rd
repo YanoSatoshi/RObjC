@@ -175,7 +175,7 @@ Checks if object conforms to a given protocol.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{protocol}}{A character string naming the protocol.}
+\item{\code{protocol}}{A protocol class generator.}
 }
 \if{html}{\out{</div>}}
 }

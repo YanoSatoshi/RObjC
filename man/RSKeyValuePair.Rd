@@ -48,7 +48,7 @@ Inherits from \code{\link{RSObject}}. Unlike earlier versions, this class is now
 
 # Safe usage for dictionary lookups
 pair <- robjc:::RSKeyValuePair$new(RSNull$null, RSNull$null)
-pair$setKey(RSString$stringWith("some_key"))
+pair$setKey(RSString_withValue("some_key"))
 
 \dontrun{
 # This would raise an error
@@ -154,7 +154,7 @@ to perform temporary lookups without allocating a new object each time.
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{# Safe usage for dictionary lookups
 pair <- robjc:::RSKeyValuePair$new(RSNull$null, RSNull$null)
-pair$setKey(RSString$stringWith("some_key"))
+pair$setKey(RSString_withValue("some_key"))
 
 \dontrun{
 # This would raise an error

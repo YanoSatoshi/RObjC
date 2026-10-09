@@ -62,98 +62,6 @@ get_standard_robjc_classes <- function(as_class_name = TRUE) {
 
 
 
-#' @title Resolve Superclass Chain and Return Inheritance Metadata
-#'
-#' @description
-#' Recursively traverses the `inherit` field of the given R6 class and constructs
-#' an ordered list of ancestor classes (including the class itself and its superclasses).
-#'
-#' This function is used internally by the `RSObject` base initializer to populate
-#' the `inherit_chain` field within the `robjc_isa` environment.
-#' 
-#' In typical use, users do not need to call this function directly, as the
-#' inheritance metadata is automatically resolved and stored during object construction.
-#' Advanced users may call this manually to inspect or manipulate class hierarchies.
-#'
-#' @param klass An R6 class object whose inheritance chain will be resolved.
-#'
-#' @return A list of R6 class objects representing the full inheritance chain,
-#'         ordered from the current class up to the root `RSObject` class.
-#'
-#' @seealso
-#' \code{\link{RSObject}} – The base class in the robjc system.
-#' Its \code{initialize} method automatically invokes this function to
-#' resolve and register inheritance metadata via \code{robjc_isa}.
-#'
-#' @keywords internal
-resolve_class_ancestors <- function(klass) {
-  cls <- klass
-  chain <- list()
-  while (!is.null(cls)) {
-    chain[[length(chain) + 1]] <- cls
-    if (is.symbol(cls$inherit) || is.call(cls$inherit)) {
-      cls <- tryCatch(
-        eval(cls$inherit, envir = environment(cls$public_methods$initialize)),
-        error = function(e) {
-          msg <- sprintf(
-            "Failed to resolve superclass '%s' for class '%s'.",
-            deparse(cls$inherit), cls$classname
-          )
-          stop(msg, call. = FALSE)
-        }
-      )
-    } else {
-      cls <- cls$inherit
-    }
-  }
-  return(chain)
-}
-
-
-
-
-
-
-
-
-#' @title Inherit Protocol Definitions from Superclass
-#'
-#' @description
-#' Retrieves the protocol conformance list from the superclass of the given robjc class
-#' and returns it as a list of protocol references. This list is typically assigned to
-#' the `protocols` field within the class's internal `robjc_isa` structure.
-#'
-#' If the given class is the base `RSObject`, this function returns the default
-#' protocol list containing the core `RSEncoding` protocol.
-#'
-#' This function is used internally during class initialization to ensure that
-#' protocol inheritance is preserved across subclasses.
-#'
-#' In typical usage, users do not need to call this function directly. It is invoked
-#' automatically during `RSObject$initialize()` and stored in `robjc_isa$protocols`.
-#'
-#' @param klass An R6 class object whose protocol ancestry should be resolved.
-#'
-#' @return A list of protocol objects inherited from the superclass.
-#'
-#' @seealso
-#' \code{\link{RSObject}} – The base class in the robjc system.
-#' Its \code{initialize} method uses this function to assign protocol inheritance
-#' metadata into \code{robjc_isa}.
-#'
-#' @keywords internal
-resolve_protocol_ancestors <- function(klass) {
-  klass$robjc_isa$super_class$robjc_isa$protocols
-}
-
-
-
-
-
-
-
-
-
 #' @title Determine Compatibility Between Encoded and Current Class
 #'
 #' @description
@@ -173,14 +81,6 @@ resolve_protocol_ancestors <- function(klass) {
 #' @return Logical `TRUE` if the classes are deemed compatible for decoding,
 #'         `FALSE` otherwise.
 #'
-#' @examples
-#' \dontrun{
-#' old <- MyClass
-#' old$robjc_isa$version <- "1.0"
-#' new <- MyClass
-#' new$robjc_isa$version <- "1.0"
-#' can_resolve_class(old, new)  # TRUE
-#' }
 #'
 #' @note
 #' This function currently performs strict matching by class name and version.
@@ -245,7 +145,7 @@ robjc_encode_and_save <- function(objects,
                                   compression_level = 6) {
   stopifnot(is.list(objects), is.character(names(objects)))
   # robjc encode
-  encoder <- RSClassEncoder$module()$refresh()
+  encoder <- RSClassEncoder$instance$refresh()
   for (obj in objects) {
     if (robjc_isRobjcObject(obj)) encoder$encodeObject(obj)
   }
@@ -395,7 +295,7 @@ robjc_save_rds <- function(object,
                            compress = TRUE,
                            refhook = NULL) {
   stopifnot(!missing(file))
-  encoder <- RSClassEncoder$module()
+  encoder <- RSClassEncoder$instance
   encoder$refresh()
   encoder$encodeObject(object)
   metadata <- encoder$lockInstance()
@@ -450,7 +350,7 @@ robjc_read_rds <- function(file,
   std_keys <- lapply(
     std_classes,
     function(cls) {
-      RSString$stringWith(
+      RSString_withValue(
         paste(cls$classname, cls$robjc_isa$version, sep = "_")
       )
     }
@@ -465,7 +365,7 @@ robjc_read_rds <- function(file,
     std_map <- std_map$dictionaryByMergingWithDictionary(class_map)
   }
   # --- STEP 3: Operate decoding ---
-  decoder <- RSClassDecoder$module()
+  decoder <- RSClassDecoder$instance
   decoder$loadEncodedData(data$`__robjc__`)
   decoder$resolveClassesWithDictionary(std_map)
   # --- Warn the unresolved classes exist. ---
@@ -532,7 +432,7 @@ robjc_load <- function(file,
     std_keys <- lapply(
       std_classes,
       function(cls) {
-        RSString$stringWith(
+        RSString_withValue(
           paste(cls$classname, cls$robjc_isa$version, sep = "_")
         )
       }
@@ -547,7 +447,7 @@ robjc_load <- function(file,
       std_map <- std_map$dictionaryByMergingWithDictionary(class_map)
     }
     # Operate decoding
-    decoder <- RSClassDecoder$module()
+    decoder <- RSClassDecoder$instance
     decoder$loadEncodedData(metadata)
     decoder$resolveClassesWithDictionary(std_map)
     # Warns unresolved class exists.

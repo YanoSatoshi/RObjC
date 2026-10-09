@@ -1,7 +1,6 @@
 #' @include RSObject.r
 #' @include RSProtocol.r
 #' @include RSCopying.r
-##' @include RSSingleton.r
 
 # -----------------------------
 # RSObject Setup isa
@@ -12,7 +11,7 @@ isa <- list2env(
     super     = NULL,
     protocols = list(),
     slot      = NULL,
-    version   = "0.0.1 alpha"
+    version   = "0.0.2 alpha"
   ),
   envir = new.env(parent = emptyenv(), hash = FALSE)
 )
@@ -30,7 +29,7 @@ isa <- list2env(
     super     = NULL,
     protocols = list(),
     slot      = character(0),
-    version   = "0.0.1 alpha"
+    version   = "0.0.2 alpha"
   ),
   envir = new.env(parent = emptyenv(), hash = FALSE)
 )
@@ -50,7 +49,7 @@ isa <- list2env(
     super     = RSProtocol,
     protocols = list(),
     slot      = c("copy"),
-    version   = "0.0.1 alpha"
+    version   = "0.0.2 alpha"
   ),
   envir = new.env(parent = emptyenv(), hash = FALSE)
 )
@@ -61,29 +60,6 @@ RSCopying$private_fields$.__isa <- isa
 # make class var
 RSCopying$contract_methods      <- isa$slot
 
-# # -----------------------------
-# # RSSingleton Setup isa
-# # -----------------------------
-# isa <- list2env(
-#   list(
-#     class     = RSSingleton,
-#     super     = RSObject,
-#     protocols = list(),
-#     slot      = NULL,
-#     version   = "0.0.1 alpha"
-#   ),
-#   envir = new.env(parent = emptyenv(), hash = FALSE)
-# )
-# # make isa S3
-# class(isa) <- c(ISA_OBJECT, ISA_ROOT)
-# RSSingleton$robjc_isa             <- isa
-# RSSingleton$private_fields$.__isa <- isa
-# # make instance
-# instance  <- RSSingleton$new()
-# isa$slot  <- instance
-# RSSingleton$instance  <- instance
-
-
 # -----------------------------
 # RSObjcet apply RSCopying, Lock
 # -----------------------------
@@ -91,21 +67,6 @@ RSObject$robjc_isa$protocols <- list(RSCopying)
 lockEnvironment(RSObject$robjc_isa, bindings = TRUE)
 lockBinding("robjc_isa", RSObject)
 class(RSObject) <- c(ROBJC_CLASS, R6GENERATOR)
-
-# # -----------------------------
-# # RSSingleton apply RSCopying, Lock
-# # -----------------------------
-# RSSingleton$robjc_isa$protocols <- list(RSCopying)
-# lockEnvironment(RSSingleton$robjc_isa, bindings = TRUE)
-# RSSingleton$._constructor <- RSSingleton$new
-# RSSingleton$new <- function(...) {
-#   stop("Cannot instantiate a Singleton directly.", call. = FALSE)
-# }
-# lockBinding("instance",       RSSingleton)
-# lockBinding("._constructor",  RSSingleton)
-# lockBinding("new",            RSSingleton)
-# lockBinding("robjc_isa",      RSSingleton)
-# class(RSSingleton) <- c(ROBJC_SINGLETON, ROBJC_CLASS, R6GENERATOR)
 
 # -----------------------------
 # RSProtocol Lock

@@ -13,16 +13,17 @@
 #' are overridden to raise errors.
 #'
 #' @examples
-#' readonly <- RSArray$new(objects = list(RSString$stringWith("X")))
+#' readonly <- RSArray$new(objects = list(RSString_withValue("X")))
 #' readonly$objectAtIndex(1)$value()  # "X"
 #' tryCatch(
-#'   readonly$addObject(RSString$stringWith("Y")),  # Error: immutable
+#'   readonly$addObject(RSString_withValue("Y")),  # Error: immutable
 #'   error = function(e) message("Expected error: ", e$message)
 #' )
 #'
 #' @export
 RSArray <- RSObjectClass(
   "RSArray",
+  version = "0.0.2 alpha",
   super_class = RSMutableArray,
   protocols = list(RSCopying, RSMutableCopying),
   public = list(

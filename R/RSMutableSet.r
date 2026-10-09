@@ -26,6 +26,7 @@
 #' @export
 RSMutableSet <- RSObjectClass(
   "RSMutableSet",
+  version = "0.0.2 alpha",
   super_class = RSObject,
   protocols   = list(RSCopying, RSMutableCopying),
   private = list(
@@ -213,4 +214,3 @@ RSMutableSet$setWithSet <- function(set) {
     .rs_set_storage(set)$duplicate()
   )
 }
-

@@ -11,6 +11,7 @@
 #' @export
 RSDataFrame <- RSObjectClass(
   "RSDataFrame",
+  version = "0.0.2 alpha",
   super = RSMutableDataFrame,
   protocols = list(RSCopying, RSMutableCopying),
   public = list(

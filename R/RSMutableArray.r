@@ -26,13 +26,14 @@
 #'
 #' @examples
 #' arr <- RSMutableArray$new()
-#' arr$addObject(RSString$stringWith("a"))
-#' arr$insertObjectAtIndex(RSString$stringWith("b"), 1)
+#' arr$addObject(RSString_withValue("a"))
+#' arr$insertObjectAtIndex(RSString_withValue("b"), 1)
 #' arr$objectAtIndex(1)$value()  # "b"
 #'
 #' @export
 RSMutableArray <- RSObjectClass(
   "RSMutableArray",
+  version = "0.0.2 alpha",
   super_class = RSObject,
   protocols   = list(RSMutableCopying, RSCopying),
   private = list(

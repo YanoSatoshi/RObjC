@@ -1,0 +1,38 @@
+test_that("scalar APIs route native values and missing values", {
+  expect_true(RSScalar_withValue(NULL)$isKindOf(RSNull))
+  expect_true(RSScalar_withValue(TRUE)$isKindOf(RSBoolean))
+  expect_true(RSScalar_withValue(1L)$isKindOf(RSNumber))
+  expect_true(RSScalar_withValue("x")$isKindOf(RSString))
+  expect_true(RSScalar_withValue(factor("x"))$isKindOf(RSFactor))
+  expect_true(RSScalar_withValue(as.Date("2024-01-01"))$isKindOf(RSDate))
+  expect_true(RSScalar_withValue(as.POSIXct("2024-01-01", tz = "UTC"))$isKindOf(RSDateTime))
+
+  expect_true(RSBoolean_withBoolean(NA)$isMemberOf(RSNABoolean))
+  expect_true(RSNumber_withValue(NA_real_)$isMemberOf(RSNANumber))
+  expect_true(RSString_withValue(NA_character_)$isMemberOf(RSNAString))
+  expect_true(RSFactor_withFactor(factor(NA_character_))$isMemberOf(RSNAFactor))
+  expect_true(RSDate_withDate(as.Date(NA))$isMemberOf(RSNADate))
+  expect_true(RSDateTime_withDateTime(as.POSIXct(NA))$isMemberOf(RSNADateTime))
+})
+
+test_that("typed scalar APIs validate their inputs", {
+  expect_error(RSBoolean_withBoolean(1L), "logical scalar")
+  expect_error(RSNumber_withValue(TRUE), "integer or double scalar")
+  expect_error(RSNumber_withInteger(1.5), "integer scalar")
+  expect_error(RSNumber_withDouble(1L), "double scalar")
+  expect_error(RSString_withValue(c("a", "b")), "character or factor scalar")
+  expect_error(RSFactor_withFactor("a"), "factor scalar")
+  expect_error(RSDate_withDate(Sys.time()), "Date scalar")
+  expect_error(RSDateTime_withDateTime(Sys.Date()), "POSIXct scalar")
+  expect_error(RSScalar_withValue(list(1)), "Unsupported scalar type")
+})
+
+test_that("legacy scalar class constructors are removed", {
+  expect_null(RSScalar$valueWith)
+  expect_null(RSBoolean$boolWith)
+  expect_null(RSNumber$numberWith)
+  expect_null(RSString$stringWith)
+  expect_null(RSFactor$factorWith)
+  expect_null(RSDate$dateWith)
+  expect_null(RSDateTime$dateTimeWith)
+})

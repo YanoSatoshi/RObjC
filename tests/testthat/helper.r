@@ -7,8 +7,7 @@ load_dummies <- function() {
 
 
 unload_dummies <- function() {
-  vars <- c("DummyClass", "NoVersionClass", "BadVersionClass")
+  vars <- c("DummyClass", "DefaultVersionClass", "NestedDummy")
   existing <- vars[sapply(vars, exists, envir = .GlobalEnv, inherits = FALSE)]
   if (length(existing) > 0) rm(list = existing, envir = .GlobalEnv)
 }
-

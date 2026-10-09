@@ -16,11 +16,11 @@
 #' - `compare(other, na.last = TRUE)` – Compares factor values respecting ordering
 #'
 #' @section Usage:
-#' Use \code{RSFactor$factorWith(val)} to construct safely from a factor value.
+#' Use \code{RSFactor_withFactor(val)} to construct safely from a factor value.
 #'
 #' @examples
 #' f <- factor("low", levels = c("low", "medium", "high"), ordered = TRUE)
-#' obj <- RSFactor$factorWith(f)
+#' obj <- RSFactor_withFactor(f)
 #' obj$levels()      # "low" "medium" "high"
 #' obj$ordered()     # TRUE
 #' obj$asFactor()    # reconstructs original factor
@@ -30,6 +30,7 @@
 #' @export
 RSFactor <- RSScalarClass(
   "RSFactor",
+  version = "0.0.2 alpha",
   super_class = RSString,
   is_na_class = FALSE,
   public = list(
@@ -131,16 +132,17 @@ RSFactor <- RSScalarClass(
 #' The instance has no levels and is not ordered.
 #'
 #' @note
-#' Normally, this class is constructed internally via `RSFactor$factorWith()`.
+#' Normally, this class is constructed internally via `RSFactor_withFactor()`.
 #'
 #' @examples
-#' na_f <- RSFactor$factorWith(factor(NA_character_))
+#' na_f <- RSFactor_withFactor(factor(NA_character_))
 #' na_f$ordered()  # FALSE
 #' na_f$levels()   # NULL
 #'
 #' @export
 RSNAFactor <- RSScalarClass(
   "RSNAFactor",
+  version = "0.0.2 alpha",
   super_class = RSFactor,
   is_na_class = TRUE,
   public = list(
@@ -158,25 +160,3 @@ RSNAFactor <- RSScalarClass(
     }
   )
 )
-
-
-
-# @title Factory Method for RSFactor
-# 
-# @name factorWith
-#
-# @description
-# Constructs an `RSFactor` from a valid R factor scalar.
-# If the input is `NA`, an `RSNAFactor` is returned instead.
-#
-# @param val A factor value of length 1.
-# @return An instance of `RSFactor` or `RSNAFactor`.
-#
-# @examples
-# RSFactor$factorWith(factor("A"))
-# RSFactor$factorWith(factor(NA_character_))  # returns RSNAFactor
-# @export
-RSFactor$factorWith <- function(val) {
-  if (is.na(val)) return(RSNAFactor$new())
-  return(RSFactor$new(val))
-}

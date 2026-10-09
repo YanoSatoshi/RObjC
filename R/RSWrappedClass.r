@@ -43,6 +43,7 @@
 #' @export
 RSWrappedClass <- RSObjectClass(
   "RSWrappedClass",
+  version = "0.0.2 alpha",
   super_class = RSObject,
   public = list(
 
@@ -87,7 +88,7 @@ RSWrappedClass <- RSObjectClass(
       }
       version <- klass$robjc_isa$version
       stopifnot("Do not contin '_' for version expression." = !grepl("_", version))
-      self$class_id <- RSString$stringWith(
+      self$class_id <- RSString_withValue(
         sprintf("%s_%s", klass$classname, version)
       )
       lockBinding("class_id",  self)

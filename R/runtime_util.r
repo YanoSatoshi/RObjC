@@ -1,49 +1,30 @@
 #' @importFrom utils capture.output
 #' 
-#' @title Get Environment Pointer Hex for R6 or Function Objects
+#' @title Get an R6 Object's Environment Address
 #'
 #' @description
-#' Returns a hexadecimal string representing the memory address of an R6 object's
-#' bound method environment (typically the \code{$print} method), or produces
-#' an informative error if the pointer cannot be resolved.
+#' Returns a hexadecimal address for the environment enclosing an R6 object's
+#' `$print` method. The address can identify an object during the current R
+#' session; it is not a persistent identifier across sessions.
 #'
-#' This function is primarily used within the robjc framework to generate
-#' stable identity keys (e.g., for hashing or visited tracking) based on internal
-#' object environments.
+#' RObjC uses this address for in-session object identity checks. An object
+#' without a `$print` method raises an error.
 #'
-#' If the input object is an R6 instance (typically inheriting from \code{RSObject}),
-#' its environment is extracted from the bound \code{$print} method.
-#' For R6 class definitions (\code{R6ClassGenerator}), the environment of the
-#' class-level \code{$print} may also be used.
+#' @param some_obj An R6 instance or class generator with a `$print` method.
+#' @param obj_name Optional label used in error messages. By default, the input
+#'   expression is captured.
 #'
-#' If the object is a function or closure that lacks a \code{$print} method,
-#' the function fails gracefully with a label showing the name or expression passed.
-#'
-#' @param some_obj An object, typically an R6 instance or R6 class generator. It may
-#'   also be a plain function. If a function is passed, a helpful error message will
-#'   be shown when the pointer cannot be extracted.
-#'
-#' @param obj_name (Optional) A character string indicating the object name or
-#'   source expression. This is auto-filled by \code{deparse(substitute(...))} when omitted.
-#'   Only used for more informative error reporting.
-#'
-#' @return A character string like \code{"0x55abcde12345"} representing the object's internal environment pointer.
+#' @return A character string containing a hexadecimal address, such as
+#'   `"0x55abcde12345"`.
 #'
 #' @examples
-#' \dontrun{
 #' obj <- RSObject$new()
-#' get_pointer_hex(obj)             # e.g., "0x55abcde12345"
+#' robjc:::get_pointer_hex(obj)
+#' robjc:::get_pointer_hex(RSObject)
 #'
-#' get_pointer_hex(RSObject)        # class generator
+#' @seealso [RSObject]
 #'
-#' get_pointer_hex(mean)            # → error with "function mean"
-#'
-#' get_pointer_hex(function(x) x)   # → error with full expression
-#' }
-#'
-#' @seealso \code{\link[=RSObject]{objectID}}, \code{\link{RSObject}}, \code{\link{RSClassEncoder}}
-#'
-#' @export
+#' @keywords internal
 get_pointer_hex <- function(some_obj, obj_name = NULL) {
   if (is.null(obj_name)) {
     obj_name <- tryCatch(
@@ -54,7 +35,7 @@ get_pointer_hex <- function(some_obj, obj_name = NULL) {
     tryCatch({
       if (robjc_isRobjcObject(some_obj)) {
         some_obj$class()$classname
-      } else if (robjc_isRobjcClass(some_obj)) {
+      } else if (robjc_isMetaClass(some_obj)) {
         some_obj$classname
       } else if (is.function(some_obj)) {
         paste0("function ", obj_name)
@@ -82,11 +63,6 @@ get_pointer_hex <- function(some_obj, obj_name = NULL) {
   }
   return(hex_match)
 }
-
-
-
-
-
 
 
 

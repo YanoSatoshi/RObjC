@@ -32,7 +32,7 @@
 #' @return An `RSConcreteSet` instance.
 RSConcreteSet <- R6::R6Class(
   "RSConcreteSet",
-  class     = FALSE,
+  class     = TRUE,
   cloneable = FALSE,
   portable  = TRUE,
   active    = NULL,

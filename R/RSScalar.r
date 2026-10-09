@@ -21,7 +21,7 @@
 #' - `description()` – Human-readable description string.
 #'
 #' @section Usage:
-#' Use \code{RSScalar$valueWith(val)} as a convenience constructor.
+#' Use \code{RSScalar_withValue(val)} as a convenience constructor.
 #' It automatically routes to the appropriate RS*** subclass based on the type of \code{val}.
 #'
 #' @note
@@ -29,13 +29,14 @@
 #' A companion `RSNA*` class should be provided for representing NA values safely.
 #'
 #' @examples
-#' num <- RSNumber$numberWith(42)
-#' str <- RSString$stringWith("hello")
-#' num$compare(RSNumber$numberWith(100))  # returns -1
+#' num <- RSNumber_withValue(42)
+#' str <- RSString_withValue("hello")
+#' num$compare(RSNumber_withValue(100))  # returns -1
 #'
 #' @export
 RSScalar <- RSObjectClass(
   "RSScalar",
+  version = "0.0.2 alpha",
   super_class = RSObject,
   public = list(
 
@@ -69,18 +70,17 @@ RSScalar <- RSObjectClass(
           sprintf("%s$initialize() is not implemented", self$class()$classname)
         )
       # IN INHERITING, CLASS DO AS FOLLOWS
-      #   SomeClass <- RSScalarClass("SomeClass", is_na_class = FALSE, ...) # nolint
-      #   RSNASomeClass <- RSScalarClass("RSNASomeClass", is_na_class = TRUE, ...) # nolint
+      #   SomeClass <- RSScalarClass("SomeClass", is_na_class = FALSE, ...)
+      #   RSNASomeClass <- RSScalarClass("RSNASomeClass", is_na_class = TRUE, ...)
       #   # additonary option
       #   SomeClass$***With <- function(val) {
       #     if (is.na(val)) return(RSNA***$new())
       #     return(RS***$new(val))
       #   }
-      if (is.na(val) && !self$class()$isNAClass) {
+      if (is.na(val) && !self$class()$isNAClass)
         stop(
           sprintf("use %s for NA.", sub("RS", "RSNA", self$class()$classname))
         )
-      }
       ## SET VAL
       private$.val <- val
       cls <- self$class()
@@ -88,9 +88,9 @@ RSScalar <- RSObjectClass(
       invisible(self)
       ## IN INHERITING CLASS, DO AS FOLLOWS
       # initialize = functin(val) {
-      #   if (!inherits(val, 'some R class name')) stop("val must be of class some_class_name") # nolint
-      #   super$initialize(val)  # nolint
-      #   invisible(self)  # nolint
+      #   if (!inherits(val, 'some R class name')) stop("val must be of class some_class_name") 
+      #   super$initialize(val)  
+      #   invisible(self)  
       # }
       ## END
     },
@@ -133,23 +133,17 @@ RSScalar <- RSObjectClass(
     #' Checks whether two scalar objects are equal.
     #' @param other Another RSScalar object.
     #' @return TRUE if values are considered equal; otherwise FALSE.
-    isEqual = function(other) {
-      self$compare(other) == 0L
-    },
+    isEqual = function(other) self$compare(other) == 0L,
 
     #' @description
     #' Returns a numeric hash of the wrapped scalar value.
     #' @return An integer suitable for use in hashing-based structures (e.g., sets, dictionaries).
-    hash = function() {
-      self$class()$.hash_operator$hashForScalar(private$.val)
-    },
+    hash = function() self$class()$.hash_operator$hashForScalar(private$.val),
 
     #' @description
     #' Returns the underlying R scalar value stored in the object.
     #' @return A scalar value (numeric, character, logical, etc.).
-    value = function() {
-      private$.val
-    }
+    value = function() private$.val
   ),
 
   private = list(
@@ -182,53 +176,3 @@ RSScalar <- RSObjectClass(
 )
 RSScalar$isNAClass = NULL
 lockBinding("isNAClass", RSScalar)
-
-
-
-# @title Wrap a Native R Scalar into RSScalar Object
-#
-# @name valueWith
-# 
-# @description
-# Converts a native scalar R value (numeric, character, logical, factor, Date, POSIXct)
-# into an appropriate RSScalar subclass. This function acts as a factory method and
-# delegates to `RSNumber`, `RSString`, `RSBoolean`, etc., based on the value's class.
-#
-# This function enforces that only length-1 values can be wrapped. If the value is NULL,
-# an `RSNull` singleton is returned.
-#
-# @param val A scalar value of supported R base types.
-# @return An object of class `RSScalar` (or subclass), such as `RSNumber`, `RSString`, etc.
-#
-# @examples
-# RSScalar$valueWith(123)        # returns RSNumber
-# RSScalar$valueWith("hello")    # returns RSString
-# RSScalar$valueWith(Sys.Date()) # returns RSDate
-# @export
-RSScalar$valueWith <- function(val) {
-  if (is.null(val)) {
-    return(RSNull$null)
-  }
-  if (length(val) != 1) {
-    stop(sprintf(
-      "Only scalar (length 1) values can be wrapped. Provided length: %d",
-      length(val)
-    ))
-  }
-  cls <- class(val)[1]
-  if (cls == "numeric" || cls == "integer") {
-    return(RSNumber$numberWith(val))
-  } else if (cls == "character") {
-    return(RSString$stringWith(val))
-  } else if (cls == "factor") {
-    return(RSFactor$factorWith(val))
-  } else if (cls == "logical") {
-    return(RSBoolean$boolWith(val))
-  } else if (cls == "POSIXct") {
-    return(RSDateTime$dateTimeWith(val))
-  } else if (cls == "Date") {
-    return(RSDate$dateWith(val))
-  } else {
-    stop(sprintf("Unsupported scalar type: %s", cls))
-  }
-}

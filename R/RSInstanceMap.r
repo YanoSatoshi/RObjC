@@ -33,6 +33,7 @@
 #' @keywords internal
 RSInstanceMap <- RSObjectClass(
   "RSInstanceMap",
+  version = "0.0.2 alpha",
   super_class = RSKeyValuePair,
   public = list(
 

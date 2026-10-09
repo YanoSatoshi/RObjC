@@ -1,35 +1,18 @@
-DummyClass <- R6::R6Class("DummyClass", inherit = RSObject,
-  public = list(
-    initialize = function() {
-      uninit <- is.null(private$.__isa)
-      super$initialize(.version = "1.2")
-      invisible(self)
-    }
-  )
-)
+DummyClass <- RSObjectClass("DummyClass", version = "1.2")
 
-NoVersionClass <- R6::R6Class("NoVersionClass", inherit = RSObject)
+DefaultVersionClass <- RSObjectClass("DefaultVersionClass")
 
-BadVersionClass <- R6::R6Class("BadVersionClass", inherit = RSObject,
-  public = list(
-    initialize = function() {
-      super$initialize(.version = "1_0")
-      invisible(self)
-    }
-  )
-)
-
-
-NestedDummy <- R6::R6Class("NestedDummy", inherit = RSObject,
+NestedDummy <- RSObjectClass(
+  "NestedDummy",
+  version = "1.0",
   public = list(
     initialize = function(child) {
       stopifnot(robjc_isRobjcObject(child))
-      super$initialize(.version = "1.0")
+      super$initialize()
       private$.child <- child
       invisible(self)
     },
     objectsForEncoding = function() list(private$.child)
   ),
-  # resolveClassWith = function(){},
   private = list(.child = NULL)
 )
