@@ -29,13 +29,11 @@
 #' x$isEqual(RSNull$null)  # TRUE
 #'
 #' @export
-RSNull <- RSScalarClass(
+RSNull <- RSSingletonClass(
   "RSNull",
-  version = "0.0.2 alpha",
   super_class = RSScalar,
-  is_na_class = NA,
-  singleton = TRUE,
-  public = list(
+  version     = "0.0.2 alpha",
+  public      = list(
     #' @description
     #' Initializes an `RSNull` instance. The factory invokes it to create the
     #' shared instance; use `RSNull$null` to retrieve that instance.
@@ -44,6 +42,12 @@ RSNull <- RSScalarClass(
     #'
     #' @return The initialized `RSNull` instance (invisible).
     initialize = function() {
+      if (!is.null(self$class()$null)) {
+        class_neme <- self$class()$classname
+        stop(paste0(
+          "Use `",class_name,"$null`. Do not call `",class_name,"$new()`",
+        ))
+      }
       super$initialize(0L)
       private$.val <- NULL
       invisible(self)
@@ -52,14 +56,11 @@ RSNull <- RSScalarClass(
 
 
     #' @description
-    #' Determines whether another object is also an instance of the `RSNull` class.
-    #' This method checks for membership in the same class rather than strict identity.
+    #' Determines whether another object is identical to self: `RSNull` singleton.
     #'
     #' @param other Another object to compare against.
     #' @return `TRUE` if `other` is also an `RSNull` instance; otherwise `FALSE`.
-    isEqual = function(other) {
-      self$isMemberOf(other$class())
-    },
+    isEqual = function(other) identical(self, other),
 
 
 
@@ -69,7 +70,7 @@ RSNull <- RSScalarClass(
     #' a constant hash ensures consistent behavior in hashed collections.
     #'
     #' @return Integer scalar `0L`.
-    hash  = function() 0L,
+    hash    = function() 0L,
 
 
 
@@ -77,19 +78,10 @@ RSNull <- RSScalarClass(
     #' Returns the internal null value (`NULL`) wrapped by the `RSNull` instance.
     #'
     #' @return `NULL`.
-    value = function() NULL,
-
-
-    #' @description
-    #' Locks all current public bindings in the `RSNull` instance, making them read-only.
-    #' This prevents accidental mutation of the singleton after creation.
-    #'
-    #' @return Called for side effect. Returns `NULL` (invisible).
-    lockVariables = function() {
-      for (name in ls(self, all.names = TRUE)) lockBinding(name, self)
-      lockEnvironment(as.environment(self), bindings = TRUE)
-    }
+    value = function() NULL
   )
 )
 RSNull$null <- RSNull$instance
+RSNull$is_na_class <- NA
 lockBinding("null", RSNull)
+lockBinding("is_na_class", RSNull)

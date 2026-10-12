@@ -15,6 +15,6 @@ RSDate_today <- function() RSDate$new(Sys.Date())
 RSDate_withDate <- function(val) {
   if (!inherits(val, "Date") || length(val) != 1L)
     stop("`val` must be a Date scalar.", call. = FALSE)
-  if (is.na(val)) return(RSNADate$new())
+  if (is.na(val)) return(RSDate$na)
   RSDate$new(val)
 }

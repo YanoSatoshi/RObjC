@@ -36,7 +36,7 @@ test_that("RSScalar_withValue(factor) returns RSFactor", {
 })
 
 test_that("RSNAFactor: value is NA with factor() wrapper", {
-  na <- RSNAFactor$new()
+  na <- RSFactor$na
   expect_true(is.na(na$value()))
   expect_null(na$levels())
   expect_false(na$ordered())
@@ -45,7 +45,7 @@ test_that("RSNAFactor: value is NA with factor() wrapper", {
 test_that("RSNAFactor: compare() with na.last = TRUE/FALSE", {
   f <- factor("bar", levels = c("foo", "bar", "baz"))
   val <- RSFactor$new(f)
-  na <- RSNAFactor$new()
+  na <- RSFactor$na
   expect_equal(na$compare(val, na.last = TRUE), 1)
   expect_equal(na$compare(val, na.last = FALSE), -1)
   expect_equal(val$compare(na, na.last = TRUE), -1)
@@ -54,13 +54,13 @@ test_that("RSNAFactor: compare() with na.last = TRUE/FALSE", {
 })
 
 test_that("RSNAFactor: isEqual() true for same NA class", {
-  a <- RSNAFactor$new()
-  b <- RSNAFactor$new()
+  a <- RSFactor$na
+  b <- RSFactor$na
   expect_true(a$isEqual(b))
 })
 
 test_that("RSNAFactor: hash() is stable", {
-  a <- RSNAFactor$new()
-  b <- RSNAFactor$new()
+  a <- RSFactor$na
+  b <- RSFactor$na
   expect_equal(a$hash(), b$hash())
 })

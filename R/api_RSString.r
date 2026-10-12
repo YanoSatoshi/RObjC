@@ -20,7 +20,7 @@ RSString_withValue <- function(val) {
   if (!(is.character(val) || is.factor(val)) || length(val) != 1L) {
     stop("`val` must be a character or factor scalar.", call. = FALSE)
   }
-  if (is.na(val)) return(RSNAString$new())
+  if (is.na(val)) return(RSString$na)
   RSString$new(val)
 }
 
@@ -42,6 +42,6 @@ RSFactor_withFactor <- function(val) {
   if (!is.factor(val) || length(val) != 1L) {
     stop("`val` must be a factor scalar.", call. = FALSE)
   }
-  if (is.na(val)) return(RSNAFactor$new())
+  if (is.na(val)) return(RSFactor$na)
   RSFactor$new(val)
 }

@@ -34,13 +34,13 @@ test_that("RSScalar_withValue(POSIXct) returns RSDateTime", {
 })
 
 test_that("RSNADateTime: value is NA POSIXct", {
-  na <- RSNADateTime$new()
+  na <- RSDateTime$na
   expect_true(is.na(na$value()))
 })
 
 test_that("RSNADateTime: compare() with na.last = TRUE/FALSE", {
   val <- RSDateTime$new(as.POSIXct("2023-01-01 00:00:00"))
-  na <- RSNADateTime$new()
+  na <- RSDateTime$na
   expect_equal(na$compare(val, na.last = TRUE), 1)
   expect_equal(na$compare(val, na.last = FALSE), -1)
   expect_equal(val$compare(na, na.last = TRUE), -1)
@@ -49,14 +49,14 @@ test_that("RSNADateTime: compare() with na.last = TRUE/FALSE", {
 })
 
 test_that("RSNADateTime: isEqual() true for same NA class", {
-  a <- RSNADateTime$new()
-  b <- RSNADateTime$new()
+  a <- RSDateTime$na
+  b <- RSDateTime$na
   expect_true(a$isEqual(b))
 })
 
 
 test_that("RSNADateTime: hash() is consistent", {
-  a <- RSNADateTime$new()
-  b <- RSNADateTime$new()
+  a <- RSDateTime$na
+  b <- RSDateTime$na
   expect_equal(a$hash(), b$hash())
 })

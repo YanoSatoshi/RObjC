@@ -20,8 +20,8 @@ are declaring.
 
 \itemize{
 \item \code{\link[=RSSingletonClass]{RSSingletonClass()}} declares a class and creates its shared instance.
-\item \code{\link[=RSScalarClass]{RSScalarClass()}} declares a scalar class with an \code{isNAClass} flag and can
-optionally create a singleton instance.
+\item \code{\link[=RSScalarClass]{RSScalarClass()}} declares a scalar class and creates its shared NA
+companion instance.
 }
 }
 

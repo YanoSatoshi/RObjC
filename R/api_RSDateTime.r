@@ -16,6 +16,6 @@ RSDateTime_now <- function() RSDateTime$new(Sys.time())
 RSDateTime_withDateTime <- function(val) {
   if (!inherits(val, "POSIXct") || length(val) != 1L)
     stop("`val` must be a POSIXct scalar.", call. = FALSE)
-  if (is.na(val)) return(RSNADateTime$new())
+  if (is.na(val)) return(RSDateTime$na)
   RSDateTime$new(val)
 }

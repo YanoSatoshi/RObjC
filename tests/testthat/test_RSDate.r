@@ -32,13 +32,13 @@ test_that("RSScalar_withValue(Date) returns RSDate", {
 })
 
 test_that("RSNADate: value is NA", {
-  na <- RSNADate$new()
+  na <- RSDate$na
   expect_true(is.na(na$value()))
 })
 
 test_that("RSNADate: compare() with na.last = TRUE/FALSE", {
   val <- RSDate$new(as.Date("2023-01-01"))
-  na <- RSNADate$new()
+  na <- RSDate$na
   expect_equal(na$compare(val, na.last = TRUE), 1)
   expect_equal(na$compare(val, na.last = FALSE), -1)
   expect_equal(val$compare(na, na.last = TRUE), -1)
@@ -47,14 +47,14 @@ test_that("RSNADate: compare() with na.last = TRUE/FALSE", {
 })
 
 test_that("RSNADate: isEqual() true for same NA class", {
-  a <- RSNADate$new()
-  b <- RSNADate$new()
+  a <- RSDate$na
+  b <- RSDate$na
   expect_true(a$isEqual(b))
 })
 
 
 test_that("RSNADate: hash() stable", {
-  a <- RSNADate$new()
-  b <- RSNADate$new()
+  a <- RSDate$na
+  b <- RSDate$na
   expect_equal(a$hash(), b$hash())
 })

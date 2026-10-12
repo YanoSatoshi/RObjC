@@ -2,45 +2,21 @@
 % Please edit documentation in R/RSScalar.r
 \name{RSScalar}
 \alias{RSScalar}
-\title{RSScalar: Abstract Scalar Wrapper Base Class}
+\title{Scalar Base Class for the Paired-Class API}
+\value{
+The \code{RSScalar} class generator.
+}
 \description{
-\code{RSScalar} is the abstract base class for scalar wrappers in the RS framework,
-designed to emulate Objective-C's value object philosophy.
-It provides standard scalar behavior such as comparison, equality, hashing, and internal value access,
-and acts as a foundation for types like \code{RSNumber}, \code{RSString}, \code{RSDate}, etc.
-
-Declare subclasses with \code{\link[=RSScalarClass]{RSScalarClass()}}, which sets and locks the class-level
-\code{isNAClass} flag. It distinguishes regular values from NA-wrapper variants
-(e.g., \code{RSNumber} and \code{RSNANumber}).
-The constructor enforces length-1 scalar input and prohibits NA unless allowed by the subclass.
+\code{RSScalar} provides comparison, equality, hashing, and value access for
+scalar wrappers created by \code{\link[=RSScalarClass]{RSScalarClass()}}. It validates a scalar before
+storing it in private \code{.val}. Generated NA subclasses receive \code{na_value}
+through their initializer.
 }
-\note{
-Subclasses must call \code{super$initialize(val)} after setting their own fields.
-A companion \verb{RSNA*} class should be provided for representing NA values safely.
-}
-\section{Public Methods}{
-
-\itemize{
-\item \code{initialize(val)} – Validates and stores a scalar value.
-\item \code{compare(other, na.last = TRUE)} – Compares this scalar with another.
-\item \code{isEqual(other)} – Returns TRUE if both values are equal.
-\item \code{hash()} – Returns a numeric hash for the scalar value.
-\item \code{value()} – Returns the raw wrapped value.
-\item \code{description()} – Human-readable description string.
-}
-}
-
-\section{Usage}{
-
-Use \code{RSScalar_withValue(val)} as a convenience constructor.
-It automatically routes to the appropriate RS*** subclass based on the type of \code{val}.
-}
-
-\examples{
-num <- RSNumber_withValue(42)
-str <- RSString_withValue("hello")
-num$compare(RSNumber_withValue(100))  # returns -1
-
+\details{
+A regular subclass may define \code{initialize(val)} to validate its value type
+and call \code{super$initialize(val)}. The factory supplies \code{na_value} when it
+constructs the NA subclass's shared instance. Type-specific validation must
+allow that missing value when \code{self$class()$isNAClass} is \code{TRUE}.
 }
 \section{Super class}{
 \code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{RSScalar}
@@ -80,36 +56,30 @@ num$compare(RSNumber_withValue(100))  # returns -1
 \if{html}{\out{<a id="method-RSScalar-new"></a>}}
 \if{latex}{\out{\hypertarget{method-RSScalar-new}{}}}
 \subsection{Method \code{new()}}{
-Initializes an \code{RSScalar} instance by validating and storing a single scalar value.
-This constructor enforces that the input value has a length of exactly 1, and
-verifies whether NA values are allowed based on the class's \code{isNAClass} flag.
-
-For inheriting classes (e.g., \code{RSNumber}, \code{RSString}), set \code{is_na_class}
-when calling \code{\link[=RSScalarClass]{RSScalarClass()}}. Use \code{FALSE} for regular scalar classes and
-\code{TRUE} for their NA counterparts. If a class does not allow NA values
-but receives one, the constructor will raise an informative error suggesting the
-appropriate NA class.
-
-Inheriting classes should override this method to add type-specific input validation,
-while still calling \code{super$initialize(val)} for scalar enforcement.
+Validate and store one scalar value.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSScalar$new(val)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSScalar$new(val = 0L)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{val}}{Wrapping value}
+\item{\code{val}}{An atomic scalar. A missing value is accepted only when the
+instance belongs to a generated NA subclass. The base class retains
+\code{0L} as its own default; subclasses need not define a default.}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The initialized instance, invisibly.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSScalar-compare"></a>}}
 \if{latex}{\out{\hypertarget{method-RSScalar-compare}{}}}
 \subsection{Method \code{compare()}}{
-Compares the scalar value with another RSScalar-derived object.
-Returns -1, 0, or 1 depending on comparison order.
+Compare this scalar with another scalar in the same class
+family. Missing values are ordered according to \code{na.last}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSScalar$compare(other, na.last = TRUE)}\if{html}{\out{</div>}}
 }
@@ -117,34 +87,34 @@ Returns -1, 0, or 1 depending on comparison order.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{other}}{Another RSScalar object.}
+\item{\code{other}}{Another \code{RSScalar} instance in the same class family.}
 
-\item{\code{na.last}}{Logical; whether NA should be treated as highest or lowest.}
+\item{\code{na.last}}{Whether a missing value sorts after nonmissing values.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Integer: -1 if less than, 0 if equal, 1 if greater than.
+\code{-1L}, \code{0L}, or \code{1L}.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSScalar-description"></a>}}
 \if{latex}{\out{\hypertarget{method-RSScalar-description}{}}}
 \subsection{Method \code{description()}}{
-Returns a concise textual representation of the scalar object.
-The output includes the class name, a hexadecimal pointer string identifying the instance,
-and the scalar value it wraps. This is primarily used for debugging or printing
-informative summaries of scalar objects.
+Give a concise description of the wrapped value.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSScalar$description()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+A character scalar.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSScalar-isEqual"></a>}}
 \if{latex}{\out{\hypertarget{method-RSScalar-isEqual}{}}}
 \subsection{Method \code{isEqual()}}{
-Checks whether two scalar objects are equal.
+Check equality using \code{compare()}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSScalar$isEqual(other)}\if{html}{\out{</div>}}
 }
@@ -152,38 +122,38 @@ Checks whether two scalar objects are equal.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{other}}{Another RSScalar object.}
+\item{\code{other}}{Another scalar in the same class family.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-TRUE if values are considered equal; otherwise FALSE.
+\code{TRUE} when the values compare equal.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSScalar-hash"></a>}}
 \if{latex}{\out{\hypertarget{method-RSScalar-hash}{}}}
 \subsection{Method \code{hash()}}{
-Returns a numeric hash of the wrapped scalar value.
+Hash the wrapped scalar.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSScalar$hash()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
-An integer suitable for use in hashing-based structures (e.g., sets, dictionaries).
+An integer hash code.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSScalar-value"></a>}}
 \if{latex}{\out{\hypertarget{method-RSScalar-value}{}}}
 \subsection{Method \code{value()}}{
-Returns the underlying R scalar value stored in the object.
+Return the stored R scalar.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSScalar$value()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
-A scalar value (numeric, character, logical, etc.).
+The wrapped value.
 }
 }
 }

@@ -7,6 +7,6 @@
 RSBoolean_withBoolean <- function(val) {
   if (!is.logical(val) || length(val) != 1L)
     stop("`val` must be a logical scalar.", call. = FALSE)
-  if (is.na(val)) return(RSNABoolean$new())
+  if (is.na(val)) return(RSBoolean$na)
   RSBoolean$new(val)
 }

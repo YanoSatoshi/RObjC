@@ -2,14 +2,12 @@
 % Please edit documentation in R/api_RSScalarClass.r
 \name{RSScalarClass}
 \alias{RSScalarClass}
-\title{Declare an RObjC Scalar Class}
+\title{Declare a Scalar Class and Its NA Companion}
 \usage{
 RSScalarClass(
   class_name,
   super_class = RSScalar,
-  is_na_class,
-  singleton = FALSE,
-  singleton_accessor = NULL,
+  na_value = NA_integer_,
   protocols = list(),
   public = list(),
   private = NULL,
@@ -19,50 +17,52 @@ RSScalarClass(
 )
 }
 \arguments{
-\item{class_name}{One character string naming the class.}
+\item{class_name}{A nonempty character scalar. Names beginning with \code{RS}
+produce a companion named \code{RSNA...}; other names receive an \code{NA} suffix.}
 
-\item{super_class}{\link{RSScalar} or one of its subclass generators.}
+\item{super_class}{An \link{RSScalar} class generator or one of its subclasses.}
 
-\item{is_na_class}{One logical value. \code{NA} is allowed; use \code{TRUE} for a class
-whose instances may wrap missing values.}
+\item{na_value}{A length-one missing value, such as \code{NA_integer_},
+\code{NA_character_}, or \code{as.Date(NA)}. The factory passes it directly to the
+generated NA class's initializer.}
 
-\item{singleton}{Whether to create an instance immediately and expose it as
-\code{Class$instance}.}
+\item{protocols}{Protocol class generators adopted by the new classes.}
 
-\item{singleton_accessor}{Reserved for a future accessor; currently unused.
-It can be supplied only when \code{singleton = TRUE}.}
-
-\item{protocols}{A list of protocol class generators adopted by the class.}
-
-\item{public, private, active}{R6 public members, private members, and active
-bindings passed to \code{\link[R6:R6Class]{R6::R6Class()}}.}
+\item{public, private, active}{R6 members for the regular class. If \code{public}
+defines \code{initialize(val)}, that method must accept the supplied \code{na_value}
+when called on the generated NA subclass and pass it to
+\code{super$initialize(val)}. A default for \code{val} is not required.}
 
 \item{parent_env}{Parent environment for the generated R6 methods.}
 
-\item{version}{Class version. It must not contain \verb{_}.}
+\item{version}{Class version; \verb{_} is reserved for class identifiers.}
 }
 \value{
-The scalar class generator, invisibly. Its \code{isNAClass} binding is
-locked; when \code{singleton = TRUE}, its \code{instance} binding is also locked.
+The regular class generator, invisibly. Its \code{na} binding and its
+\code{robjc_isa$slot} both reference the shared NA instance. The NA class
+generator is available through \code{Class$na$class()}. Class identity and
+shared-instance bindings are locked.
 }
 \description{
-Creates a subclass of \link{RSScalar} and sets its class-level \code{isNAClass} flag.
-The flag is locked after declaration. For a singleton scalar, the factory
-sets the flag before creating the first instance, so scalar initialization
-can read it. In singleton mode, the class's initializer must work without
-arguments because the factory calls \verb{$new()} without arguments.
+Creates a regular scalar class derived from \link{RSScalar} and an NA companion
+class derived from that regular class. The companion is created as a
+singleton while this factory runs.
 }
-\section{Implementation details}{
-
-Non-singleton classes are built through \code{\link[=RSObjectClass]{RSObjectClass()}}. In singleton mode,
-the factory sets \code{isNAClass} before creating the instance. The class
-identity is held in \code{robjc_isa} on the generator and \code{.__isa} in its private
-fields; the instance is also stored in \code{robjc_isa$slot}.
+\details{
+The factory builds the regular class and attaches its identity, then builds
+its NA subclass. It sets \code{isNAClass} before calling the NA subclass's
+\verb{$new(na_value)}. The inherited initializer stores the missing value through
+\link{RSScalar} when a subclass calls \code{super$initialize(val)}. The shared instance
+is saved in both classes' \code{robjc_isa$slot} and exposed as \code{Class$na}.
+The generated NA class still has a callable \verb{$new()} method; callers should
+use \code{Class$na} when they need the shared instance.
 }
-
 \examples{
-ExampleScalar <- RSScalarClass("ExampleScalar", is_na_class = FALSE,
-  version = "0.0.2 alpha")
-ExampleScalar$isNAClass
+Probe <- RSScalarClass("Probe", na_value = NA_integer_,
+  public = list(initialize = function(val) {
+    super$initialize(val)
+    invisible(self)
+  }))
+Probe$na$isKindOf(Probe)
 
 }

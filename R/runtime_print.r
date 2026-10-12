@@ -29,8 +29,8 @@ robjc_member_summaries <- function(members, exclude = character()) {
 #' Format an RObjC Instance
 #'
 #' @description Formats an RObjC instance using its generator's `$classname`
-#'   and summarizes public and private members.　The instance's `$print()` 
-#' 　method remains a separate, brief　description method.
+#'  and summarizes public and private members. The instance's `$print()` 
+#'  method remains a separate, brief description method.
 #' @param x An RObjC instance.
 #' @param ... Unused.
 #' @return A character string containing the formatted instance.

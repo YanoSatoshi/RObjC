@@ -34,13 +34,13 @@ test_that("RSScalar_withValue('char') returns RSString", {
 })
 
 test_that("RSNAString: value() returns NA_character_", {
-  na_str <- RSNAString$new()
+  na_str <- RSString$na
   expect_true(is.na(na_str$value()))
 })
 
 test_that("RSNAString: compare() with na.last = TRUE/FALSE", {
   s <- RSString$new("abc")
-  na <- RSNAString$new()
+  na <- RSString$na
   expect_equal(na$compare(s, na.last = TRUE), 1)
   expect_equal(na$compare(s, na.last = FALSE), -1)
   expect_equal(s$compare(na, na.last = TRUE), -1)
@@ -49,14 +49,14 @@ test_that("RSNAString: compare() with na.last = TRUE/FALSE", {
 })
 
 test_that("RSNAString: isEqual() true for same NA class", {
-  a <- RSNAString$new()
-  b <- RSNAString$new()
+  a <- RSString$na
+  b <- RSString$na
   expect_true(a$isEqual(b))
 })
 
 
 test_that("RSNAString: hash() consistent for all NA instances", {
-  a <- RSNAString$new()
-  b <- RSNAString$new()
+  a <- RSString$na
+  b <- RSString$na
   expect_equal(a$hash(), b$hash())
 })

@@ -52,7 +52,7 @@ robjc_isMetaClass <- function(obj) {
 }
 
 robjc_isMetaClasses <- function(objs) {
-  is_envir  <- vapply(objs, is.environmet, logical(1))
+  is_envir  <- vapply(objs, is.environment, logical(1))
   is_class  <- vapply(objs, function(obj) {inherits(obj, ROBJC_CLASS)}, logical(1))
   is_null   <- vapply(objs, is.null, logical(1))
   is_root   <- vapply(objs, function(obj) {inherits(obj$robjc_isa, ISA_ROOT)}, logical(1))

@@ -45,21 +45,49 @@ test_that("RSSingletonClass creates and locks its shared instance", {
   expect_true(bindingIsLocked("instance", Shared))
 })
 
-test_that("RSScalarClass sets isNAClass before singleton initialization", {
+test_that("RSScalarClass creates a shared NA companion", {
   One <- RSScalarClass(
     "OneScalar",
-    is_na_class = FALSE,
-    singleton = TRUE,
-    public = list(initialize = function() {
-      super$initialize(1)
+    na_value = NA_integer_,
+    public = list(initialize = function(val) {
+      super$initialize(val)
       invisible(self)
     })
   )
 
   expect_false(One$isNAClass)
-  expect_equal(One$instance$value(), 1)
+  expect_true(One$na$class()$isNAClass)
+  expect_identical(One$na, One$robjc_isa$slot)
+  expect_identical(One$na, One$na$class()$instance)
+  expect_identical(One$new(1L)$value(), 1L)
+  expect_identical(One$na$value(), NA_integer_)
   expect_true(bindingIsLocked("isNAClass", One))
-  expect_true(bindingIsLocked("instance", One))
+  expect_true(bindingIsLocked("na", One))
+  expect_true(bindingIsLocked("instance", One$na$class()))
+})
+
+test_that("built-in scalar classes share their typed NA companions", {
+  pairs <- list(
+    list(RSBoolean, RSNABoolean, NA),
+    list(RSNumber, RSNANumber, NA_real_),
+    list(RSString, RSNAString, NA_character_),
+    list(RSFactor, RSNAFactor, factor(NA_character_)),
+    list(RSDate, RSNADate, as.Date(NA)),
+    list(RSDateTime, RSNADateTime, as.POSIXct(NA))
+  )
+
+  for (pair in pairs) {
+    regular <- pair[[1L]]
+    na_class <- pair[[2L]]
+    na_value <- pair[[3L]]
+    expect_identical(regular$na$class(), na_class)
+    expect_identical(regular$na, regular$robjc_isa$slot)
+    expect_identical(regular$na, na_class$instance)
+    expect_identical(regular$na, na_class$robjc_isa$slot)
+    expect_true(is.na(regular$na$value()))
+    expect_identical(class(regular$na$value()),
+                     if (is.factor(na_value)) "character" else class(na_value))
+  }
 })
 
 test_that("factories reject reserved underscores in versions", {
@@ -79,7 +107,7 @@ test_that("factories reject reserved underscores in versions", {
     fixed = TRUE
   )
   expect_error(
-    RSScalarClass("BadScalarVersion", is_na_class = FALSE, version = "1_0"),
+    RSScalarClass("BadScalarVersion", na_value = NA_integer_, version = "1_0"),
     "Version string must not contain '_'",
     fixed = TRUE
   )

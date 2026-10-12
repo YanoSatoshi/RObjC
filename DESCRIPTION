@@ -20,6 +20,7 @@ LinkingTo: Rcpp
 VignetteBuilder: knitr
 Collate: 
     'utilities.r'
+    'api_RSScalarClass.r'
     'util_io.r'
     'Rcpp.r'
     'runtime_util.r'
@@ -33,7 +34,6 @@ Collate:
     'RSCopying.r'
     'RSObject.r'
     'primary_class_setup.r'
-    'api_RSScalarClass.r'
     'api_RSSingletonClass.r'
     'api_RSProtocolClass.r'
     'api_RSObjectClass.r'

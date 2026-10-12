@@ -12,7 +12,7 @@ NULL
 RSNumber_withValue <- function(val) {
   if (!is.numeric(val) || length(val) != 1L || !(typeof(val) %in% c("integer", "double")))
     stop("`val` must be an integer or double scalar.", call. = FALSE)
-  if (is.na(val)) return(RSNANumber$new())
+  if (is.na(val)) return(RSNumber$na)
   RSNumber$new(val)
 }
 

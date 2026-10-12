@@ -10,8 +10,8 @@
 #'
 #' @section Specialized object classes:
 #' - [RSSingletonClass()] declares a class and creates its shared instance.
-#' - [RSScalarClass()] declares a scalar class with an `isNAClass` flag and can
-#'   optionally create a singleton instance.
+#' - [RSScalarClass()] declares a scalar class and creates its shared NA
+#'   companion instance.
 #'
 #' @section Protocols:
 #' - [RSProtocolClass()] declares a protocol and its required methods.
