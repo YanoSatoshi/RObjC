@@ -173,7 +173,7 @@ robjc_make_isa <- function(
   super_class,
   protocols = list(),
   slot = NULL,
-  version = "0.0.2 alpha"
+  version = "0.0.3 alpha"
 ) {
   stopifnot(
     "`super_class` cannot be NULL." =
@@ -241,7 +241,7 @@ robjc_make_singleton_isa <- function(
   r6generator,
   super_class,
   protocols = list(),
-  version   = "0.0.2 alpha"
+  version   = "0.0.3 alpha"
 ) {
   if (!inherits(super_class$robjc_isa, ISA_OBJECT))
     stop(

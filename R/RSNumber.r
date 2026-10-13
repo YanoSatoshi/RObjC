@@ -16,7 +16,7 @@
 #' @export
 RSNumber <- RSScalarClass(
   "RSNumber",
-  version     = "0.0.2 alpha",
+  version     = "0.0.3 alpha",
   super_class = RSScalar,
   na_value    = NA_real_,
   public      = list(

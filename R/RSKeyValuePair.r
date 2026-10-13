@@ -27,7 +27,7 @@
 #'
 RSKeyValuePair <- RSObjectClass(
   "RSKeyValuePair",
-  version = "0.0.2 alpha",
+  version = "0.0.3 alpha",
   super_class = RSObject,
   private     = list(
     .key    = NULL,

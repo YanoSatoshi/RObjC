@@ -17,7 +17,7 @@
 #' @export
 RSClassDecoder <- RSSingletonClass(
   "RSClassDecoder",
-  version = "0.0.2 alpha",
+  version = "0.0.3 alpha",
   super_class = RSModule,
   protocols = list(RSDecoderProtocol),
   public = list(

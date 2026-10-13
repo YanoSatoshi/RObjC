@@ -26,7 +26,7 @@
 #' @export
 RSMutableSet <- RSObjectClass(
   "RSMutableSet",
-  version = "0.0.2 alpha",
+  version = "0.0.3 alpha",
   super_class = RSObject,
   protocols   = list(RSCopying, RSMutableCopying),
   private = list(

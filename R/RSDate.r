@@ -25,7 +25,7 @@
 #' @export
 RSDate <- RSScalarClass(
   "RSDate",
-  version     = "0.0.2 alpha",
+  version     = "0.0.3 alpha",
   super_class = RSScalar,
   na_value    = as.Date(NA),
   public      = list(

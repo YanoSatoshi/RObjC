@@ -36,7 +36,7 @@
 RSModule <- RSSingletonClass(
   "RSModule",
   super_class = RSObject,
-  version     = "0.0.2 alpha",
+  version     = "0.0.3 alpha",
   public      = list(
     #' @description Initializes the shared module instance.
     #' @return The initialized instance, invisibly.

@@ -23,7 +23,7 @@
 #' @export
 RSArray <- RSObjectClass(
   "RSArray",
-  version = "0.0.2 alpha",
+  version = "0.0.3 alpha",
   super_class = RSMutableArray,
   protocols = list(RSCopying, RSMutableCopying),
   public = list(

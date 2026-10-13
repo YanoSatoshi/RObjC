@@ -17,7 +17,7 @@
 #' @export
 RSSet <- RSObjectClass(
   "RSSet",
-  version = "0.0.2 alpha",
+  version = "0.0.3 alpha",
   super_class = RSMutableSet,
   protocols = list(RSCopying, RSMutableCopying),
   public = list(
