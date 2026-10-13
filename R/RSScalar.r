@@ -22,17 +22,22 @@ RSScalar <- RSObjectClass(
   public      = list(
 
     #' @description Validate and store one scalar value.
-    #' @param val An atomic scalar. A missing value is accepted only when the
-    #'   instance belongs to a generated NA subclass. The base class retains
-    #'   `0L` as its own default; subclasses need not define a default.
+    #' @param val An atomic scalar or a scalar `POSIXlt` value. A missing value
+    #'   is accepted only when the instance belongs to a generated NA subclass.
     #' @return The initialized instance, invisibly.
-    initialize = function(val = 0L) {
+    initialize = function(val) {
       super$initialize()
-      if (!is.atomic(val) || length(val) != 1L) {
+      if ((!is.atomic(val) && !inherits(val, "POSIXlt")) || length(val) != 1L) {
         stop("`val` must be a scalar.", call. = FALSE)
       }
       if (isTRUE(is.na(val)) && !isTRUE(self$class()$isNAClass)) {
-        stop("Use the NA companion class for a missing value.", call. = FALSE)
+        na_slot <- self$class()$robjc_isa$slot
+        if (robjc_isRobjcObject(na_slot)) {
+          na_class <- na_slot$class()$classname
+          stop(sprintf("Use %s (via %s$na) for a missing value.",
+                       na_class, self$class()$classname), call. = FALSE)
+        }
+        stop("This scalar class has no NA companion.", call. = FALSE)
       }
       private$.val <- val
       invisible(self)

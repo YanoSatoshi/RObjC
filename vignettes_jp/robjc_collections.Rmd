@@ -1,0 +1,79 @@
+---
+title: "RObjC の Array、Dictionary、Set"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{RObjC の Array、Dictionary、Set}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Collection
+
+RObjC には、`RSObject` インスタンスを格納する 3 系列の Collection があります。それぞれ読み取り専用クラスと変更可能なクラスを持ちます。要素の探し方で系列を選び、要素や順序を変更するかどうかでクラスを選びます。
+
+| 系列 | 読み取り専用 | 変更可能 | 主な性質 |
+|:--|:--|:--|:--|
+| Array | `RSArray` | `RSMutableArray` | 順序があり、添字は 1 始まり |
+| Dictionary | `RSDictionary` | `RSMutableDictionary` | キーから値を検索 |
+| Set | `RSSet` | `RSMutableSet` | 重複を除き、順序は未定義 |
+
+読み取り専用クラスでは Collection の内容を変更できません。その `copy()` は同じインスタンスを返し、`mutableCopy()` は編集できる Collection を作ります。変更可能なクラスでは、`copy()` は読み取り専用の別インスタンスを、`mutableCopy()` は変更可能な別インスタンスを作ります。コピーは浅く、格納されたオブジェクトは共有され得ます。
+
+## Array：位置で扱う
+
+Array は RObjC オブジェクトを順番に格納します。`objectAtIndex()` の添字は R と同じく 1 始まりです。変更可能な Array では追加、挿入、置換、削除ができます。
+
+```{r}
+library(robjc)
+
+array <- RSArray_withObjects(list(
+  RSString_withValue("first"),
+  RSString_withValue("second")
+))
+stopifnot(identical(array$objectAtIndex(2L)$value(), "second"))
+
+editable_array <- array$mutableCopy()
+editable_array$addObject(RSString_withValue("third"))
+stopifnot(identical(array$count(), 2L))
+stopifnot(identical(editable_array$count(), 3L))
+```
+
+`asList()` は格納されたオブジェクトを通常の R の list として返します。Array では順序と重複する要素が保たれます。
+
+## Dictionary：キーで値を探す
+
+Dictionary は RObjC のキーを値に対応付けます。`objectForKey()` で検索し、`containsKey()` でキーの有無を確認します。検索には `hash()` と `isEqual()` が使われるため、格納時とは別でも等しいキーなら値を取得できます。
+
+```{r}
+dictionary <- RSDictionary_withObjectForKey(
+  RSNumber_withValue(10L),
+  RSString_withValue("id")
+)
+stopifnot(dictionary$containsKey(RSString_withValue("id")))
+stopifnot(identical(
+  dictionary$objectForKey(RSString_withValue("id"))$value(), 10L
+))
+```
+
+Dictionary の要素の順序は未定義です。挿入時にキーの `copy()` が呼ばれ、格納中はキーのハッシュと等価性を安定させる必要があります。`NULL` の扱い、キー、コピーの詳細は「Dictionary のキーとコピー」（`vignettes_jp/robjc_dictionary.Rmd`）を参照してください。
+
+## Set：重複のない要素
+
+Set は等しい要素を 1 つにまとめ、反復順序は定義しません。所属判定には各オブジェクトの `hash()` と `isEqual()` が使われます。変更可能な Set では要素を追加・削除できます。`uniteSet()`、`intersectSet()`、`subtractSet()` は新しい読み取り専用 Set を返します。
+
+```{r}
+set <- RSSet_withObjects(list(
+  RSString_withValue("a"),
+  RSString_withValue("a"),
+  RSString_withValue("b")
+))
+stopifnot(set$count() == 2)
+stopifnot(set$containsObject(RSString_withValue("a")))
+
+editable_set <- set$mutableCopy()
+editable_set$addObject(RSString_withValue("c"))
+stopifnot(set$count() == 2)
+stopifnot(editable_set$count() == 3)
+```
+
+Set は挿入したオブジェクトをコピーせずに保持します。Set に格納されている間は、要素のハッシュと等価性を決める状態を変えないでください。Set と Dictionary では、R の `NULL` は `RSNull$null` として表されます。

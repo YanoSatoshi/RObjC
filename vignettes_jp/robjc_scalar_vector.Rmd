@@ -1,0 +1,55 @@
+---
+title: "RObjC の Scalar と Vector"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{RObjC の Scalar と Vector}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Scalar と Vector
+
+Scalar と Vector は、どちらも R の値を RObjC オブジェクトから扱うための wrapper です。主な違いは値の数です。Scalar は 1 つの値、Vector は R の atomic vector を包みます。どちらも RObjC オブジェクトを要素とする list ではありません。オブジェクトの順序付き Collection には `RSArray` を使います。
+
+| wrapper | 入力 | 値の取得 | 欠損値 |
+|:--|:--|:--|:--|
+| `RSScalar` のサブクラス | R の値 1 つ | `value()` | 型別に共有される `Class$na` |
+| `RSVector` / `RSMutableVector` | R の atomic vector | `asVector()` | Vector の要素に NA を含められる |
+
+## Scalar：型のある 1 つの値
+
+`RSScalar_withValue()` は R の値に応じて scalar クラスを選びます。期待する型が決まっているなら `RSNumber_withValue()` などの型別コンストラクタも使えます。欠損値は対応する共有 NA オブジェクトを、R の `NULL` は `RSNull$null` を返します。
+
+```{r}
+library(robjc)
+
+scalar <- RSScalar_withValue(3L)
+stopifnot(scalar$isMemberOf(RSNumber))
+stopifnot(identical(scalar$value(), 3L))
+stopifnot(identical(RSScalar_withValue(NA_integer_), RSNumber$na))
+stopifnot(identical(RSScalar_withValue(NULL), RSNull$null))
+```
+
+コンストラクタの選択、型付き NA クラス、日時のタイムゾーンについては「scalar と欠損値」（`vignettes_jp/robjc_scalar_values.Rmd`）を参照してください。
+
+## Vector：複数の R の値
+
+`RSVector` は読み取り専用で、`RSMutableVector` は値の追加、挿入、置換、削除ができます。どちらも次元を持たない atomic vector を受け取ります。後から追加する値は、元の Vector と R の型およびクラスをそろえる必要があります。Vector の内部には NA を直接含められ、専用の NA Vector クラスは使いません。
+
+```{r}
+vector <- RSVector$new(c(1L, NA_integer_, 3L))
+stopifnot(identical(vector$asVector(), c(1L, NA_integer_, 3L)))
+stopifnot(is.na(vector$valueAtIndex(2L)))
+
+editable <- vector$mutableCopy()
+editable$appendValues(4L)
+stopifnot(identical(vector$count(), 3L))
+stopifnot(identical(editable$asVector(), c(1L, NA_integer_, 3L, 4L)))
+```
+
+Vector の添字は 1 始まりです。numeric の添字は範囲を検証する前に `as.integer()` で変換されるため、`2.9` は位置 `2` を指します。`containsValues()` や `indicesOfValues()` は、scalar オブジェクトではなく R の値を検索します。
+
+```{r}
+stopifnot(identical(editable$valueAtIndex(2.9), NA_integer_))
+stopifnot(identical(editable$indicesOfValues(c(3L, 9L)), c(3L, NA_integer_)))
+```

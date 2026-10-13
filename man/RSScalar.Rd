@@ -58,15 +58,14 @@ allow that missing value when \code{self$class()$isNAClass} is \code{TRUE}.
 \subsection{Method \code{new()}}{
 Validate and store one scalar value.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSScalar$new(val = 0L)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSScalar$new(val)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{val}}{An atomic scalar. A missing value is accepted only when the
-instance belongs to a generated NA subclass. The base class retains
-\code{0L} as its own default; subclasses need not define a default.}
+\item{\code{val}}{An atomic scalar or a scalar \code{POSIXlt} value. A missing value
+is accepted only when the instance belongs to a generated NA subclass.}
 }
 \if{html}{\out{</div>}}
 }

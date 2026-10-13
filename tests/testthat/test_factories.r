@@ -71,6 +71,7 @@ test_that("built-in scalar classes share their typed NA companions", {
     list(RSBoolean, RSNABoolean, NA),
     list(RSNumber, RSNANumber, NA_real_),
     list(RSString, RSNAString, NA_character_),
+    list(RSComplex, RSNAComplex, NA_complex_),
     list(RSFactor, RSNAFactor, factor(NA_character_)),
     list(RSDate, RSNADate, as.Date(NA)),
     list(RSDateTime, RSNADateTime, as.POSIXct(NA))
@@ -84,10 +85,16 @@ test_that("built-in scalar classes share their typed NA companions", {
     expect_identical(regular$na, regular$robjc_isa$slot)
     expect_identical(regular$na, na_class$instance)
     expect_identical(regular$na, na_class$robjc_isa$slot)
+    expect_error(regular$new(na_value), na_class$classname, fixed = TRUE)
     expect_true(is.na(regular$na$value()))
     expect_identical(class(regular$na$value()),
                      if (is.factor(na_value)) "character" else class(na_value))
   }
+})
+
+test_that("date scalar initializers require an explicit value", {
+  expect_error(RSDate$new(), "argument.*val.*missing")
+  expect_error(RSDateTime$new(), "argument.*val.*missing")
 })
 
 test_that("factories reject reserved underscores in versions", {

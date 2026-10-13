@@ -23,7 +23,7 @@ test_that("typed scalar APIs validate their inputs", {
   expect_error(RSString_withValue(c("a", "b")), "character or factor scalar")
   expect_error(RSFactor_withFactor("a"), "factor scalar")
   expect_error(RSDate_withDate(Sys.time()), "Date scalar")
-  expect_error(RSDateTime_withDateTime(Sys.Date()), "POSIXct scalar")
+  expect_error(RSDateTime_withDateTime(Sys.Date()), "POSIXct or POSIXlt scalar")
   expect_error(RSScalar_withValue(list(1)), "Unsupported scalar type")
 })
 

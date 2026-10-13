@@ -1,0 +1,75 @@
+---
+title: "RObjC の scalar と欠損値"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{RObjC の scalar と欠損値}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# scalar と欠損値
+
+`RSScalar` は長さ 1 の R の値を包むクラスの基底です。通常の scalar クラスは欠損していない値を保持します。`RSScalarClass()` で宣言した各クラスには NA サブクラスも生成され、共有の欠損値インスタンスを `Class$na` から取得できます。R の `NULL` は別の `RSNull` で表します。
+
+## コンストラクタの選択
+
+型が分かっており `val` が欠損していないときは `Class$new(val)` を使えます。`RSNumber_withValue()` のような型別の便利コンストラクタは、通常の値と NA の両方を受け取り、対応するクラスを返します。`RSScalar_withValue()` は `NULL` を含めて R の型から自動的に振り分けます。
+
+```{r}
+library(robjc)
+
+direct <- RSNumber$new(3L)
+typed <- RSNumber_withValue(3L)
+dispatched <- RSScalar_withValue(3L)
+stopifnot(direct$isMemberOf(RSNumber))
+stopifnot(typed$isMemberOf(RSNumber))
+stopifnot(dispatched$isMemberOf(RSNumber))
+stopifnot(identical(dispatched$value(), 3L))
+```
+
+通常クラスの `Class$new(NA)` は `RSScalar$initialize()` で拒否されます。入力が欠損する可能性があれば、型別の便利コンストラクタ、一般の振り分け関数、または `Class$na` を使います。NA インスタンスは共有されるため、便利コンストラクタを繰り返し呼んでも同じインスタンスが返ります。
+
+```{r}
+stopifnot(identical(RSNumber_withValue(NA_integer_), RSNumber$na))
+stopifnot(identical(RSScalar_withValue(NA_real_), RSNumber$na))
+stopifnot(RSNumber$na$isMemberOf(RSNANumber))
+```
+
+## `NULL` と型付き `NA` の違い
+
+`NULL` は R の値が存在しないことを表し、`NA` は特定の型の欠損値です。`RSScalar_withValue(NULL)` は共有の `RSNull$null` を返し、その `value()` は `NULL` です。型付き NA は対応する `Class$na` を返します。
+
+| R の入力 | 戻り値 |
+|:--|:--|
+| `NULL` | `RSNull$null` |
+| `NA` | `RSBoolean$na` |
+| `NA_integer_` または `NA_real_` | `RSNumber$na` |
+| `NA_character_` | `RSString$na` |
+| `NA_complex_` | `RSComplex$na` |
+| `factor(NA_character_)` | `RSFactor$na` |
+| `as.Date(NA)` | `RSDate$na` |
+| `as.POSIXct(NA)` | `RSDateTime$na` |
+
+```{r}
+stopifnot(identical(RSScalar_withValue(NULL), RSNull$null))
+stopifnot(is.null(RSNull$null$value()))
+stopifnot(identical(RSScalar_withValue(NA_character_), RSString$na))
+stopifnot(is.na(RSString$na$value()))
+```
+
+各 NA クラスには、クラス宣言時に選ばれた `na_value` が 1 つあります。元の R の格納型がすべて維持されるわけではなく、wrapper の系列で NA の型が決まります。整数と double の欠損値はどちらも `RSNumber$na` となり、その `value()` は `NA_real_` です。共有 NA インスタンスは、欠損した日時のタイムゾーンなど入力ごとのメタデータも保持しません。raw 型には NA がないため、`RSRaw` に NA クラスはありません。
+
+## 日時の値
+
+`RSDateTime` は長さ 1 の `POSIXct` または `POSIXlt` を受け取り、同じ時点を表す `POSIXct` として保存します。入力にタイムゾーンの指定があれば表示用に引き継ぎます。等価性とハッシュは時点に基づくため、別のタイムゾーンでも同じ値を表せます。
+
+```{r}
+utc <- RSDateTime_withDateTime(as.POSIXct("2024-01-01 12:00:00", tz = "UTC"))
+tokyo <- RSDateTime_withDateTime(as.POSIXct("2024-01-01 21:00:00", tz = "Asia/Tokyo"))
+stopifnot(identical(attr(utc$value(), "tzone"), "UTC"))
+stopifnot(identical(attr(tokyo$value(), "tzone"), "Asia/Tokyo"))
+stopifnot(utc$isEqual(tokyo))
+stopifnot(identical(utc$hash(), tokyo$hash()))
+```
+
+新しい scalar クラスの宣言と `na_value` の選択については「クラスファクトリー API」（`vignettes_jp/robjc_class_factories.Rmd`）を参照してください。

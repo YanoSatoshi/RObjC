@@ -7,18 +7,17 @@
 #' It provides a uniform object-based null placeholder, similar to `NSNull` in Objective-C,
 #' and is designed to be used where scalar-wrapping behavior is required even for `NULL`.
 #'
-#' [RSScalarClass()] creates the shared instance when `RSNull` is declared.
+#' [RSSingletonClass()] creates the shared instance when `RSNull` is declared.
 #' Access it through `RSNull$null` (an alias of `RSNull$instance`).
 #'
 #' @section Methods:
 #' - `value()` – Always returns `NULL`
 #' - `hash()` – Always returns `0L`
-#' - `isEqual(other)` – Returns TRUE if `other` is of the same class
-#' - `lockVariables()` – Prevents structural modification
+#' - `isEqual(other)` – Returns TRUE only for the same instance
 #' 
 #' @section Usage:
-#' Use `RSNull$null` to retrieve the shared instance. The current factory does
-#' not disable `$new()`, so constructing another instance is possible.
+#' Use `RSNull$null` to retrieve the shared instance. Direct calls to `$new()`
+#' after the shared instance has been created raise an error.
 #'
 #' @note
 #' The `RSNull$instance` and `RSNull$null` bindings are locked after creation.
@@ -42,11 +41,10 @@ RSNull <- RSSingletonClass(
     #'
     #' @return The initialized `RSNull` instance (invisible).
     initialize = function() {
-      if (!is.null(self$class()$null)) {
-        class_neme <- self$class()$classname
-        stop(paste0(
-          "Use `",class_name,"$null`. Do not call `",class_name,"$new()`",
-        ))
+      if (!is.null(self$class()$instance)) {
+        class_name <- self$class()$classname
+        stop(sprintf("Use `%s$null`. Do not call `%s$new()`.",
+                     class_name, class_name), call. = FALSE)
       }
       super$initialize(0L)
       private$.val <- NULL

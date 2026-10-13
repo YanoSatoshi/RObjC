@@ -14,6 +14,21 @@ test_that("RSMutableArray: objectAtIndex returns correct element", {
   expect_equal(ary$objectAtIndex(1)$value(), "a")
 })
 
+test_that("RSMutableArray: index and membership searches handle missing objects", {
+  ary <- RSMutableArray$new(objects = list(
+    RSString_withValue("a"), RSString_withValue("b")
+  ))
+  expect_identical(ary$indexOfObject(RSString_withValue("b")), 2L)
+  expect_true(ary$containsObject(RSString_withValue("a")))
+  expect_true(ary$containsObject(RSString_withValue("b")))
+  expect_identical(ary$indexOfObject(RSString_withValue("missing")), NA_integer_)
+  expect_false(ary$containsObject(RSString_withValue("missing")))
+
+  empty <- RSMutableArray$new()
+  expect_identical(empty$indexOfObject(RSString_withValue("a")), NA_integer_)
+  expect_false(empty$containsObject(RSString_withValue("a")))
+})
+
 test_that("RSMutableArray: insertObjectAtIndex works", {
   ary <- RSMutableArray$new()
   ary$addObject(RSString_withValue("a"))

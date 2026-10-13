@@ -8,7 +8,7 @@
 It provides a uniform object-based null placeholder, similar to \code{NSNull} in Objective-C,
 and is designed to be used where scalar-wrapping behavior is required even for \code{NULL}.
 
-\code{\link[=RSScalarClass]{RSScalarClass()}} creates the shared instance when \code{RSNull} is declared.
+\code{\link[=RSSingletonClass]{RSSingletonClass()}} creates the shared instance when \code{RSNull} is declared.
 Access it through \code{RSNull$null} (an alias of \code{RSNull$instance}).
 }
 \note{
@@ -19,15 +19,14 @@ The \code{RSNull$instance} and \code{RSNull$null} bindings are locked after crea
 \itemize{
 \item \code{value()} – Always returns \code{NULL}
 \item \code{hash()} – Always returns \code{0L}
-\item \code{isEqual(other)} – Returns TRUE if \code{other} is of the same class
-\item \code{lockVariables()} – Prevents structural modification
+\item \code{isEqual(other)} – Returns TRUE only for the same instance
 }
 }
 
 \section{Usage}{
 
-Use \code{RSNull$null} to retrieve the shared instance. The current factory does
-not disable \verb{$new()}, so constructing another instance is possible.
+Use \code{RSNull$null} to retrieve the shared instance. Direct calls to \verb{$new()}
+after the shared instance has been created raise an error.
 }
 
 \examples{
@@ -46,7 +45,6 @@ x$isEqual(RSNull$null)  # TRUE
 \item \href{#method-RSNull-isEqual}{\code{RSNull$isEqual()}}
 \item \href{#method-RSNull-hash}{\code{RSNull$hash()}}
 \item \href{#method-RSNull-value}{\code{RSNull$value()}}
-\item \href{#method-RSNull-lockVariables}{\code{RSNull$lockVariables()}}
 }
 }
 \if{html}{\out{
@@ -91,8 +89,7 @@ The initialized \code{RSNull} instance (invisible).
 \if{html}{\out{<a id="method-RSNull-isEqual"></a>}}
 \if{latex}{\out{\hypertarget{method-RSNull-isEqual}{}}}
 \subsection{Method \code{isEqual()}}{
-Determines whether another object is also an instance of the \code{RSNull} class.
-This method checks for membership in the same class rather than strict identity.
+Determines whether another object is identical to self: \code{RSNull} singleton.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSNull$isEqual(other)}\if{html}{\out{</div>}}
 }
@@ -134,20 +131,6 @@ Returns the internal null value (\code{NULL}) wrapped by the \code{RSNull} insta
 
 \subsection{Returns}{
 \code{NULL}.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSNull-lockVariables"></a>}}
-\if{latex}{\out{\hypertarget{method-RSNull-lockVariables}{}}}
-\subsection{Method \code{lockVariables()}}{
-Locks all current public bindings in the \code{RSNull} instance, making them read-only.
-This prevents accidental mutation of the singleton after creation.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSNull$lockVariables()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-Called for side effect. Returns \code{NULL} (invisible).
 }
 }
 }

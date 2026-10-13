@@ -1,0 +1,134 @@
+---
+title: "Objects and identity in RObjC"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Objects and identity in RObjC}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# RSObject
+
+`RSObject` is the root of RObjC object classes. Declare an application class
+with `RSObjectClass()`, then create instances with its `$new()` method. An
+instance inherits methods for class identity, protocol conformance, method
+lookup, descriptions, equality, and hashing.
+
+## Define and initialize a subclass
+
+The class factory attaches identity metadata before instances are created.
+When overriding `initialize()`, call `super$initialize()` so the instance gets
+its R class attributes. Subclass state can live in R6 private fields.
+
+```{r}
+library(robjc)
+
+Item <- RSObjectClass(
+  "ObjectGuideItem",
+  public = list(
+    initialize = function(name) {
+      super$initialize()
+      private$.name <- name
+      invisible(self)
+    },
+    name = function() private$.name
+  ),
+  private = list(.name = NULL),
+  version = "1.0.0"
+)
+first <- Item$new("first")
+second <- Item$new("first")
+stopifnot(identical(first$name(), "first"))
+```
+
+## Inspect class relationships
+
+`class()` returns the RObjC class generator. `isMemberOf()` tests exact class
+identity, whereas `isKindOf()` also accepts ancestors. `superClass()` returns
+the immediate parent generator, and `classVersion()` reads the class version.
+These checks use generator identity rather than comparing class-name strings.
+
+```{r}
+stopifnot(identical(first$class(), Item))
+stopifnot(first$isMemberOf(Item))
+stopifnot(!first$isMemberOf(RSObject))
+stopifnot(first$isKindOf(RSObject))
+stopifnot(identical(first$superClass(), RSObject))
+stopifnot(identical(first$classVersion(), "1.0.0"))
+```
+
+`inheritClassesAsList()` exposes the ancestry as generators. Use
+`respondsTo("name")` to check whether an instance has a callable method.
+`conformsTo(protocol)` reports protocol relationships declared on its class or
+an ancestor; it does not inspect method bodies.
+
+```{r}
+stopifnot(first$respondsTo("name"))
+stopifnot(!first$respondsTo("missingMethod"))
+stopifnot(first$conformsTo(RSCopying))
+```
+
+## Identity, presentation, and copying
+
+The base `isEqual()` compares object references: two objects with the same
+fields are still distinct. The base `hash()` derives an integer from the
+object's pointer, so subclasses that define value equality should also define
+a compatible value hash. `objectID()` returns a pointer string.
+
+`description()` gives a compact class-and-pointer label; `print()` outputs that
+label, while `debugDescription()` includes public fields. The default `copy()`
+returns the same instance. A mutable subclass should override `copy()` if it
+needs an independent copy.
+
+```{r}
+stopifnot(first$isEqual(first))
+stopifnot(!first$isEqual(second))
+stopifnot(identical(first$copy(), first))
+stopifnot(is.character(first$description()))
+stopifnot(is.character(first$objectID()))
+```
+
+## Equality in a dictionary
+
+`RSDictionary` illustrates why `hash()` and `isEqual()` must agree. Its native
+table uses a key's `hash()` to find a bucket and `isEqual()` to distinguish
+keys within that bucket. Two separate `RSString` objects with the same text
+are equal by value and have the same hash, so either can retrieve an entry.
+
+```{r}
+stored_key <- RSString_withValue("id")
+lookup_key <- RSString_withValue("id")
+dictionary <- RSDictionary$new(
+  keys = list(stored_key),
+  values = list(RSString_withValue("one"))
+)
+stopifnot(!identical(stored_key, lookup_key))
+stopifnot(stored_key$isEqual(lookup_key))
+stopifnot(identical(stored_key$hash(), lookup_key$hash()))
+stopifnot(identical(dictionary$objectForKey(lookup_key)$value(), "one"))
+```
+
+The required rule for a key class is: if `a$isEqual(b)` is `TRUE`, then
+`a$hash()` and `b$hash()` must be identical. Equal hashes do **not** prove
+equality. In particular, `RSDictionary$hash()` combines only its keys, so
+changing a value can leave the dictionary hash unchanged even though the
+dictionaries are unequal:
+
+```{r}
+other_dictionary <- RSDictionary$new(
+  keys = list(lookup_key),
+  values = list(RSString_withValue("two"))
+)
+stopifnot(identical(dictionary$hash(), other_dictionary$hash()))
+stopifnot(!dictionary$isEqual(other_dictionary))
+```
+
+Dictionary insertion calls a key's `copy()`; the stored key must keep its
+equality and hash state stable afterward. A mutable key class should provide
+an appropriate copy and avoid changing fields used by `hash()` or `isEqual()`
+while a key is stored. For copy behavior and missing keys, see
+`vignette("robjc_dictionary", package = "robjc")`.
+
+For protocol declarations and inherited requirements, see
+`vignette("robjc_protocol", package = "robjc")`. For the class factory
+arguments, see `vignette("robjc_class_factories", package = "robjc")`.

@@ -43,8 +43,9 @@ RSFactor <- RSScalarClass(
     #' @param val A scalar factor value.
     #' @return An initialized `RSFactor` instance (invisible).
     initialize = function(val) {
+      super$initialize(val)
       if (!is.factor(val)) stop("RSFactor can only wrap factor values.")
-      super$initialize(as.character(val))
+      private$.val <- as.character(val)
       private$.levels  <- if (isTRUE(self$class()$isNAClass)) NULL else levels(val)
       private$.ordered <- is.ordered(val)
       invisible(self)

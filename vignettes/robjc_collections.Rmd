@@ -1,0 +1,97 @@
+---
+title: "Array, Dictionary, and Set in RObjC"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Array, Dictionary, and Set in RObjC}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Collections
+
+RObjC provides three collection families for `RSObject` instances. Each has a
+read-only class and a mutable class. Choose the family by how elements are
+found, then choose whether the collection's membership or order may change.
+
+| Family | Read-only | Mutable | Main behavior |
+|:--|:--|:--|:--|
+| Array | `RSArray` | `RSMutableArray` | Ordered elements, one-based indices |
+| Dictionary | `RSDictionary` | `RSMutableDictionary` | Values found by key |
+| Set | `RSSet` | `RSMutableSet` | Unique members, no defined order |
+
+The read-only classes reject changes to the collection. `copy()` on a
+read-only collection returns that same instance; `mutableCopy()` creates an
+editable collection. On a mutable collection, `copy()` creates a read-only
+collection and `mutableCopy()` creates a separate mutable one. These copies
+are shallow: stored objects can still be shared.
+
+## Array: position matters
+
+Arrays store RObjC objects in order. `objectAtIndex()` uses R-style one-based
+indices. A mutable array can append, insert, replace, and remove elements.
+
+```{r}
+library(robjc)
+
+array <- RSArray_withObjects(list(
+  RSString_withValue("first"),
+  RSString_withValue("second")
+))
+stopifnot(identical(array$objectAtIndex(2L)$value(), "second"))
+
+editable_array <- array$mutableCopy()
+editable_array$addObject(RSString_withValue("third"))
+stopifnot(identical(array$count(), 2L))
+stopifnot(identical(editable_array$count(), 3L))
+```
+
+Use `asList()` to obtain a regular R list of the stored objects. An array's
+order and repeated elements are retained.
+
+## Dictionary: keys identify values
+
+Dictionaries map RObjC keys to RObjC values. Search with `objectForKey()` or
+check presence with `containsKey()`. Key lookup uses `hash()` and `isEqual()`,
+so a separate but equal key can find the value.
+
+```{r}
+dictionary <- RSDictionary_withObjectForKey(
+  RSNumber_withValue(10L),
+  RSString_withValue("id")
+)
+stopifnot(dictionary$containsKey(RSString_withValue("id")))
+stopifnot(identical(
+  dictionary$objectForKey(RSString_withValue("id"))$value(), 10L
+))
+```
+
+Dictionary order is unspecified. Insertion calls the key's `copy()`; the
+key's hash and equality state must remain stable while stored. See
+`vignette("robjc_dictionary", package = "robjc")` for `NULL` values,
+key behavior, and copy semantics.
+
+## Set: unique membership
+
+Sets keep one member for each equality class and have no defined iteration
+order. Membership uses each object's `hash()` and `isEqual()`. A mutable set
+can add and remove members; `uniteSet()`, `intersectSet()`, and
+`subtractSet()` return new read-only sets.
+
+```{r}
+set <- RSSet_withObjects(list(
+  RSString_withValue("a"),
+  RSString_withValue("a"),
+  RSString_withValue("b")
+))
+stopifnot(set$count() == 2)
+stopifnot(set$containsObject(RSString_withValue("a")))
+
+editable_set <- set$mutableCopy()
+editable_set$addObject(RSString_withValue("c"))
+stopifnot(set$count() == 2)
+stopifnot(editable_set$count() == 3)
+```
+
+Sets retain inserted objects rather than copying them. Keep a member's hash
+and equality state stable while it belongs to a set. R `NULL` is represented
+by `RSNull$null` in sets and dictionaries.

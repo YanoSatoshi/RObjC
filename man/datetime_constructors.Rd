@@ -11,7 +11,7 @@ RSDateTime_now()
 RSDateTime_withDateTime(val)
 }
 \arguments{
-\item{val}{A \code{POSIXct} scalar, including a missing timestamp.}
+\item{val}{A \code{POSIXct} or \code{POSIXlt} scalar, including a missing timestamp.}
 }
 \value{
 An \link{RSDateTime} or \link{RSNADateTime} instance.

@@ -1,0 +1,57 @@
+---
+title: "RObjC の Dictionary のキーとコピー"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{RObjC の Dictionary のキーとコピー}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Dictionary のキーとコピー
+
+`RSMutableDictionary` では要素の追加、置換、削除ができます。`RSDictionary` でも同じ検索メソッドを使えますが、変更操作は拒否します。どちらも native storage を使い、キーと値には RObjC オブジェクトを受け取ります。R の `NULL` を挿入すると `RSNull$null` として格納します。
+
+## キーの検索
+
+Dictionary はキーの `hash()` と `isEqual()` を使って検索します。値が同じ `RSString` なら、格納時とは別のインスタンスでも要素を取得できます。存在しないキーの検索は R の `NULL` を返します。一方、格納した `NULL` は `RSNull$null` オブジェクトとして返るため、`containsKey()` で両者を区別できます。
+
+```{r}
+library(robjc)
+
+key <- RSString_withValue("id")
+dictionary <- RSMutableDictionary$new()
+dictionary$setObjectForKey(NULL, key)
+stopifnot(dictionary$containsKey(RSString_withValue("id")))
+stopifnot(identical(dictionary$objectForKey(key), RSNull$null))
+stopifnot(!dictionary$containsKey(RSString_withValue("missing")))
+stopifnot(is.null(dictionary$objectForKey(RSString_withValue("missing"))))
+```
+
+挿入時には `key$copy()` が呼ばれます。基底の `RSObject$copy()` は同じオブジェクトを返しますが、サブクラスでは独立したキーを返すこともできます。格納中はキーの等価性とハッシュを安定させる必要があります。これらが変化すると、存在する要素を検索できなくなる可能性があります。等しいキーのハッシュは一致する必要がありますが、ハッシュが一致するだけではキーは等しくありません。等価性の例は「RSObject」（`vignettes_jp/robjc_object.Rmd`）を参照してください。
+
+## `copy()` と `mutableCopy()`
+
+Dictionary のコピーでは native table が浅く複製されます。要素の対応関係は独立しますが、既存のキーと値のオブジェクトは共有されます。戻り値はコピー元のクラスによって異なります。
+
+| コピー元 | `copy()` | `mutableCopy()` |
+|:--|:--|:--|
+| `RSMutableDictionary` | 新しい `RSDictionary` | 新しい `RSMutableDictionary` |
+| `RSDictionary` | 同じインスタンス | 新しい `RSMutableDictionary` |
+
+```{r}
+value <- RSString_withValue("before")
+source <- RSMutableDictionary$new(keys = list(key), values = list(value))
+immutable <- source$copy()
+editable <- source$mutableCopy()
+stopifnot(immutable$isMemberOf(RSDictionary))
+stopifnot(editable$isMemberOf(RSMutableDictionary))
+stopifnot(identical(immutable$objectForKey(key), value))
+
+source$setObjectForKey(RSString_withValue("after"), key)
+stopifnot(identical(source$objectForKey(key)$value(), "after"))
+stopifnot(identical(immutable$objectForKey(key)$value(), "before"))
+stopifnot(identical(editable$objectForKey(key)$value(), "before"))
+stopifnot(identical(immutable$copy(), immutable))
+```
+
+一方のコピーで要素を置換しても、他方のテーブルには反映されません。ただし、既存の要素に含まれるオブジェクトは共有されるため、可変の値オブジェクトは別の参照から変更できます。`RSDictionary` が保護するのは要素の対応関係であり、格納されたすべてのオブジェクトの内部状態ではありません。

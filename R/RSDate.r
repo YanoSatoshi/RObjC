@@ -32,15 +32,14 @@ RSDate <- RSScalarClass(
 
     #' @description
     #' Constructs a new `RSDate` object by wrapping a scalar Date value.
-    #' If no value is provided, the current system date (`Sys.Date()`) is used as default.
     #' The input is validated to ensure it is of class `"Date"`, and an error is raised otherwise.
     #' This method delegates scalar validation and storage to the superclass `RSScalar`.
     #' 
     #' @param val A scalar object of class `"Date"`.
     #' @return For `initialize()`: The constructed `RSDate` object (invisible).
-    initialize = function(val = Sys.Date()) {
-      if (!inherits(val, "Date"))   stop("val must be of class Date")
+    initialize = function(val) {
       super$initialize(val)
+      if (!inherits(val, "Date"))   stop("val must be of class Date")
       invisible(self)
     },
 

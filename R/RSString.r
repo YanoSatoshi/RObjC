@@ -41,10 +41,10 @@ RSString <- RSScalarClass(
     #'
     #' @return An initialized `RSString` object (invisible).
     initialize = function(val) {
+      super$initialize(val)
       if (!inherits(val, c("character", "factor"))) {
         stop("RSString can wrap character or factor values.")
       }
-      super$initialize(val)
       invisible(self)
     }
   )

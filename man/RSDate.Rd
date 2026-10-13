@@ -71,11 +71,10 @@ RSNADate
 \if{latex}{\out{\hypertarget{method-RSDate-new}{}}}
 \subsection{Method \code{new()}}{
 Constructs a new \code{RSDate} object by wrapping a scalar Date value.
-If no value is provided, the current system date (\code{Sys.Date()}) is used as default.
 The input is validated to ensure it is of class \code{"Date"}, and an error is raised otherwise.
 This method delegates scalar validation and storage to the superclass \code{RSScalar}.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSDate$new(val = Sys.Date())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSDate$new(val)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

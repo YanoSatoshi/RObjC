@@ -153,9 +153,7 @@ RSMutableArray <- RSObjectClass(
     #'
     #' @param obj An `RSObject` to search for.
     #' @return `TRUE` if the object is found; otherwise `FALSE`.
-    containsObject = function(obj) {
-      isTRUE(self$indexOfObject(obj))
-    },
+    containsObject = function(obj) !is.na(self$indexOfObject(obj)),
 
 
 
@@ -171,7 +169,7 @@ RSMutableArray <- RSObjectClass(
         function(x) x$isEqual(obj),
         logical(1)
       )
-      if (any(idxes)) return(which(idxes)[1L]) else NA_integer
+      if (any(idxes)) return(which(idxes)[1L]) else NA_integer_
     },
 
 
@@ -181,9 +179,7 @@ RSMutableArray <- RSObjectClass(
     #' This is a raw accessor used primarily for internal operations.
     #'
     #' @return A list of RS objects.
-    allObjects = function() {
-      self$copy()
-    },
+    allObjects = function() self$copy(),
 
 
 
@@ -192,9 +188,7 @@ RSMutableArray <- RSObjectClass(
     #' Used for inspection, serialization, or iteration.
     #'
     #' @return A list of RS objects.
-    asList = function() {
-      lapply(private$.storage, identity)
-    },
+    asList = function() lapply(private$.storage, identity),
 
 
 
@@ -203,9 +197,7 @@ RSMutableArray <- RSObjectClass(
     #' Typically used for exporting array contents.
     #'
     #' @return A list of base R values.
-    allObjectsAsList = function() {
-      self$asList()
-    },
+    allObjectsAsList = function() self$asList(),
 
 
 
@@ -213,9 +205,7 @@ RSMutableArray <- RSObjectClass(
     #' Returns the number of objects currently stored in the array.
     #'
     #' @return An integer count.
-    count = function() {
-      length(private$.storage)
-    },
+    count = function() length(private$.storage),
 
 
 

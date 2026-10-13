@@ -1,0 +1,92 @@
+---
+title: "RObjC のクラスファクトリー API"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{RObjC のクラスファクトリー API}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# クラスファクトリー API
+
+RObjC には、R6 ベースのクラスや protocol を宣言するための `RS*Class()` 関数が 4 つあります。各関数は generator を返します。object クラスと scalar クラスは `$new()` でインスタンスを作ります。singleton 系のファクトリーは宣言時に共有インスタンスも作成します。protocol generator はクラスが満たすべき要件を表します。
+
+| ファクトリー | 宣言するもの | 共有インスタンス |
+|:--|:--|:--|
+| `RSObjectClass()` | 通常のオブジェクトクラス | なし |
+| `RSProtocolClass()` | 必須メソッド名を持つ protocol | なし |
+| `RSSingletonClass()` | 共有インスタンスを持つオブジェクトクラス | `Class$instance` |
+| `RSScalarClass()` | scalar クラスと自動生成される NA サブクラス | `Class$na` |
+
+## 共通の引数とクラスの同一性
+
+object、singleton、scalar の各ファクトリーは `class_name`、`super_class`、`protocols`、`public`、`private`、`active`、`parent_env`、`version` を受け取ります。`public`、`private`、`active` には R6 のメンバーを指定し、`protocols` には採用する protocol generator のリストを指定します。`RSProtocolClass()` は代わりに `protocol_name`、`super_protocols`、`contract_methods` を受け取り、`parent_env` と `version` も指定できます。`version` の既定値は `"1.0.0"` で、`_` は使用できません。通常、`parent_env` は既定値のままで十分です。
+
+各ファクトリーは generator に `robjc_isa` メタデータを付けます。インスタンスの `$class()` はその generator を返します。クラスの同一性は名前だけでなく generator の参照に基づくため、同じ名前で別々に宣言したクラスは別物です。`super_class` には singleton でない RObjC の generator を指定します。`RSScalarClass()` の場合は `RSScalar` またはそのサブクラスが必要です。
+
+## 通常のオブジェクトクラス
+
+`RSObjectClass()` の親クラスは既定で `RSObject` です。`public` にメソッドを定義し、`$new()` でインスタンスを作ります。
+
+```{r}
+library(robjc)
+
+Widget <- RSObjectClass(
+  "VignetteWidget",
+  public = list(label = function() "widget")
+)
+widget <- Widget$new()
+stopifnot(identical(widget$label(), "widget"))
+stopifnot(identical(widget$class(), Widget))
+```
+
+## Protocol
+
+`RSProtocolClass()` が記録するのは必須メソッド名であり、実装ではありません。`super_protocols` で別の protocol の要件を継承できます。クラスの `protocols` に generator を渡し、必要なメソッドを実装します。
+
+```{r}
+Labeled <- RSProtocolClass(
+  "VignetteLabeled",
+  contract_methods = "label"
+)
+LabeledWidget <- RSObjectClass(
+  "VignetteLabeledWidget",
+  protocols = list(Labeled),
+  public = list(label = function() "labeled widget")
+)
+stopifnot(LabeledWidget$new()$conformsTo(Labeled))
+```
+
+## 共有 singleton
+
+`RSSingletonClass()` はクラスの宣言中に `$new()` を呼びます。このため、`initialize()` は引数なしで実行できる必要があります。共有インスタンスは `Class$instance` と `Class$robjc_isa$slot` の両方から取得できます。
+
+```{r}
+Registry <- RSSingletonClass("VignetteRegistry")
+stopifnot(identical(Registry$instance, Registry$robjc_isa$slot))
+stopifnot(identical(Registry$instance$class(), Registry))
+```
+
+`$new()` 自体は呼び出せるため、共有オブジェクトが必要なときは `$instance` を使います。`RSNull` は `RSSingletonClass()` で宣言され、共有オブジェクトを `RSNull$null` として公開します。
+
+## scalar クラスと NA クラス
+
+`RSScalarClass()` には、対象の型に適した長さ 1 の欠損値を `na_value` として渡します。通常クラスと NA サブクラスを宣言し、NA サブクラスの共有インスタンスを作ります。`initialize(val)` を定義する場合は、NA インスタンスの作成時に `na_value` を受け取り、冒頭で `super$initialize(val)` を呼ぶ必要があります。通常クラスへ NA を直接渡すとエラーになります。欠損値には `Class$na` を使います。
+
+```{r}
+Count <- RSScalarClass(
+  "VignetteCount",
+  na_value = NA_integer_,
+  public = list(initialize = function(val) {
+    super$initialize(val)
+    if (!is.integer(val)) stop("Expected an integer scalar.")
+    invisible(self)
+  })
+)
+stopifnot(identical(Count$new(2L)$value(), 2L))
+stopifnot(identical(Count$na$value(), NA_integer_))
+stopifnot(identical(Count$na, Count$robjc_isa$slot))
+stopifnot(identical(Count$na$class()$classname, "VignetteCountNA"))
+```
+
+`RS` で始まる名前の NA クラスには `RSNA...` という名前が付き、それ以外の名前には `NA` が末尾に付きます。ファクトリーは NA インスタンスの初期化前に `isNAClass` を設定するため、型ごとの初期化処理で通常インスタンスと区別できます。生成された NA クラスにも `$new()` はありますが、共有インスタンスには `Class$na` を使います。コンストラクタの選択と `NULL`・型付き NA の違いは「scalar と欠損値」（`vignettes_jp/robjc_scalar_values.Rmd`）を参照してください。

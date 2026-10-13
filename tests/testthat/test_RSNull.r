@@ -27,6 +27,12 @@ test_that("RSNull: singleton identity is enforced", {
   expect_identical(a, b)
 })
 
+test_that("RSNull: direct construction points to the shared instance", {
+  expect_error(RSNull$new(), "Use `RSNull$null`. Do not call `RSNull$new()`.",
+               fixed = TRUE)
+  expect_identical(RSNull$null, RSNull$instance)
+})
+
 test_that("RSScalar_withValue(NULL) returns RSNull", {
   wrapped <- RSScalar_withValue(NULL)
   expect_true(wrapped$isKindOf(RSNull))

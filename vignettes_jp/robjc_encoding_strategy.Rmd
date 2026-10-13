@@ -13,7 +13,7 @@ vignette: >
 
 ## クラスの宣言
 
-`RSObjectClass()` はオブジェクトクラスの generator を、`RSProtocolClass()` は protocol の宣言を作成します。`RSSingletonClass()` はクラスの宣言時に共有インスタンスを作成し、そのインスタンスを generator の `$instance` と `robjc_isa$slot` に保存します。`RSScalarClass()` は、`RSNull` のような singleton scalar を作成する前に `isNAClass` を設定します。
+`RSObjectClass()` はオブジェクトクラスの generator を、`RSProtocolClass()` は protocol の宣言を作成します。`RSSingletonClass()` はクラスの宣言時に共有インスタンスを作成し、そのインスタンスを generator の `$instance` と `robjc_isa$slot` に保存します。`RSScalarClass()` は通常の scalar クラスと共有 NA クラスを作成します。`RSNull` は `RSSingletonClass()` で宣言します。宣言 API の詳細は「クラスファクトリー API」（`vignettes_jp/robjc_class_factories.Rmd`）を参照してください。
 
 各ファクトリーは generator に `robjc_isa` を付与し、R6 の private field にも同じメタデータへの参照を設定します。メタデータには親クラス、protocol、バージョン、必要に応じて singleton の slot が含まれます。このため、クラスと protocol の同一性は、クラス名の文字列だけではなく generator への参照に基づきます。
 

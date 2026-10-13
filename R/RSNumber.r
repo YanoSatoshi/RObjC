@@ -33,10 +33,10 @@ RSNumber <- RSScalarClass(
     #'
     #' @return An initialized `RSNumber` object (invisible).
     initialize = function(val) {
+      super$initialize(val)
       if (!is.numeric(val)) {
         stop("val must be of class numeric")
       }
-      super$initialize(val)
       invisible(self)
     }
   )

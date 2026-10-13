@@ -1,0 +1,104 @@
+---
+title: "RObjC のオブジェクトと同一性"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{RObjC のオブジェクトと同一性}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# RSObject
+
+`RSObject` は RObjC のオブジェクトクラスの基底です。アプリケーション用のクラスは `RSObjectClass()` で宣言し、generator の `$new()` でインスタンスを作ります。各インスタンスは、クラスの同一性、protocol への適合、メソッドの有無、表示、等価性、ハッシュに関するメソッドを継承します。
+
+## サブクラスの宣言と初期化
+
+クラスファクトリーは、インスタンスを作る前に同一性のメタデータを設定します。`initialize()` を上書きするときは `super$initialize()` を呼び、R のクラス属性を設定します。サブクラス固有の状態には R6 の private field を使えます。
+
+```{r}
+library(robjc)
+
+Item <- RSObjectClass(
+  "ObjectGuideItem",
+  public = list(
+    initialize = function(name) {
+      super$initialize()
+      private$.name <- name
+      invisible(self)
+    },
+    name = function() private$.name
+  ),
+  private = list(.name = NULL),
+  version = "1.0.0"
+)
+first <- Item$new("first")
+second <- Item$new("first")
+stopifnot(identical(first$name(), "first"))
+```
+
+## クラス関係の確認
+
+`class()` は RObjC のクラス generator を返します。`isMemberOf()` はクラスが完全に一致する場合だけ真になり、`isKindOf()` は祖先クラスも含みます。`superClass()` は直接の親 generator を、`classVersion()` はクラスのバージョンを返します。これらの判定はクラス名の文字列比較ではなく generator の同一性に基づきます。
+
+```{r}
+stopifnot(identical(first$class(), Item))
+stopifnot(first$isMemberOf(Item))
+stopifnot(!first$isMemberOf(RSObject))
+stopifnot(first$isKindOf(RSObject))
+stopifnot(identical(first$superClass(), RSObject))
+stopifnot(identical(first$classVersion(), "1.0.0"))
+```
+
+`inheritClassesAsList()` では祖先クラスの generator を取得できます。`respondsTo("name")` は、インスタンスに呼び出し可能なメソッドがあるかを確認します。`conformsTo(protocol)` は、自身のクラスまたは祖先クラスに宣言された protocol 関係を調べます。メソッドの実装内容は検査しません。
+
+```{r}
+stopifnot(first$respondsTo("name"))
+stopifnot(!first$respondsTo("missingMethod"))
+stopifnot(first$conformsTo(RSCopying))
+```
+
+## 同一性、表示、コピー
+
+基底クラスの `isEqual()` はオブジェクトの参照を比較します。同じ値を持つ別のインスタンスは等しくありません。基底クラスの `hash()` はポインタから整数を作ります。値に基づく等価性を定義するサブクラスでは、それと整合するハッシュも定義してください。`objectID()` はポインタを表す文字列を返します。
+
+`description()` はクラス名とポインタによる短い表示を返し、`print()` はそれを出力します。`debugDescription()` には public field の概要も含まれます。既定の `copy()` は元のインスタンスをそのまま返します。可変クラスで独立したコピーが必要なら、`copy()` を上書きします。
+
+```{r}
+stopifnot(first$isEqual(first))
+stopifnot(!first$isEqual(second))
+stopifnot(identical(first$copy(), first))
+stopifnot(is.character(first$description()))
+stopifnot(is.character(first$objectID()))
+```
+
+## Dictionary における等価性
+
+`RSDictionary` は、`hash()` と `isEqual()` の整合性が必要な理由を示します。内部のテーブルはキーの `hash()` で探索先を決め、同じ探索先にあるキーを `isEqual()` で区別します。別々に作った `RSString` でも、文字列が同じなら値として等しく、ハッシュも一致するため、どちらのキーでも値を取得できます。
+
+```{r}
+stored_key <- RSString_withValue("id")
+lookup_key <- RSString_withValue("id")
+dictionary <- RSDictionary$new(
+  keys = list(stored_key),
+  values = list(RSString_withValue("one"))
+)
+stopifnot(!identical(stored_key, lookup_key))
+stopifnot(stored_key$isEqual(lookup_key))
+stopifnot(identical(stored_key$hash(), lookup_key$hash()))
+stopifnot(identical(dictionary$objectForKey(lookup_key)$value(), "one"))
+```
+
+キーのクラスが守るべき規則は、`a$isEqual(b)` が `TRUE` なら `a$hash()` と `b$hash()` も一致することです。逆に、ハッシュが一致しても等しいとは限りません。特に `RSDictionary$hash()` はキーだけを集約するため、値が違う二つの Dictionary でもハッシュが同じになることがあります。
+
+```{r}
+other_dictionary <- RSDictionary$new(
+  keys = list(lookup_key),
+  values = list(RSString_withValue("two"))
+)
+stopifnot(identical(dictionary$hash(), other_dictionary$hash()))
+stopifnot(!dictionary$isEqual(other_dictionary))
+```
+
+Dictionary は挿入時にキーの `copy()` を呼びます。格納後も、キーの等価性とハッシュを決める状態は安定している必要があります。可変のキーを作る場合は適切なコピーを用意し、格納中に `hash()` や `isEqual()` が参照する値を変えないようにしてください。コピーとキー検索については「Dictionary のキーとコピー」（`vignettes_jp/robjc_dictionary.Rmd`）を参照してください。
+
+protocol の宣言と要件の継承は「RSProtocol」（`vignettes_jp/robjc_protocol.Rmd`）、クラスファクトリーの引数は「クラスファクトリー API」（`vignettes_jp/robjc_class_factories.Rmd`）を参照してください。

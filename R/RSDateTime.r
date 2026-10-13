@@ -1,18 +1,19 @@
 #' @include RSScalar.r
-#' @title RSDateTime: Scalar Wrapper for POSIXct Timestamps
+#' @title RSDateTime: Scalar Wrapper for POSIX Date-Time Values
 #'
 #' @description
-#' `RSDateTime` wraps POSIXct datetime values as scalar objects, inheriting
-#' from `RSScalar`. Time zone is normalized to `"Asia/Tokyo"` to ensure consistency.
+#' `RSDateTime` wraps `POSIXct` and `POSIXlt` datetime values as `POSIXct`
+#' scalar objects, inheriting from `RSScalar`. Conversion preserves the
+#' represented instant and the input's time zone when one is specified.
 #'
 #' Values can be hashed and compared, and the class is suitable for use in
 #' collections such as `RSSet` or `RSDictionary`.
 #'
 #' @section Methods:
-#' - `hash()` – Uses the numeric representation (UNIX time) as integer hash.
+#' - `hash()` – Hashes numeric Unix time without 32-bit integer truncation.
 #'
-#' #' @section Usage:
-#' Use \code{RSDateTime_withDateTime(val)} to construct safely from a POSIXct scalar.
+#' @section Usage:
+#' Use \code{RSDateTime_withDateTime(val)} to construct from a POSIX scalar.
 #' 
 #' @examples
 #' dt <- RSDateTime_withDateTime(Sys.time())
@@ -30,32 +31,31 @@ RSDateTime <- RSScalarClass(
   public      = list(
 
     #' @description
-    #' Initializes an `RSDateTime` object by wrapping a scalar `POSIXct` value.
-    #' If no value is provided, the current system time (`Sys.time()`) is used.
-    #' The time zone is always normalized to `"Asia/Tokyo"` for consistency
-    #' across internal storage and comparison operations.
+    #' Initializes an `RSDateTime` object from a scalar `POSIXct` or `POSIXlt` value.
+    #' The stored `POSIXct` value retains the input's time zone when specified.
+    #' Comparison and hashing use the represented instant.
     #'
-    #' @param val A scalar object of class `"POSIXct"`. Defaults to `Sys.time()`.
+    #' @param val A scalar `POSIXct` or `POSIXlt` value.
     #'
     #' @return An initialized `RSDateTime` object (invisible).
-    initialize = function(val = Sys.time()) {
-      if (!inherits(val, "POSIXct")) stop("val must be of class POSIXct")
-      # タイムゾーンを固定
-      val <- as.POSIXct(val, tz = "Asia/Tokyo")
+    initialize = function(val) {
       super$initialize(val)
+      if (!inherits(val, "POSIXt") || length(val) != 1L)
+        stop("`val` must be a POSIXct or POSIXlt scalar.", call. = FALSE)
+      # Convert POSIXlt in its original time zone so its clock fields are not
+      # reinterpreted; do not replace the input's display time zone.
+      private$.val <- as.POSIXct(val)
       invisible(self)
     },
 
 
     #' @description
-    #' Computes an integer hash based on the numeric UNIX timestamp (in seconds)
-    #' of the wrapped `POSIXct` value. This allows consistent hashing and key
-    #' usage for date-time objects.
+    #' Hashes the numeric Unix timestamp, including fractional seconds.
+    #' This remains defined for dates outside the 32-bit integer range.
     #'
-    #' @return An integer representing the UNIX timestamp as a hash value.
+    #' @return An integer hash value.
     hash = function() {
-      # UNIX時間（秒単位）を整数に変換してハッシュに
-      as.integer(as.numeric(private$.val))
+      RSHashOperator$instance$hashForScalar(as.numeric(private$.val))
     }
   )
 )

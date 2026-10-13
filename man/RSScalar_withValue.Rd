@@ -7,8 +7,8 @@
 RSScalar_withValue(val)
 }
 \arguments{
-\item{val}{\code{NULL} or a length-one logical, integer, double, character,
-factor, \code{Date}, or \code{POSIXct} value.}
+\item{val}{\code{NULL} or a length-one logical, integer, double, complex, raw,
+character, factor, \code{Date}, \code{POSIXct}, or \code{POSIXlt} value.}
 }
 \value{
 An RObjC scalar instance.

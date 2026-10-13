@@ -1,0 +1,91 @@
+---
+title: "Protocols and conformance in RObjC"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Protocols and conformance in RObjC}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# RSProtocol
+
+`RSProtocol` is the root generator for protocol declarations. A protocol lists
+required method names and may inherit requirements from other protocols.
+Declare protocols with `RSProtocolClass()` and pass their generators to an
+object class factory through `protocols`. Work with the generators directly;
+protocols are not normally instantiated with `$new()`.
+
+## Declare a protocol
+
+`contract_methods` is a character vector of required method names. The
+declaration records names, not implementations or method signatures.
+
+```{r}
+library(robjc)
+
+Named <- RSProtocolClass(
+  "ProtocolGuideNamed",
+  contract_methods = "name",
+  version = "1.0.0"
+)
+stopifnot(robjc_isProtocol(Named))
+```
+
+## Inherit requirements
+
+Pass parent protocols in `super_protocols`. Requirements already inherited
+from parents are removed from the child's directly declared contract.
+Conformance to the child protocol also implies conformance to its parents.
+
+```{r}
+Detailed <- RSProtocolClass(
+  "ProtocolGuideDetailed",
+  super_protocols = list(Named),
+  contract_methods = c("name", "details")
+)
+stopifnot(identical(Detailed$robjc_isa$slot, "details"))
+```
+
+The direct contract is stored in `robjc_isa$slot`; parent protocols are stored
+in `robjc_isa$protocols`. These are class metadata, not methods to call on a
+protocol instance.
+
+## Adopt a protocol
+
+An object class adopts a protocol with `protocols = list(...)`. Instances
+report declared conformance through `conformsTo()`, including conformance
+inherited from both parent protocols and object superclasses.
+
+```{r}
+Record <- RSObjectClass(
+  "ProtocolGuideRecord",
+  protocols = list(Detailed),
+  public = list(
+    name = function() "record",
+    details = function() "a named record"
+  )
+)
+record <- Record$new()
+stopifnot(record$conformsTo(Detailed))
+stopifnot(record$conformsTo(Named))
+stopifnot(record$respondsTo("name"))
+stopifnot(record$respondsTo("details"))
+```
+
+`conformsTo()` checks declared relationships; declaration does **not** verify
+that required methods exist. Check implementations separately when defining a
+class. For example, the following object reports conformance but lacks `name`:
+
+```{r}
+DeclaredOnly <- RSObjectClass(
+  "ProtocolGuideDeclaredOnly",
+  protocols = list(Named)
+)
+incomplete <- DeclaredOnly$new()
+stopifnot(incomplete$conformsTo(Named))
+stopifnot(!incomplete$respondsTo("name"))
+```
+
+`RSObject` itself adopts `RSCopying`, whose required method is `copy()`.
+For object methods, see `vignette("robjc_object", package = "robjc")`; for
+factory arguments, see `vignette("robjc_class_factories", package = "robjc")`.

@@ -2,10 +2,11 @@
 % Please edit documentation in R/RSDateTime.r
 \name{RSDateTime}
 \alias{RSDateTime}
-\title{RSDateTime: Scalar Wrapper for POSIXct Timestamps}
+\title{RSDateTime: Scalar Wrapper for POSIX Date-Time Values}
 \description{
-\code{RSDateTime} wraps POSIXct datetime values as scalar objects, inheriting
-from \code{RSScalar}. Time zone is normalized to \code{"Asia/Tokyo"} to ensure consistency.
+\code{RSDateTime} wraps \code{POSIXct} and \code{POSIXlt} datetime values as \code{POSIXct}
+scalar objects, inheriting from \code{RSScalar}. Conversion preserves the
+represented instant and the input's time zone when one is specified.
 
 Values can be hashed and compared, and the class is suitable for use in
 collections such as \code{RSSet} or \code{RSDictionary}.
@@ -13,11 +14,13 @@ collections such as \code{RSSet} or \code{RSDictionary}.
 \section{Methods}{
 
 \itemize{
-\item \code{hash()} – Uses the numeric representation (UNIX time) as integer hash.
+\item \code{hash()} – Hashes numeric Unix time without 32-bit integer truncation.
+}
 }
 
-#' @section Usage:
-Use \code{RSDateTime_withDateTime(val)} to construct safely from a POSIXct scalar.
+\section{Usage}{
+
+Use \code{RSDateTime_withDateTime(val)} to construct from a POSIX scalar.
 }
 
 \examples{
@@ -67,18 +70,17 @@ RSNADateTime
 \if{html}{\out{<a id="method-RSDateTime-new"></a>}}
 \if{latex}{\out{\hypertarget{method-RSDateTime-new}{}}}
 \subsection{Method \code{new()}}{
-Initializes an \code{RSDateTime} object by wrapping a scalar \code{POSIXct} value.
-If no value is provided, the current system time (\code{Sys.time()}) is used.
-The time zone is always normalized to \code{"Asia/Tokyo"} for consistency
-across internal storage and comparison operations.
+Initializes an \code{RSDateTime} object from a scalar \code{POSIXct} or \code{POSIXlt} value.
+The stored \code{POSIXct} value retains the input's time zone when specified.
+Comparison and hashing use the represented instant.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSDateTime$new(val = Sys.time())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSDateTime$new(val)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{val}}{A scalar object of class \code{"POSIXct"}. Defaults to \code{Sys.time()}.}
+\item{\code{val}}{A scalar \code{POSIXct} or \code{POSIXlt} value.}
 }
 \if{html}{\out{</div>}}
 }
@@ -90,15 +92,14 @@ An initialized \code{RSDateTime} object (invisible).
 \if{html}{\out{<a id="method-RSDateTime-hash"></a>}}
 \if{latex}{\out{\hypertarget{method-RSDateTime-hash}{}}}
 \subsection{Method \code{hash()}}{
-Computes an integer hash based on the numeric UNIX timestamp (in seconds)
-of the wrapped \code{POSIXct} value. This allows consistent hashing and key
-usage for date-time objects.
+Hashes the numeric Unix timestamp, including fractional seconds.
+This remains defined for dates outside the 32-bit integer range.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RSDateTime$hash()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
-An integer representing the UNIX timestamp as a hash value.
+An integer hash value.
 }
 }
 }

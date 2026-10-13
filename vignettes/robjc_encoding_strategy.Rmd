@@ -17,8 +17,9 @@ save and restore entry points are still being integrated with the class factorie
 `RSObjectClass()` creates object class generators, `RSProtocolClass()` creates
 protocol declarations, and `RSSingletonClass()` creates a shared instance when
 the class is declared. Singleton generators store that instance in `$instance`
-and `robjc_isa$slot`. `RSScalarClass()` sets `isNAClass` before creating a
-singleton scalar such as `RSNull`.
+and `robjc_isa$slot`. `RSScalarClass()` creates a regular scalar class and its
+shared NA companion; `RSNull` instead uses `RSSingletonClass()`. See
+`vignette("robjc_class_factories", package = "robjc")` for the declaration APIs.
 
 The factories attach `robjc_isa` to each generator and set the same metadata
 reference in the R6 private fields. The metadata contains the superclass,

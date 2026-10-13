@@ -28,8 +28,8 @@ RSBoolean <- RSScalarClass(
     #' @param val A logical scalar to be wrapped.
     #' @return The initialized `RSBoolean` object (invisible).
     initialize = function(val) {
-      if (!inherits(val, "logical")) stop("val must be of class logical")
       super$initialize(val)
+      if (!inherits(val, "logical")) stop("val must be of class logical")
       invisible(self)
     },
 

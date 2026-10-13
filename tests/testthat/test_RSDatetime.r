@@ -2,6 +2,7 @@ test_that("RSDateTime: wraps POSIXct correctly with timezone", {
   dt <- as.POSIXct("2024-01-01 12:00:00", tz = "UTC")
   rsdt <- RSDateTime$new(dt)
   expect_s3_class(rsdt$value(), "POSIXct")
+  expect_identical(attr(rsdt$value(), "tzone"), "UTC")
   expect_equal(format(rsdt$value(), tz = "Asia/Tokyo"), "2024-01-01 21:00:00")
 })
 
@@ -59,4 +60,63 @@ test_that("RSNADateTime: hash() is consistent", {
   a <- RSDateTime$na
   b <- RSDateTime$na
   expect_equal(a$hash(), b$hash())
+})
+
+test_that("RSDateTime preserves an instant across POSIX classes and time zones", {
+  utc <- as.POSIXct("2024-01-01 12:00:00", tz = "UTC")
+  new_york <- as.POSIXct("2024-01-01 07:00:00", tz = "America/New_York")
+  wrapped <- list(
+    utc_ct = RSDateTime_withDateTime(utc),
+    new_york_ct = RSDateTime_withDateTime(new_york),
+    utc_lt = RSDateTime_withDateTime(as.POSIXlt(utc, tz = "UTC")),
+    new_york_lt = RSDateTime$new(as.POSIXlt(new_york, tz = "America/New_York")),
+    dispatched_lt = RSScalar_withValue(as.POSIXlt(utc, tz = "UTC"))
+  )
+  for (value in wrapped) {
+    expect_identical(as.numeric(value$value()), as.numeric(utc))
+    expect_identical(value$hash(), wrapped[[1L]]$hash())
+    expect_identical(value$compare(wrapped[[1L]]), 0L)
+  }
+  expect_identical(attr(wrapped$utc_ct$value(), "tzone"), "UTC")
+  expect_identical(attr(wrapped$utc_lt$value(), "tzone"), "UTC")
+  expect_identical(attr(wrapped$dispatched_lt$value(), "tzone"), "UTC")
+  expect_identical(attr(wrapped$new_york_ct$value(), "tzone"), "America/New_York")
+  expect_identical(attr(wrapped$new_york_lt$value(), "tzone"), "America/New_York")
+  expect_identical(format(wrapped$new_york_lt$value()), "2024-01-01 07:00:00")
+})
+
+test_that("RSDateTime leaves an unspecified POSIXct time zone unspecified", {
+  timestamp <- as.POSIXct("2024-01-01 12:00:00", tz = "UTC")
+  attr(timestamp, "tzone") <- NULL
+  wrapped <- RSDateTime_withDateTime(timestamp)
+  expect_null(attr(wrapped$value(), "tzone"))
+  expect_identical(as.numeric(wrapped$value()), as.numeric(timestamp))
+})
+
+test_that("RSDateTime handles POSIXlt NA and future timestamps", {
+  expect_identical(RSDateTime_withDateTime(as.POSIXlt(NA)), RSDateTime$na)
+  expect_identical(RSScalar_withValue(as.POSIXlt(NA)), RSDateTime$na)
+
+  future <- RSDateTime_withDateTime(as.POSIXct("2040-01-01", tz = "UTC"))
+  expect_type(future$hash(), "integer")
+  expect_false(is.na(future$hash()))
+  expect_false(is.na(RSDateTime$na$hash()))
+
+  base <- as.POSIXct("2024-01-01 00:00:00", tz = "UTC")
+  first_fraction <- RSDateTime_withDateTime(base + 0.25)
+  second_fraction <- RSDateTime_withDateTime(base + 0.5)
+  expect_false(identical(first_fraction$hash(), second_fraction$hash()))
+})
+
+test_that("RSDateTime preserves elapsed time across a DST transition", {
+  before <- as.POSIXct("2024-03-10 06:59:59", tz = "UTC")
+  after <- as.POSIXct("2024-03-10 07:00:00", tz = "UTC")
+  before_lt <- as.POSIXlt(before, tz = "America/New_York")
+  after_lt <- as.POSIXlt(after, tz = "America/New_York")
+  first <- RSDateTime_withDateTime(before_lt)
+  second <- RSDateTime_withDateTime(after_lt)
+
+  expect_identical(as.numeric(first$value()), as.numeric(before))
+  expect_identical(as.numeric(second$value()), as.numeric(after))
+  expect_identical(as.numeric(second$value()) - as.numeric(first$value()), 1)
 })

@@ -1,0 +1,76 @@
+---
+title: "RObjC の protocol と適合関係"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{RObjC の protocol と適合関係}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# RSProtocol
+
+`RSProtocol` は protocol 宣言の基底 generator です。protocol は必須メソッドの名前を列挙し、別の protocol の要件を継承できます。`RSProtocolClass()` で宣言し、その generator をオブジェクトクラスのファクトリーの `protocols` に渡します。protocol は通常 `$new()` でインスタンス化せず、generator を直接使います。
+
+## Protocol の宣言
+
+`contract_methods` は必須メソッド名の character vector です。宣言で記録するのは名前であり、メソッドの実装や引数の形ではありません。
+
+```{r}
+library(robjc)
+
+Named <- RSProtocolClass(
+  "ProtocolGuideNamed",
+  contract_methods = "name",
+  version = "1.0.0"
+)
+stopifnot(robjc_isProtocol(Named))
+```
+
+## 要件の継承
+
+親 protocol は `super_protocols` に指定します。子の `contract_methods` に親から受け継ぐ名前も含めた場合、その名前は子が直接宣言した要件から取り除かれます。子 protocol への適合は、その親への適合も意味します。
+
+```{r}
+Detailed <- RSProtocolClass(
+  "ProtocolGuideDetailed",
+  super_protocols = list(Named),
+  contract_methods = c("name", "details")
+)
+stopifnot(identical(Detailed$robjc_isa$slot, "details"))
+```
+
+直接の要件は `robjc_isa$slot`、親 protocol は `robjc_isa$protocols` に記録されます。これらはクラスメタデータであり、protocol インスタンスのメソッドではありません。
+
+## Protocol の採用
+
+オブジェクトクラスは `protocols = list(...)` で protocol を採用します。インスタンスの `conformsTo()` は、親 protocol やオブジェクトの親クラスから継承した関係も含めて判定します。
+
+```{r}
+Record <- RSObjectClass(
+  "ProtocolGuideRecord",
+  protocols = list(Detailed),
+  public = list(
+    name = function() "record",
+    details = function() "a named record"
+  )
+)
+record <- Record$new()
+stopifnot(record$conformsTo(Detailed))
+stopifnot(record$conformsTo(Named))
+stopifnot(record$respondsTo("name"))
+stopifnot(record$respondsTo("details"))
+```
+
+`conformsTo()` が調べるのは宣言された関係です。宣言時に必須メソッドの存在は**検証されません**。クラスを定義するときに実装を別途確認してください。次の例では、適合を報告しても `name()` はありません。
+
+```{r}
+DeclaredOnly <- RSObjectClass(
+  "ProtocolGuideDeclaredOnly",
+  protocols = list(Named)
+)
+incomplete <- DeclaredOnly$new()
+stopifnot(incomplete$conformsTo(Named))
+stopifnot(!incomplete$respondsTo("name"))
+```
+
+`RSObject` 自身は `RSCopying` を採用しており、その必須メソッドは `copy()` です。オブジェクトのメソッドについては「RSObject」（`vignettes_jp/robjc_object.Rmd`）、ファクトリーの引数については「クラスファクトリー API」（`vignettes_jp/robjc_class_factories.Rmd`）を参照してください。
