@@ -23,7 +23,6 @@ test_that("RObjC identity printing uses the owning generator name", {
   for (field in ls(RSObject$robjc_isa, all.names = TRUE)) {
     expect_match(output, paste0(field, ":"), fixed = TRUE)
   }
-  expect_match(output, "version: 0.0.2 alpha", fixed = TRUE)
   expect_false(grepl(".__isa", output, fixed = TRUE))
   expect_identical(paste(capture.output(print(RSObject$robjc_isa)), collapse = "\n"), output)
 

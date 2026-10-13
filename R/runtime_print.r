@@ -109,7 +109,7 @@ robjc_isa_value_summary <- function(value) {
 #' #   protocols: list()
 #' #   slot: NULL
 #' #   super: <RSScalar>
-#' #   version: 0.0.2 alpha
+#' #   version: 0.0.3 alpha
 #' @export
 format.RSIsA <- function(x, ...) {
   generator <- x$class
@@ -140,7 +140,7 @@ print.RSIsA <- function(x, ...) {
 #' print(RSString)
 #' # <RSString> RObjC object generator
 #' #   Inherits from: <RSScalar>
-#' #   Version: 0.0.2 alpha
+#' #   Version: 0.0.3 alpha
 #' #   Public:
 #' #     initialize: function (val)
 #' #   Parent env: <environment: namespace:robjc>
