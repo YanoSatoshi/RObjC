@@ -1,14 +1,17 @@
 #' @include runtime_robjc.r
 
+
 #' @title Validate an RObjC Class Generator
 #' @description Internal guard for class introspection helpers.
 #' @param klass A class generator to validate.
 #' @return `TRUE` if validation succeeds; otherwise raises an error.
 #' @keywords internal
 class_check <- function(klass) {
-  if (!robjc_isClass(klass)) stop("`klass` is not RS_CLASS.")
+  if (!robjc_isClass(klass))
+    stop("`klass` is not RS_CLASS.", call. = FALSE)
   return(TRUE)
 }
+
 
 
 #' @title Get a Class Name
@@ -22,6 +25,7 @@ class_getName <- function(klass) {
 }
 
 
+
 #' @title Check Whether a Class Is a Singleton
 #' @description Checks whether a class generator was declared as a singleton.
 #' @param klass An RObjC class generator.
@@ -31,6 +35,7 @@ class_isSingleton <- function(klass) {
   class_check(klass)
   return(inherits(klass, ROBJC_SINGLETON))
 }
+
 
 
 #' @title Get the Parent Class
@@ -44,11 +49,12 @@ class_getSuperClass <- function(klass) {
 }
 
 
+
 #' @title Find an Instance Method
 #' @description Looks for a public method on a class, then walks up its parent
 #'   classes until the method is found.
 #' @param klass An RObjC class generator.
-#' @param method_name One character string naming the method.
+#' @param method_name One non-empty, non-missing character string naming the method.
 #' @return The method function, or `NULL` when no class in the chain defines it.
 #' @keywords internal
 class_getInstanceMethod <- function(
@@ -56,6 +62,12 @@ class_getInstanceMethod <- function(
   method_name
 ) {
   class_check(klass)
+  if (!is.character(method_name) ||
+      length(method_name) != 1L ||
+      is.na(method_name) ||
+      !nzchar(method_name)) {
+    stop("`method_name` must be one non-empty character string.", call. = FALSE)
+  }
   current <- klass
   while(!is.null(current)) {
     method <- current$public_methods[[method_name]]
@@ -65,6 +77,7 @@ class_getInstanceMethod <- function(
   }
   return(NULL)
 }
+
 
 
 #' @title Get Protocols Adopted by a Class and Its Parents
@@ -85,17 +98,3 @@ class_getWholeProtocols <- function(klass) {
   )
   protocols_list[!duplicated(protocols_list)]
 }
-
-
-# #' @export
-# class_getInstanceVariable <- function(
-
-# ) {
-
-# }
-
-
-# #' @export
-# class_addMethod <- function() {
-
-# }

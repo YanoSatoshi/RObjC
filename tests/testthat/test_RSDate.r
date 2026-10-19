@@ -4,6 +4,12 @@ test_that("RSDate: wraps Date correctly", {
   expect_equal(rsd$value(), d)
 })
 
+test_that("RSDate rejects a Date class on a nonnumeric value", {
+  bad <- structure("x", class = "Date")
+  expect_error(RSDate$new(bad), "must be a numeric Date", fixed = TRUE)
+  expect_error(RSDate_withDate(bad), "must be a numeric Date", fixed = TRUE)
+})
+
 test_that("RSDate: compare() works on Date", {
   d1 <- RSDate$new(as.Date("2020-01-01"))
   d2 <- RSDate$new(as.Date("2020-01-02"))

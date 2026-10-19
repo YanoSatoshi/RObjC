@@ -38,7 +38,7 @@ stopifnot(identical(first$name(), "first"))
 
 ## クラス関係の確認
 
-`class()` は RObjC のクラス generator を返します。`isMemberOf()` はクラスが完全に一致する場合だけ真になり、`isKindOf()` は祖先クラスも含みます。`superClass()` は直接の親 generator を、`classVersion()` はクラスのバージョンを返します。これらの判定はクラス名の文字列比較ではなく generator の同一性に基づきます。
+`class()` は RObjC のクラス generator を返します。`isMemberOf()` はクラスが完全に一致する場合だけ真になり、`isKindOf()` は祖先クラスも含みます。`superClass()` は直接の親 generator を返します。クラスのバージョンは generator の `robjc_isa$version` から取得します。クラス関係の判定はクラス名の文字列比較ではなく generator の同一性に基づきます。
 
 ```{r}
 stopifnot(identical(first$class(), Item))
@@ -46,7 +46,7 @@ stopifnot(first$isMemberOf(Item))
 stopifnot(!first$isMemberOf(RSObject))
 stopifnot(first$isKindOf(RSObject))
 stopifnot(identical(first$superClass(), RSObject))
-stopifnot(identical(first$classVersion(), "1.0.0"))
+stopifnot(identical(first$class()$robjc_isa$version, "1.0.0"))
 ```
 
 `inheritClassesAsList()` では祖先クラスの generator を取得できます。`respondsTo("name")` は、インスタンスに呼び出し可能なメソッドがあるかを確認します。`conformsTo(protocol)` は、自身のクラスまたは祖先クラスに宣言された protocol 関係を調べます。メソッドの実装内容は検査しません。

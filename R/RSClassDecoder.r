@@ -8,8 +8,8 @@
 #'
 #' This class conforms to the `RSDecoderProtocol`, and is typically invoked by functions like `robjc_read_rds()` or `robjc_load()`.
 #'
-#' @field class_store A dictionary containing class ID to instance mappings
-#'   ([RSClassReference] entries), or `NULL` before data is loaded.
+#' @field class_store A dictionary mapping [RSString] class IDs to
+#'   [RSInstanceMap] objects, or `NULL` before data is loaded.
 #' @field unresolved A character vector of classIDs that could not be resolved during decoding.
 #'
 #' @seealso [RSClassEncoder], [RSClassReference], [RSDecoderProtocol]
@@ -22,7 +22,7 @@ RSClassDecoder <- RSSingletonClass(
   protocols = list(RSDecoderProtocol),
   public = list(
 
-    class_store = NULL,      # RSDictionary<String, RSClassReference>
+    class_store = NULL,      # RSDictionary<RSString, RSInstanceMap>
     unresolved = NULL,       # character vector of unresolved classIDs
 
 
@@ -46,7 +46,9 @@ RSClassDecoder <- RSSingletonClass(
     #' Load encoded class map (from encoder) into internal state
     #' @param encoded_data A dictionary produced by RSClassEncoder$lockInstance()
     loadEncodedData = function(encoded_data) {
-      stopifnot(inherits(encoded_data, "RSMutableDictionary"))
+      # A restored generator differs by reference from the current generator.
+      if (!robjc_isRobjcObject(encoded_data) || !inherits(encoded_data, "RSMutableDictionary"))
+        stop("`encoded_data` must be a dictionary.", call. = FALSE)
       self$class_store <- encoded_data
       self$unresolved <- character(0)
       invisible(self)
@@ -71,6 +73,9 @@ RSClassDecoder <- RSSingletonClass(
     #' Return list of classIDs from all stored RSClassReference entries.
     #' @return A list of classIDs
     encodedClassIDs = function() {
+      #! validation check V-103
+      #todo 現在の文書は list と書くが、vapply(..., character(1)) の返り値は character vector。空のときも character(0)。
+      #? @return を「class ID の character vector」とし、説明も RSClassReference entry に依存しない表現へ直す。
       vapply(
         self$encodedClasses(),
         function(entry) entry$key()$value(),
@@ -82,40 +87,68 @@ RSClassDecoder <- RSSingletonClass(
 
 
     #' @description
-    #' Resolves saved classIDs in the encoded data using a provided mapping of classID strings
-    #' to runtime R6Class objects. If a classID cannot be resolved, it is added to the `unresolved` field.
+    #' Resolves saved classIDs using a dictionary that maps [RSString] class IDs
+    #' to [RSWrappedClass] objects. If a classID cannot be resolved, it is added to the `unresolved` field.
     #'
     #' For each resolved class, `resolveClassWith()` is called on all encoded instances to
     #' update their internal class pointer (`private$.__isa`).
     #'
-    #' If any classes remain unresolved, the decoder will stop and raise an error with classID details.
+    #' Class entries without instances record ancestry only and do not need a
+    #' runtime class mapping. If any class with instances remains unresolved,
+    #' the decoder stops with the missing class IDs.
     #'
-    #' @param class_map An `RSDictionary` that maps classID strings (e.g., "MyClass_1.0") to R6Class objects.
+    #' @param class_map An `RSDictionary` or `RSMutableDictionary` mapping
+    #'   [RSString] class IDs (e.g., "MyClass_1.0") to matching [RSWrappedClass] objects.
     #'
     #' @return The decoder object (invisible).
     resolveClassesWithDictionary = function(class_map) {
-      stopifnot(class_map$isKindOf(RSMutableDictionary))
-      self$unresolved <- character(0)
-      entries <- self$encodedClasses()
-      for (entry in entries) {
-        instance_map <- entry$value()
-        class_id <- entry$key()$value()
-        new_class    <- class_map$objectForKey(RSString_withValue(class_id))
-        if (is.null(new_class)) {
-          self$unresolved <- c(self$unresolved, class_id)
-          next
-        }
-        instances <- instance_map$objects()$allObjectsAsList()
-        for (obj in instances) {
-          obj$resolveClassWith(new_class$classObject())
+      if (!robjc_isRobjcObject(class_map) || !class_map$isKindOf(RSMutableDictionary))
+        stop("`class_map` must be a dictionary.", call. = FALSE)
+      for (mapping in class_map$allEntriesAsList()) {
+        key <- mapping$key()
+        value <- mapping$value()
+        if (!robjc_isRobjcObject(key) || !key$isKindOf(RSString) ||
+            !robjc_isRobjcObject(value) || !value$isKindOf(RSWrappedClass) ||
+            !robjc_isClass(value$classObject()) ||
+            !identical(key$value(), value$classID()$value())) {
+          stop(
+            "`class_map` must map class IDs to matching RSWrappedClass objects.",
+            call. = FALSE
+          )
         }
       }
-      if (length(self$unresolved) > 0) {
-        msg <- sprintf(
-          "Unresolved classIDs: %s",
-          paste(self$unresolved, collapse = ", ")
+      self$unresolved <- character(0)
+      entries <- self$encodedClasses()
+      resolved <- lapply(
+        entries,
+        # Rebuild the key with the current RSString generator before lookup.
+        function(entry) class_map$objectForKey(RSString_withValue(entry$key()$value()))
+      )
+      instances <- lapply(
+        entries,
+        function(entry) entry$value()$objects()$allObjectsAsList()
+      )
+      missing <- vapply(
+        seq_along(entries),
+        function(i) is.null(resolved[[i]]) && length(instances[[i]]) > 0L,
+        logical(1)
+      )
+      self$unresolved <- vapply(
+        entries[missing],
+        function(entry) entry$key()$value(),
+        character(1)
+      )
+      if (length(self$unresolved) > 0L) {
+        stop(
+          sprintf("Unresolved classIDs: %s", paste(self$unresolved, collapse = ", ")),
+          call. = FALSE
         )
-        stop(msg, call. = FALSE)
+      }
+      for (i in seq_along(entries)) {
+        if (length(instances[[i]]) == 0L) next
+        new_class <- resolved[[i]]$classObject()
+        for (obj in instances[[i]])
+          obj$resolveClassWith(new_class)
       }
       invisible(self)
     },
@@ -132,6 +165,8 @@ RSClassDecoder <- RSSingletonClass(
     #' @return The decoder object (invisible).
     unpackTo = function(envir = .GlobalEnv) {
       stopifnot(!is.null(self$class_store))
+      if (!is.environment(envir))
+        stop("`envir` must be an environment.", call. = FALSE)
       entries <- self$encodedClasses()
       for (entry in entries) {
         map <- entry$value()

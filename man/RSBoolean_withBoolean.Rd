@@ -7,7 +7,7 @@
 RSBoolean_withBoolean(val)
 }
 \arguments{
-\item{val}{A logical scalar, including \code{NA}.}
+\item{val}{A logical scalar without an S3 class attribute, including \code{NA}.}
 }
 \value{
 An \link{RSBoolean} or \link{RSNABoolean} instance.

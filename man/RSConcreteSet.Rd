@@ -41,271 +41,302 @@ rebuild the native table after deserialization.
 \keyword{internal}
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-RSConcreteSet-new}{\code{RSConcreteSet$new()}}
-\item \href{#method-RSConcreteSet-duplicate}{\code{RSConcreteSet$duplicate()}}
-\item \href{#method-RSConcreteSet-add}{\code{RSConcreteSet$add()}}
-\item \href{#method-RSConcreteSet-member}{\code{RSConcreteSet$member()}}
-\item \href{#method-RSConcreteSet-anyObject}{\code{RSConcreteSet$anyObject()}}
-\item \href{#method-RSConcreteSet-contains}{\code{RSConcreteSet$contains()}}
-\item \href{#method-RSConcreteSet-remove}{\code{RSConcreteSet$remove()}}
-\item \href{#method-RSConcreteSet-clear}{\code{RSConcreteSet$clear()}}
-\item \href{#method-RSConcreteSet-allObjects}{\code{RSConcreteSet$allObjects()}}
-\item \href{#method-RSConcreteSet-count}{\code{RSConcreteSet$count()}}
-\item \href{#method-RSConcreteSet-uniteWith}{\code{RSConcreteSet$uniteWith()}}
-\item \href{#method-RSConcreteSet-intersectWith}{\code{RSConcreteSet$intersectWith()}}
-\item \href{#method-RSConcreteSet-subtractWith}{\code{RSConcreteSet$subtractWith()}}
-\item \href{#method-RSConcreteSet-contentHash}{\code{RSConcreteSet$contentHash()}}
-\item \href{#method-RSConcreteSet-prepareForSerialization}{\code{RSConcreteSet$prepareForSerialization()}}
-}
+  \itemize{
+    \item \href{#method-RSConcreteSet-initialize}{\code{RSConcreteSet$new()}}
+    \item \href{#method-RSConcreteSet-duplicate}{\code{RSConcreteSet$duplicate()}}
+    \item \href{#method-RSConcreteSet-add}{\code{RSConcreteSet$add()}}
+    \item \href{#method-RSConcreteSet-member}{\code{RSConcreteSet$member()}}
+    \item \href{#method-RSConcreteSet-anyObject}{\code{RSConcreteSet$anyObject()}}
+    \item \href{#method-RSConcreteSet-contains}{\code{RSConcreteSet$contains()}}
+    \item \href{#method-RSConcreteSet-remove}{\code{RSConcreteSet$remove()}}
+    \item \href{#method-RSConcreteSet-clear}{\code{RSConcreteSet$clear()}}
+    \item \href{#method-RSConcreteSet-allObjects}{\code{RSConcreteSet$allObjects()}}
+    \item \href{#method-RSConcreteSet-count}{\code{RSConcreteSet$count()}}
+    \item \href{#method-RSConcreteSet-uniteWith}{\code{RSConcreteSet$uniteWith()}}
+    \item \href{#method-RSConcreteSet-intersectWith}{\code{RSConcreteSet$intersectWith()}}
+    \item \href{#method-RSConcreteSet-subtractWith}{\code{RSConcreteSet$subtractWith()}}
+    \item \href{#method-RSConcreteSet-contentHash}{\code{RSConcreteSet$contentHash()}}
+    \item \href{#method-RSConcreteSet-prepareForSerialization}{\code{RSConcreteSet$prepareForSerialization()}}
+  }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSConcreteSet-new"></a>}}
-\if{latex}{\out{\hypertarget{method-RSConcreteSet-new}{}}}
-\subsection{Method \code{new()}}{
-Creates empty native storage or adopts an internal pointer.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteSet$new(.native_ptr = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-RSConcreteSet-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-RSConcreteSet-initialize}{}}}
+\subsection{\code{RSConcreteSet$new()}}{
+  Creates empty native storage or adopts an internal pointer.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteSet$new(.native_ptr = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{.native_ptr}}{Internal external pointer returned by the native set
+bridge. Package code should normally leave this as \code{NULL}.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{.native_ptr}}{Internal external pointer returned by the native set
-bridge. Package code should normally leave this as \code{NULL}.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteSet-duplicate"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteSet-duplicate}{}}}
-\subsection{Method \code{duplicate()}}{
-Creates an independent shallow copy of the storage.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteSet$duplicate()}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteSet$duplicate()}}{
+  Creates an independent shallow copy of the storage.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteSet$duplicate()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \code{RSConcreteSet} containing the same object references.
+  }
 }
 
-\subsection{Returns}{
-A new \code{RSConcreteSet} containing the same object references.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteSet-add"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteSet-add}{}}}
-\subsection{Method \code{add()}}{
-Adds an object if no equal member is present.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteSet$add(item)}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteSet$add()}}{
+  Adds an object if no equal member is present.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteSet$add(item)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{item}}{A hashable RObjC object or Class/Protocol generator. It is
+retained, not copied.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{item}}{A hashable RObjC object. The object is retained, not copied.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{self}, invisibly.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteSet-member"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteSet-member}{}}}
-\subsection{Method \code{member()}}{
-Returns the stored object equal to \code{item}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteSet$member(item)}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteSet$member()}}{
+  Returns the stored object equal to \code{item}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteSet$member(item)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{item}}{A hashable RObjC object or Class/Protocol generator used for lookup.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The stored member, or \code{NULL} when absent.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{item}}{A hashable RObjC object used for lookup.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The stored member, or \code{NULL} when absent.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteSet-anyObject"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteSet-anyObject}{}}}
-\subsection{Method \code{anyObject()}}{
-Returns an arbitrary stored member.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteSet$anyObject()}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteSet$anyObject()}}{
+  Returns an arbitrary stored member.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteSet$anyObject()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A stored member, or \code{NULL} when the set is empty.
+  }
 }
 
-\subsection{Returns}{
-A stored member, or \code{NULL} when the set is empty.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteSet-contains"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteSet-contains}{}}}
-\subsection{Method \code{contains()}}{
-Tests whether an equal member is present.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteSet$contains(item)}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteSet$contains()}}{
+  Tests whether an equal member is present.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteSet$contains(item)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{item}}{A hashable RObjC object or Class/Protocol generator used for lookup.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A logical scalar.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{item}}{A hashable RObjC object used for lookup.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A logical scalar.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteSet-remove"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteSet-remove}{}}}
-\subsection{Method \code{remove()}}{
-Removes the member equal to \code{item}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteSet$remove(item)}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteSet$remove()}}{
+  Removes the member equal to \code{item}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteSet$remove(item)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{item}}{A hashable RObjC object or Class/Protocol generator used for lookup.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} if a member was removed; otherwise \code{FALSE}.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{item}}{A hashable RObjC object used for lookup.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{TRUE} if a member was removed; otherwise \code{FALSE}.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteSet-clear"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteSet-clear}{}}}
-\subsection{Method \code{clear()}}{
-Removes every member.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteSet$clear()}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteSet$clear()}}{
+  Removes every member.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteSet$clear()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
 }
 
-\subsection{Returns}{
-\code{self}, invisibly.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteSet-allObjects"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteSet-allObjects}{}}}
-\subsection{Method \code{allObjects()}}{
-Returns all stored members.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteSet$allObjects()}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteSet$allObjects()}}{
+  Returns all stored members.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteSet$allObjects()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list in unspecified order.
+  }
 }
 
-\subsection{Returns}{
-A list in unspecified order.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteSet-count"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteSet-count}{}}}
-\subsection{Method \code{count()}}{
-Returns the number of members.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteSet$count()}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteSet$count()}}{
+  Returns the number of members.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteSet$count()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A non-negative numeric scalar.
+  }
 }
 
-\subsection{Returns}{
-A non-negative numeric scalar.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteSet-uniteWith"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteSet-uniteWith}{}}}
-\subsection{Method \code{uniteWith()}}{
-Adds every member of \code{other} to this storage.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteSet$uniteWith(other)}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteSet$uniteWith()}}{
+  Adds every member of \code{other} to this storage.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteSet$uniteWith(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another \code{RSConcreteSet}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{other}}{Another \code{RSConcreteSet}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{self}, invisibly.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteSet-intersectWith"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteSet-intersectWith}{}}}
-\subsection{Method \code{intersectWith()}}{
-Retains only members also present in \code{other}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteSet$intersectWith(other)}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteSet$intersectWith()}}{
+  Retains only members also present in \code{other}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteSet$intersectWith(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another \code{RSConcreteSet}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{other}}{Another \code{RSConcreteSet}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{self}, invisibly.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteSet-subtractWith"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteSet-subtractWith}{}}}
-\subsection{Method \code{subtractWith()}}{
-Removes every member also present in \code{other}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteSet$subtractWith(other)}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteSet$subtractWith()}}{
+  Removes every member also present in \code{other}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteSet$subtractWith(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another \code{RSConcreteSet}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{other}}{Another \code{RSConcreteSet}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{self}, invisibly.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteSet-contentHash"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteSet-contentHash}{}}}
-\subsection{Method \code{contentHash()}}{
-Computes an order-independent aggregate member hash.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteSet$contentHash()}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteSet$contentHash()}}{
+  Computes an order-independent aggregate member hash.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteSet$contentHash()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An integer hash value.
+  }
 }
 
-\subsection{Returns}{
-An integer hash value.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteSet-prepareForSerialization"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteSet-prepareForSerialization}{}}}
-\subsection{Method \code{prepareForSerialization()}}{
-Captures data needed to rebuild storage after serialization.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteSet$prepareForSerialization()}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteSet$prepareForSerialization()}}{
+  Captures data needed to rebuild storage after serialization.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteSet$prepareForSerialization()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
 }
 
-\subsection{Returns}{
-\code{self}, invisibly.
-}
-}
 }

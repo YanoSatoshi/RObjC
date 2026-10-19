@@ -10,13 +10,16 @@ test_that("RSComplex wraps complex values and dispatches from RSScalar", {
   expect_identical(RSComplex$na$value(), NA_complex_)
 })
 
-test_that("RSComplex compares and hashes complex scalars", {
+test_that("RSComplex has key equality and base R sort order", {
   first <- RSComplex$new(1 + 2i)
   same <- RSComplex$new(1 + 2i)
   later <- RSComplex$new(1 + 3i)
   expect_true(first$isEqual(same))
   expect_false(first$isEqual(later))
   expect_identical(first$compare(later), -1L)
+  expect_identical(later$compare(first), 1L)
+  expect_identical(first$compare(same), 0L)
+  expect_identical(RSComplex$new(0 + 10i)$compare(first), -1L)
   expect_identical(first$hash(), same$hash())
   expect_identical(RSComplex$na$compare(first), 1L)
   expect_identical(RSComplex$na$compare(first, na.last = FALSE), -1L)

@@ -42,13 +42,14 @@ stopifnot(identical(widget$class(), Widget))
 
 ## Protocol
 
-`RSProtocolClass()` が記録するのは必須メソッド名であり、実装ではありません。`super_protocols` で別の protocol の要件を継承できます。クラスの `protocols` に generator を渡し、必要なメソッドを実装します。
+`RSProtocolClass()` が記録するのは必須メソッド名であり、実装ではありません。`super_protocols` で別の protocol の要件を継承できます。クラスの `protocols` に generator を渡し、必要なメソッドを実装します。protocol generator の `$new()` は無効です。
 
 ```{r}
 Labeled <- RSProtocolClass(
   "VignetteLabeled",
   contract_methods = "label"
 )
+stopifnot(is.null(Labeled$new))
 LabeledWidget <- RSObjectClass(
   "VignetteLabeledWidget",
   protocols = list(Labeled),
@@ -89,4 +90,4 @@ stopifnot(identical(Count$na, Count$robjc_isa$slot))
 stopifnot(identical(Count$na$class()$classname, "VignetteCountNA"))
 ```
 
-`RS` で始まる名前の NA クラスには `RSNA...` という名前が付き、それ以外の名前には `NA` が末尾に付きます。ファクトリーは NA インスタンスの初期化前に `isNAClass` を設定するため、型ごとの初期化処理で通常インスタンスと区別できます。生成された NA クラスにも `$new()` はありますが、共有インスタンスには `Class$na` を使います。コンストラクタの選択と `NULL`・型付き NA の違いは「scalar と欠損値」（`vignettes_jp/robjc_scalar_values.Rmd`）を参照してください。
+`RS` で始まる名前の NA クラスには `RSNA...` という名前が付き、それ以外の名前には `NA` が末尾に付きます。ファクトリーは NA インスタンスの初期化前に `isNAClass` を設定するため、型ごとの初期化処理で通常インスタンスと区別できます。既定では生成された NA クラスの `$new()` は無効で、共有インスタンスには `Class$na` を使います。`na_singleton = FALSE` を指定した場合は、欠損値ごとのメタデータを保持できるよう直接生成も可能です。コンストラクタの選択と `NULL`・型付き NA の違いは「scalar と欠損値」（`vignettes_jp/robjc_scalar_values.Rmd`）を参照してください。

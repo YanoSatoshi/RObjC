@@ -11,5 +11,5 @@ The generated NA companion class for \link{RSComplex}. Use
 \code{RSComplex$na} for its shared instance.
 }
 \section{Super classes}{
-\code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{\link[robjc:RSScalar]{robjc::RSScalar}} -> \code{\link[robjc:RSComplex]{robjc::RSComplex}} -> \code{RSNAComplex}
+\code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSScalar]{RSScalar}} -> \code{\link[robjc:RSComplex]{RSComplex}} -> \code{RSNAComplex}
 }

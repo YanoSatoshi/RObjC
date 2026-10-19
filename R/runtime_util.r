@@ -28,46 +28,50 @@
 get_pointer_hex <- function(some_obj, obj_name = NULL) {
   if (is.null(obj_name)) {
     obj_name <- tryCatch(
-      deparse(substitute(some_obj)), error = function(e) "unknown"
+      deparse(substitute(some_obj)),
+      error = function(e) "unknown"
     )
   }
   get_label <- function() {
-    tryCatch({
-      if (robjc_isRobjcObject(some_obj)) {
-        some_obj$class()$classname
-      } else if (robjc_isMetaClass(some_obj)) {
-        some_obj$classname
-      } else if (is.function(some_obj)) {
-        paste0("function ", obj_name)
-      } else {
-        class(some_obj)[1]
-      }
-    }, error = function(e) paste("unknown object (", obj_name, ")"))
+    tryCatch(
+      {
+        if (robjc_isRobjcObject(some_obj))
+          some_obj$class()$classname
+        else if (robjc_isMetaClass(some_obj))
+          some_obj$classname
+        else if (is.function(some_obj))
+          paste0("function ", obj_name)
+        else
+          class(some_obj)[1]
+      },
+      error = function(e) paste0("unknown object (", obj_name, ")")
+    )
   }
-  env <- tryCatch(environment(some_obj$print), error = function(e) NULL)
+  env <- tryCatch(
+    environment(some_obj$print),
+    error = function(e) NULL
+  )
   if (is.null(env)) {
     label <- get_label()
-    stop(sprintf("Pointer could not be resolved: object = [%s]", label))
+    stop(
+      sprintf("Pointer could not be resolved: object = [%s]", label),
+      call. = FALSE
+    )
   }
-  addr <- capture.output(print(env))[1]
+  addr <- utils::capture.output(print(env))[1]
   hex_match <- sub("^<environment: (0x[0-9a-f]+)>$", "\\1", addr)
   if (is.na(hex_match) || !nzchar(hex_match)) {
     label <- tryCatch({
-      cls_name <- get_label()
-      env_str <- addr
-      paste0(cls_name, " @ ", env_str)
-    }, error = function(e) "unknown")
+        cls_name <- get_label()
+        env_str <- addr
+        paste0(cls_name, " @ ", env_str)
+      },
+      error = function(e) "unknown"
+    )
     stop(
-      sprintf("Internal pointer (.ptr) could not be extracted for %s.", label)
+      sprintf("Internal pointer (.ptr) could not be extracted for %s.", label),
+      call. = FALSE
     )
   }
   return(hex_match)
 }
-
-
-
-
-
-
-
-

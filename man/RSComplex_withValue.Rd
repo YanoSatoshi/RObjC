@@ -7,12 +7,12 @@
 RSComplex_withValue(val)
 }
 \arguments{
-\item{val}{A length-one complex value.}
+\item{val}{A length-one complex value without an S3 class attribute.}
 }
 \value{
 An \link{RSComplex} or \link{RSNAComplex} instance.
 }
 \description{
-Wrap one base R complex value. Missing values return the shared
-\link{RSNAComplex} instance.
+Wrap one base R complex value. \code{NA} values return the shared
+\link{RSNAComplex} instance; values containing \code{NaN} remain \link{RSComplex} values.
 }

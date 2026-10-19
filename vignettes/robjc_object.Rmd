@@ -45,8 +45,9 @@ stopifnot(identical(first$name(), "first"))
 
 `class()` returns the RObjC class generator. `isMemberOf()` tests exact class
 identity, whereas `isKindOf()` also accepts ancestors. `superClass()` returns
-the immediate parent generator, and `classVersion()` reads the class version.
-These checks use generator identity rather than comparing class-name strings.
+the immediate parent generator. Read the class version from the generator's
+`robjc_isa$version`. Class relationship checks use generator identity rather
+than comparing class-name strings.
 
 ```{r}
 stopifnot(identical(first$class(), Item))
@@ -54,7 +55,7 @@ stopifnot(first$isMemberOf(Item))
 stopifnot(!first$isMemberOf(RSObject))
 stopifnot(first$isKindOf(RSObject))
 stopifnot(identical(first$superClass(), RSObject))
-stopifnot(identical(first$classVersion(), "1.0.0"))
+stopifnot(identical(first$class()$robjc_isa$version, "1.0.0"))
 ```
 
 `inheritClassesAsList()` exposes the ancestry as generators. Use

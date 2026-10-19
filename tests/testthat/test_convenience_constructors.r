@@ -29,6 +29,19 @@ test_that("array constructors preserve order and copy mutable storage", {
   expect_identical(RSArray_withArray(immutable), immutable)
 })
 
+test_that("array constructors accept class and protocol elements", {
+  protocol <- RSProtocolClass("ConvenienceArrayProtocol")
+  child <- RSString_withValue("child")
+  for (constructor in list(RSArray_withObject, RSMutableArray_withObject)) {
+    expect_identical(constructor(RSString)$objectAtIndex(1L), RSString)
+    expect_identical(constructor(protocol)$objectAtIndex(1L), protocol)
+  }
+  for (constructor in list(RSArray_withObjects, RSMutableArray_withObjects)) {
+    array <- constructor(list(child, RSString, protocol))
+    expect_identical(array$asList(), list(child, RSString, protocol))
+  }
+})
+
 test_that("array constructors reject invalid inputs and unsupported capacity", {
   expect_error(RSArray_withObject("x"), "list of RObjC objects", fixed = TRUE)
   expect_error(RSMutableArray_withObjects(list(RSString_withValue("x"), "y")),
@@ -77,6 +90,36 @@ test_that("set constructors deduplicate and copy mutable storage", {
   expect_identical(RSSet_withSet(immutable), immutable)
 })
 
+test_that("set constructors accept NULL as RSNull", {
+  for (constructor in list(RSSet_withObject, RSMutableSet_withObject)) {
+    set <- constructor(NULL)
+    expect_equal(set$count(), 1L)
+    expect_true(set$containsObject(NULL))
+    expect_true(set$containsObject(RSNull$null))
+  }
+  for (constructor in list(RSSet_withObjects, RSMutableSet_withObjects)) {
+    set <- constructor(list(NULL, RSNull$null, RSString_withValue("x")))
+    expect_equal(set$count(), 2L)
+    expect_true(set$containsObject(NULL))
+  }
+})
+
+test_that("set constructors accept class and protocol generators", {
+  protocol <- RSProtocolClass("ConvenienceSetGeneratorProtocol")
+  for (constructor in list(RSSet_withObject, RSMutableSet_withObject)) {
+    expect_true(constructor(RSString)$containsObject(RSString))
+    expect_true(constructor(protocol)$containsObject(protocol))
+  }
+  for (constructor in list(RSSet_withObjects, RSMutableSet_withObjects)) {
+    set <- constructor(list(RSString, protocol, RSString))
+    expect_equal(set$count(), 2L)
+    expect_true(set$containsObject(protocol))
+  }
+  array <- RSArray_withObjects(list(RSString, protocol))
+  expect_true(RSSet_withArray(array)$containsObject(RSString))
+  expect_true(RSMutableSet_withArray(array)$containsObject(protocol))
+})
+
 test_that("set constructors reject invalid collections", {
   expect_error(RSSet_withObject("a"), "list of RObjC objects", fixed = TRUE)
   expect_error(RSMutableSet_withObjects(list(RSString_withValue("a"), "b")),
@@ -121,6 +164,23 @@ test_that("dictionary constructors preserve mappings and isolate copies", {
   expect_identical(RSDictionary_withDictionary(immutable), immutable)
 })
 
+test_that("dictionary constructors accept NULL keys and values", {
+  constructors <- list(
+    function() RSDictionary_withObjectForKey(NULL, NULL),
+    function() RSMutableDictionary_withObjectForKey(NULL, NULL),
+    function() RSDictionary_withObjectsForKeys(list(NULL), list(NULL)),
+    function() RSMutableDictionary_withObjectsForKeys(list(NULL), list(NULL)),
+    function() RSDictionary_withObjectsAndKeys(list(NULL, NULL)),
+    function() RSMutableDictionary_withObjectsAndKeys(list(NULL, NULL))
+  )
+  for (constructor in constructors) {
+    dictionary <- constructor()
+    expect_equal(dictionary$count(), 1L)
+    expect_true(dictionary$containsKey(NULL))
+    expect_identical(dictionary$objectForKey(NULL), RSNull$null)
+  }
+})
+
 test_that("dictionary constructors validate keys, values, and pair shapes", {
   key <- RSString_withValue("key")
   value <- RSString_withValue("value")
@@ -128,7 +188,7 @@ test_that("dictionary constructors validate keys, values, and pair shapes", {
   expect_error(RSDictionary_withObjectForKey("value", key),
                "values must be RObjC objects", fixed = TRUE)
   expect_error(RSDictionary_withObjectForKey(value, "key"),
-               "keys must be RObjC objects conforming to RSCopying", fixed = TRUE)
+               "keys must be copyable RObjC objects, classes, protocols", fixed = TRUE)
   expect_error(RSMutableDictionary_withObjectsForKeys(list(value), list()),
                "same length", fixed = TRUE)
   expect_error(RSDictionary_withObjectsForKeys(list(value), "key"),
@@ -136,7 +196,7 @@ test_that("dictionary constructors validate keys, values, and pair shapes", {
   expect_error(RSDictionary_withObjectsAndKeys(list(value)),
                "even-length list", fixed = TRUE)
   expect_error(RSMutableDictionary_withObjectsAndKeys(list(value, "key")),
-               "keys must be RObjC objects conforming to RSCopying", fixed = TRUE)
+               "keys must be copyable RObjC objects, classes, protocols", fixed = TRUE)
   expect_error(RSDictionary_withDictionary(RSArray_empty()),
                "RSDictionary or RSMutableDictionary", fixed = TRUE)
 })

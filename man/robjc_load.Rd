@@ -4,27 +4,19 @@
 \alias{robjc_load}
 \title{Load .rda file and decode robjc metadata if present}
 \usage{
-robjc_load(
-  file,
-  class_map = NULL,
-  envir = .GlobalEnv,
-  verbose = FALSE,
-  hookFunction = NULL,
-  ...
-)
+robjc_load(file, class_map = NULL, envir = .GlobalEnv, verbose = FALSE, ...)
 }
 \arguments{
 \item{file}{Path to the \code{.rda} file.}
 
-\item{class_map}{Optional \code{RSDictionary} of custom classID → class mappings.}
+\item{class_map}{Optional \code{RSDictionary} or \code{RSMutableDictionary} mapping
+\link{RSString} class IDs to matching \link{RSWrappedClass} objects for custom classes.}
 
 \item{envir}{Environment in which to load the objects (default: \code{.GlobalEnv}).}
 
 \item{verbose}{Logical. Print names of loaded objects?}
 
-\item{hookFunction}{Optional hook passed to \code{base::load()}.}
-
-\item{...}{Additional arguments passed to \code{base::load()}.}
+\item{...}{Reserved for compatibility; currently ignored.}
 }
 \value{
 A character vector of names of objects created.

@@ -34,9 +34,9 @@ Do not include class objects or static class-level state in this list.
 \item \code{isMemberOf(cls)} – Checks if the object is a direct instance of the given class.
 \item \code{isKindOf(cls)} – Checks if the object inherits from the given class (directly or indirectly).
 \item \code{isEqual(other)} – Returns \code{TRUE} if the reference is identical to \code{other}.
-\item \code{hash()} – Computes a numeric hash based on the memory address of the object.
-\item \code{classVersion()} – Returns the class object version such as "1.0.0"
-\item \code{objectID()} - Returns the pointer of instance.
+\item \code{hash()} – Computes an integer hash from the object's environment address.
+\item \code{objectID()} – Returns a pointer-like identity based on the environment
+address of the instance's \code{print} method.
 }
 }
 
@@ -50,7 +50,10 @@ Do not include class objects or static class-level state in this list.
 \section{Notes}{
 
 \itemize{
-\item The hash method extracts a portion of the object's environment pointer as a unique key.
+\item The hash method uses part of the object's environment address to produce
+an integer hash. Different objects can have the same hash.
+\item If the address bits would produce R's \code{NA_integer_} bit pattern, \code{hash()}
+returns \code{0L} so every object has a non-missing integer hash.
 \item Class identity is preserved via explicit references, not via string-based comparisons.
 }
 }
@@ -63,7 +66,7 @@ obj$isMemberOf(RSObject)
 
 
 ## ------------------------------------------------
-## Method `RSObject$copy`
+## Method `RSObject$copy()`
 ## ------------------------------------------------
 
 \dontrun{
@@ -74,7 +77,7 @@ identical(obj, copy)  # TRUE
 
 
 ## ------------------------------------------------
-## Method `RSObject$objectsForEncoding`
+## Method `RSObject$objectsForEncoding()`
 ## ------------------------------------------------
 
 \dontrun{
@@ -103,256 +106,280 @@ public = list(
 \keyword{internal}
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-RSObject-new}{\code{RSObject$new()}}
-\item \href{#method-RSObject-class}{\code{RSObject$class()}}
-\item \href{#method-RSObject-superClass}{\code{RSObject$superClass()}}
-\item \href{#method-RSObject-conformsTo}{\code{RSObject$conformsTo()}}
-\item \href{#method-RSObject-respondsTo}{\code{RSObject$respondsTo()}}
-\item \href{#method-RSObject-description}{\code{RSObject$description()}}
-\item \href{#method-RSObject-debugDescription}{\code{RSObject$debugDescription()}}
-\item \href{#method-RSObject-print}{\code{RSObject$print()}}
-\item \href{#method-RSObject-isMemberOf}{\code{RSObject$isMemberOf()}}
-\item \href{#method-RSObject-isKindOf}{\code{RSObject$isKindOf()}}
-\item \href{#method-RSObject-isEqual}{\code{RSObject$isEqual()}}
-\item \href{#method-RSObject-hash}{\code{RSObject$hash()}}
-\item \href{#method-RSObject-classVersion}{\code{RSObject$classVersion()}}
-\item \href{#method-RSObject-objectID}{\code{RSObject$objectID()}}
-\item \href{#method-RSObject-inheritClassesAsList}{\code{RSObject$inheritClassesAsList()}}
-\item \href{#method-RSObject-copy}{\code{RSObject$copy()}}
-\item \href{#method-RSObject-objectsForEncoding}{\code{RSObject$objectsForEncoding()}}
-\item \href{#method-RSObject-resolveClassWith}{\code{RSObject$resolveClassWith()}}
-}
+  \itemize{
+    \item \href{#method-RSObject-initialize}{\code{RSObject$new()}}
+    \item \href{#method-RSObject-class}{\code{RSObject$class()}}
+    \item \href{#method-RSObject-superClass}{\code{RSObject$superClass()}}
+    \item \href{#method-RSObject-conformsTo}{\code{RSObject$conformsTo()}}
+    \item \href{#method-RSObject-respondsTo}{\code{RSObject$respondsTo()}}
+    \item \href{#method-RSObject-description}{\code{RSObject$description()}}
+    \item \href{#method-RSObject-debugDescription}{\code{RSObject$debugDescription()}}
+    \item \href{#method-RSObject-print}{\code{RSObject$print()}}
+    \item \href{#method-RSObject-isMemberOf}{\code{RSObject$isMemberOf()}}
+    \item \href{#method-RSObject-isKindOf}{\code{RSObject$isKindOf()}}
+    \item \href{#method-RSObject-isEqual}{\code{RSObject$isEqual()}}
+    \item \href{#method-RSObject-hash}{\code{RSObject$hash()}}
+    \item \href{#method-RSObject-objectID}{\code{RSObject$objectID()}}
+    \item \href{#method-RSObject-inheritClassesAsList}{\code{RSObject$inheritClassesAsList()}}
+    \item \href{#method-RSObject-copy}{\code{RSObject$copy()}}
+    \item \href{#method-RSObject-objectsForEncoding}{\code{RSObject$objectsForEncoding()}}
+    \item \href{#method-RSObject-resolveClassWith}{\code{RSObject$resolveClassWith()}}
+  }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSObject-new"></a>}}
-\if{latex}{\out{\hypertarget{method-RSObject-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes a new instance.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSObject$new()}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-RSObject-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-RSObject-initialize}{}}}
+\subsection{\code{RSObject$new()}}{
+  Initializes a new instance.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSObject$new()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The initialized object itself (invisibly).
+  }
 }
 
-\subsection{Returns}{
-The initialized object itself (invisibly).
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSObject-class"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-class}{}}}
-\subsection{Method \code{class()}}{
-Returns the class-object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSObject$class()}\if{html}{\out{</div>}}
+\subsection{\code{RSObject$class()}}{
+  Returns the class-object.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSObject$class()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The class-object (generator).
+  }
 }
 
-\subsection{Returns}{
-The class-object (generator).
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSObject-superClass"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-superClass}{}}}
-\subsection{Method \code{superClass()}}{
-Returns the super-class.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSObject$superClass()}\if{html}{\out{</div>}}
+\subsection{\code{RSObject$superClass()}}{
+  Returns the super-class.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSObject$superClass()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The object's super-class (generator).
+  }
 }
 
-\subsection{Returns}{
-The object's super-class (generator).
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSObject-conformsTo"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-conformsTo}{}}}
-\subsection{Method \code{conformsTo()}}{
-Checks if object conforms to a given protocol.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSObject$conformsTo(protocol)}\if{html}{\out{</div>}}
+\subsection{\code{RSObject$conformsTo()}}{
+  Checks whether the object's class declared adoption of a
+protocol. This does not verify method implementations.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSObject$conformsTo(protocol)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{protocol}}{A protocol class generator.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE if conforms, FALSE otherwise.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{protocol}}{A protocol class generator.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-TRUE if conforms, FALSE otherwise.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSObject-respondsTo"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-respondsTo}{}}}
-\subsection{Method \code{respondsTo()}}{
-Checks if object responds to a method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSObject$respondsTo(method)}\if{html}{\out{</div>}}
+\subsection{\code{RSObject$respondsTo()}}{
+  Checks if the object exposes a public method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSObject$respondsTo(method)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{method}}{One non-empty, non-missing character string naming the method.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE if the method is publicly callable.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{method}}{A character string for the method name.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-TRUE if the method exists and is callable.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSObject-description"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-description}{}}}
-\subsection{Method \code{description()}}{
-Returns a compact description like "<Class 0xabc123>".
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSObject$description()}\if{html}{\out{</div>}}
+\subsection{\code{RSObject$description()}}{
+  Returns a compact description like "<Class 0xabc123>".
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSObject$description()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A character string describing the object.
+  }
 }
 
-\subsection{Returns}{
-A character string describing the object.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSObject-debugDescription"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-debugDescription}{}}}
-\subsection{Method \code{debugDescription()}}{
-Returns debug-level string with public field summary.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSObject$debugDescription()}\if{html}{\out{</div>}}
+\subsection{\code{RSObject$debugDescription()}}{
+  Returns debug-level string with public field summary.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSObject$debugDescription()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A character string.
+  }
 }
 
-\subsection{Returns}{
-A character string.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSObject-print"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-print}{}}}
-\subsection{Method \code{print()}}{
-Prints the object description.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSObject$print()}\if{html}{\out{</div>}}
+\subsection{\code{RSObject$print()}}{
+  Prints the object description.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSObject$print()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Invisible self.
+  }
 }
 
-\subsection{Returns}{
-Invisible self.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSObject-isMemberOf"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-isMemberOf}{}}}
-\subsection{Method \code{isMemberOf()}}{
-Checks if object is an exact instance of class \code{cls}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSObject$isMemberOf(cls)}\if{html}{\out{</div>}}
+\subsection{\code{RSObject$isMemberOf()}}{
+  Checks if object is an exact instance of class \code{cls}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSObject$isMemberOf(cls)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{cls}}{A class object.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE if the class matches exactly.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{cls}}{A class object.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-TRUE if the class matches exactly.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSObject-isKindOf"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-isKindOf}{}}}
-\subsection{Method \code{isKindOf()}}{
-Checks if object is instance of class or subclass of \code{cls}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSObject$isKindOf(cls)}\if{html}{\out{</div>}}
+\subsection{\code{RSObject$isKindOf()}}{
+  Checks if object is instance of class or subclass of \code{cls}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSObject$isKindOf(cls)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{cls}}{A class object.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE if it inherits from \code{cls}.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{cls}}{A class object.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-TRUE if it inherits from \code{cls}.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSObject-isEqual"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-isEqual}{}}}
-\subsection{Method \code{isEqual()}}{
-Compares object identity with another.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSObject$isEqual(other)}\if{html}{\out{</div>}}
+\subsection{\code{RSObject$isEqual()}}{
+  Compares object identity with another.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSObject$isEqual(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another object to compare.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE if they are the same reference.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{other}}{Another object to compare.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-TRUE if they are the same reference.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSObject-hash"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-hash}{}}}
-\subsection{Method \code{hash()}}{
-Returns a hash of the object based on memory pointer.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSObject$hash()}\if{html}{\out{</div>}}
+\subsection{\code{RSObject$hash()}}{
+  Returns an integer hash derived from the environment address of this
+instance's \code{print} method. The \code{NA_integer_} bit pattern maps to \code{0L}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSObject$hash()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    One non-missing integer hash value.
+  }
 }
 
-\subsection{Returns}{
-Integer hash value.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSObject-classVersion"></a>}}
-\if{latex}{\out{\hypertarget{method-RSObject-classVersion}{}}}
-\subsection{Method \code{classVersion()}}{
-Returns the version string of the class associated with this instance.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSObject$classVersion()}\if{html}{\out{</div>}}
-}
-
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSObject-objectID"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-objectID}{}}}
-\subsection{Method \code{objectID()}}{
-Returns the pointer of instance.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSObject$objectID()}\if{html}{\out{</div>}}
+\subsection{\code{RSObject$objectID()}}{
+  Returns the hexadecimal address of the environment enclosing this
+instance's \code{print} method. Within the current R session, the address
+string serves as a pointer-like identity, akin to a C pointer.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSObject$objectID()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A hexadecimal address string.
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSObject-inheritClassesAsList"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-inheritClassesAsList}{}}}
-\subsection{Method \code{inheritClassesAsList()}}{
-Returns the list of ancestor classes.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSObject$inheritClassesAsList()}\if{html}{\out{</div>}}
+\subsection{\code{RSObject$inheritClassesAsList()}}{
+  Returns the list of ancestor classes.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSObject$inheritClassesAsList()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    list of inheriting classes
+  }
 }
 
-\subsection{Returns}{
-list of inheriting classes
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSObject-copy"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-copy}{}}}
-\subsection{Method \code{copy()}}{
-Returns a shallow copy of the object.
+\subsection{\code{RSObject$copy()}}{
+  Returns a shallow copy of the object.
 
 For the base \code{RSObject} class, this method simply returns \code{self} unchanged.
 This behavior mirrors the default implementation of \code{NSObject}'s \code{copy}
@@ -360,55 +387,57 @@ method in Objective-C, which returns the same instance unless overridden by a su
 
 Subclasses should override this method if a distinct copy is required,
 especially if the object holds internal mutable state.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSObject$copy()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-The object itself (\code{self}).
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-obj <- RSObject$new()
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSObject$copy()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The object itself (\code{self}).
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{obj <- RSObject$new()
 copy <- obj$copy()
 identical(obj, copy)  # TRUE
 }
-
-}
-\if{html}{\out{</div>}}
-
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSObject-objectsForEncoding"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-objectsForEncoding}{}}}
-\subsection{Method \code{objectsForEncoding()}}{
-Returns a list of additional objects to be encoded alongside this instance.
+\subsection{\code{RSObject$objectsForEncoding()}}{
+  Returns a flat list of direct child objects to be encoded alongside this instance.
 
 This method is part of the \code{RSEncoding} protocol. It is used by the encoder to
 determine which instances should be recursively encoded. You should override
 this method in your custom subclasses to return all objects that this instance
 owns or manages directly.
 
-Only return instances of \code{RSObject} subclasses—atomic values or scalar fields should
-not be included here. Inherited class metadata and class relationships are handled
-automatically and do not need to be manually returned.
+Return only instances of \code{RSObject} subclasses. Native R atomic values such as
+\code{numeric} and \code{character} are saved by R and do not belong in this list.
+Wrapped scalars such as \code{RSNumber} and \code{RSString} are RObjC objects and do belong
+here when held as children. Omit \code{NULL}, nested lists, class generators, and \code{self};
+the encoder registers the current instance before calling this method.
+Inherited class metadata and class relationships are handled automatically.
 
 When overriding this method, always call \code{super$objectsForEncoding()} to collect
 objects from parent classes, and combine them with your own declared fields.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSObject$objectsForEncoding()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-A list of objects to be encoded recursively (defaults to an empty list).
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-MyContainerClass <- RSObjectClass("MyContainerClass", super_class = RSObject,
+Each returned child is registered recursively. A custom class needs a matching
+\code{class_map} entry when saved data is decoded.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSObject$objectsForEncoding()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of objects to be encoded recursively (defaults to an empty list).
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{MyContainerClass <- RSObjectClass("MyContainerClass", super_class = RSObject,
 public = list(
   instance1 = NULL,
   instance2 = NULL,
@@ -424,28 +453,28 @@ public = list(
   }
 ))
 }
-
-}
-\if{html}{\out{</div>}}
-
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSObject-resolveClassWith"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-resolveClassWith}{}}}
-\subsection{Method \code{resolveClassWith()}}{
-Replace class object for decoding (use on load).
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSObject$resolveClassWith(new_cls)}\if{html}{\out{</div>}}
+\subsection{\code{RSObject$resolveClassWith()}}{
+  Replace class object for decoding (use on load), then update the
+instance's S3 class names to match the resolved class hierarchy.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSObject$resolveClassWith(new_cls)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{new_cls}}{Class to replace.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{new_cls}}{Class to replace.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

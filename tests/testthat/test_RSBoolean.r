@@ -11,6 +11,8 @@ test_that("RSBoolean: asNumber() works as expected", {
   expect_s3_class(tf$asNumber(), "RSNumber")
   expect_equal(tf$asNumber()$value(), 1)
   expect_equal(ff$asNumber()$value(), 0)
+  expect_identical(RSBoolean$na$asNumber(), RSNumber$na)
+  expect_true(is.na(RSBoolean$na$asNumber()$value()))
 })
 
 test_that("RSBoolean: compare() works correctly", {

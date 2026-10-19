@@ -13,32 +13,37 @@ RSProtocolClass(
 )
 }
 \arguments{
-\item{protocol_name}{One character string naming the protocol.}
+\item{protocol_name}{One nonempty, nonmissing character string naming the protocol.}
 
 \item{super_protocols}{A list of RObjC protocol class generators whose
 contracts are inherited.}
 
-\item{contract_methods}{Character vector of required method names declared
-directly by this protocol.}
+\item{contract_methods}{Character vector of nonempty, nonmissing method
+names declared directly by this protocol. \code{character(0)} is allowed.}
 
 \item{parent_env}{Parent environment for the generated R6 class.}
 
-\item{version}{Protocol version. It must not contain \verb{_}.}
+\item{version}{One non-empty, non-missing protocol version without \verb{_}.}
 }
 \value{
 The protocol class generator, invisibly.
 }
 \description{
-Creates a protocol class generator whose contract is a set of required method
-names. A protocol can inherit requirements from other protocols through
-\code{super_protocols}.
+Creates a protocol class generator recording declared method names. A
+protocol can inherit declarations from other protocols through
+\code{super_protocols}. Adopting a protocol is a declaration: conformance checks
+do not verify method implementations. A class must provide the methods
+needed by the operations it uses. Generators returned by this function
+cannot create instances with \code{$new()}.
 }
 \section{Implementation details}{
 
 The generator inherits from \code{RSProtocol}. Method names inherited from parent
 protocols are removed from its own contract, which is stored in
 \code{robjc_isa$slot}. Parent protocols and the version are also stored in
-\code{robjc_isa}; the metadata is locked after declaration.
+\code{robjc_isa}; the metadata is locked after declaration. R6 adds a new \code{$new()}
+binding to every generated class, so this factory removes and locks it for
+each protocol generator.
 }
 
 \examples{

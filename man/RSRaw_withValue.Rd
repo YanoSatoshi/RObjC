@@ -7,7 +7,7 @@
 RSRaw_withValue(val)
 }
 \arguments{
-\item{val}{A length-one raw value.}
+\item{val}{A length-one raw value without an S3 class attribute.}
 }
 \value{
 An \link{RSRaw} instance.

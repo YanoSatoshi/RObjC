@@ -5,7 +5,7 @@
 \title{RSInstanceMap: Mapping from Wrapped Class to Instance Set}
 \description{
 \code{RSInstanceMap} represents a one-to-many mapping between a wrapped class
-(an object of class \code{RSWrappedClass}) and a mutable or immutable set of instance objects.
+(an object of class \code{RSWrappedClass}) and a set of instance objects.
 It is used internally in robjc serialization to track which objects were created
 from a given class, supporting reconstruction and encoding workflows.
 
@@ -13,8 +13,7 @@ Initialization stores the provided wrapped class and places the instances in
 an \link{RSMutableSet}.
 }
 \note{
-This method should be called exactly once. A second call will result in an warning
-due to locked bindings.
+Repeated calls leave the locked map unchanged and issue a warning.
 }
 \section{Inheritance}{
 
@@ -27,8 +26,8 @@ Inherits from \link{RSKeyValuePair}, where:
 
 \section{Lifecycle}{
 
-Use \verb{$lockInstance()} to convert the map to an immutable state. Once finalized, the set of
-instances becomes locked and cannot be modified.
+Use \verb{$lockInstance()} to convert the map to an immutable state. Before then,
+add instances through \verb{$addObject()}; \verb{$objects()} returns an immutable snapshot.
 }
 
 \examples{
@@ -40,7 +39,7 @@ map$lockInstance()
 
 
 ## ------------------------------------------------
-## Method `RSInstanceMap$new`
+## Method `RSInstanceMap$new()`
 ## ------------------------------------------------
 
 \dontrun{
@@ -48,7 +47,7 @@ map <- RSInstanceMap$new(my_wrapped_class, list(obj1, obj2))
 }
 
 ## ------------------------------------------------
-## Method `RSInstanceMap$classID`
+## Method `RSInstanceMap$classID()`
 ## ------------------------------------------------
 
 \dontrun{
@@ -56,7 +55,7 @@ map$classID()$value()  # "MyClass_1.0"
 }
 
 ## ------------------------------------------------
-## Method `RSInstanceMap$wrappedClass`
+## Method `RSInstanceMap$wrappedClass()`
 ## ------------------------------------------------
 
 \dontrun{
@@ -65,7 +64,7 @@ cls$className()  # "MyClass"
 }
 
 ## ------------------------------------------------
-## Method `RSInstanceMap$objects`
+## Method `RSInstanceMap$objects()`
 ## ------------------------------------------------
 
 \dontrun{
@@ -74,7 +73,7 @@ objs$count()
 }
 
 ## ------------------------------------------------
-## Method `RSInstanceMap$addObject`
+## Method `RSInstanceMap$addObject()`
 ## ------------------------------------------------
 
 \dontrun{
@@ -82,12 +81,12 @@ map$addObject(instance3)
 }
 
 ## ------------------------------------------------
-## Method `RSInstanceMap$lockInstance`
+## Method `RSInstanceMap$lockInstance()`
 ## ------------------------------------------------
 
 \dontrun{
 map$lockInstance()
-map$objects()$addObject(obj)  # Error: set is locked
+map$addObject(obj)  # Error: map is locked
 }
 }
 \seealso{
@@ -96,207 +95,221 @@ map$objects()$addObject(obj)  # Error: set is locked
 \concept{robjc serialization}
 \keyword{internal}
 \section{Super classes}{
-\code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{\link[robjc:RSKeyValuePair]{robjc::RSKeyValuePair}} -> \code{RSInstanceMap}
+\code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSKeyValuePair]{RSKeyValuePair}} -> \code{RSInstanceMap}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-RSInstanceMap-new}{\code{RSInstanceMap$new()}}
-\item \href{#method-RSInstanceMap-classID}{\code{RSInstanceMap$classID()}}
-\item \href{#method-RSInstanceMap-wrappedClass}{\code{RSInstanceMap$wrappedClass()}}
-\item \href{#method-RSInstanceMap-objects}{\code{RSInstanceMap$objects()}}
-\item \href{#method-RSInstanceMap-addObject}{\code{RSInstanceMap$addObject()}}
-\item \href{#method-RSInstanceMap-lockInstance}{\code{RSInstanceMap$lockInstance()}}
+  \itemize{
+    \item \href{#method-RSInstanceMap-initialize}{\code{RSInstanceMap$new()}}
+    \item \href{#method-RSInstanceMap-classID}{\code{RSInstanceMap$classID()}}
+    \item \href{#method-RSInstanceMap-wrappedClass}{\code{RSInstanceMap$wrappedClass()}}
+    \item \href{#method-RSInstanceMap-objects}{\code{RSInstanceMap$objects()}}
+    \item \href{#method-RSInstanceMap-value}{\code{RSInstanceMap$value()}}
+    \item \href{#method-RSInstanceMap-objectsForEncoding}{\code{RSInstanceMap$objectsForEncoding()}}
+    \item \href{#method-RSInstanceMap-addObject}{\code{RSInstanceMap$addObject()}}
+    \item \href{#method-RSInstanceMap-lockInstance}{\code{RSInstanceMap$lockInstance()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="copy"><a href='../../robjc/html/RSObject.html#method-RSObject-copy'><code>robjc::RSObject$copy()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="description"><a href='../../robjc/html/RSObject.html#method-RSObject-description'><code>robjc::RSObject$description()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSKeyValuePair" data-id="hash"><a href='../../robjc/html/RSKeyValuePair.html#method-RSKeyValuePair-hash'><code>robjc::RSKeyValuePair$hash()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSKeyValuePair" data-id="isEqual"><a href='../../robjc/html/RSKeyValuePair.html#method-RSKeyValuePair-isEqual'><code>robjc::RSKeyValuePair$isEqual()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSKeyValuePair" data-id="key"><a href='../../robjc/html/RSKeyValuePair.html#method-RSKeyValuePair-key'><code>robjc::RSKeyValuePair$key()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSKeyValuePair" data-id="objectsForEncoding"><a href='../../robjc/html/RSKeyValuePair.html#method-RSKeyValuePair-objectsForEncoding'><code>robjc::RSKeyValuePair$objectsForEncoding()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSKeyValuePair" data-id="setKey"><a href='../../robjc/html/RSKeyValuePair.html#method-RSKeyValuePair-setKey'><code>robjc::RSKeyValuePair$setKey()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSKeyValuePair" data-id="value"><a href='../../robjc/html/RSKeyValuePair.html#method-RSKeyValuePair-value'><code>robjc::RSKeyValuePair$value()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>RSObject$class()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>RSObject$conformsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="copy"><a href='../../robjc/html/RSObject.html#method-RSObject-copy'><code>RSObject$copy()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>RSObject$debugDescription()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="description"><a href='../../robjc/html/RSObject.html#method-RSObject-description'><code>RSObject$description()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>RSObject$inheritClassesAsList()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>RSObject$isKindOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>RSObject$print()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSKeyValuePair" data-id="hash"><a href='../../robjc/html/RSKeyValuePair.html#method-RSKeyValuePair-hash'><code>RSKeyValuePair$hash()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSKeyValuePair" data-id="isEqual"><a href='../../robjc/html/RSKeyValuePair.html#method-RSKeyValuePair-isEqual'><code>RSKeyValuePair$isEqual()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSKeyValuePair" data-id="key"><a href='../../robjc/html/RSKeyValuePair.html#method-RSKeyValuePair-key'><code>RSKeyValuePair$key()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSKeyValuePair" data-id="setKey"><a href='../../robjc/html/RSKeyValuePair.html#method-RSKeyValuePair-setKey'><code>RSKeyValuePair$setKey()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSInstanceMap-new"></a>}}
-\if{latex}{\out{\hypertarget{method-RSInstanceMap-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes a new \code{RSInstanceMap} with the given class definition and an optional list of instances.
+\if{html}{\out{<a id="method-RSInstanceMap-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-RSInstanceMap-initialize}{}}}
+\subsection{\code{RSInstanceMap$new()}}{
+  Initializes a new \code{RSInstanceMap} with the given class definition and an optional list of instances.
 The instance list is wrapped in an \code{RSMutableSet}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSInstanceMap$new(class_ref, objects = list())}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSInstanceMap$new(class_ref, objects = list())}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{class_ref}}{An object of class \code{RSWrappedClass}.}
+      \item{\code{objects}}{A list of instances with the wrapped class ID (optional).
+Defaults to an empty list.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \code{RSInstanceMap} object.
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{map <- RSInstanceMap$new(my_wrapped_class, list(obj1, obj2))
+}
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{class_ref}}{An object of class \code{RSWrappedClass}.}
-
-\item{\code{objects}}{A list of instance objects (optional). Defaults to an empty list.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \code{RSInstanceMap} object.
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-map <- RSInstanceMap$new(my_wrapped_class, list(obj1, obj2))
-}
-}
-\if{html}{\out{</div>}}
-
-}
-
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSInstanceMap-classID"></a>}}
 \if{latex}{\out{\hypertarget{method-RSInstanceMap-classID}{}}}
-\subsection{Method \code{classID()}}{
-Returns the identifier of the wrapped class, in the format
+\subsection{\code{RSInstanceMap$classID()}}{
+  Returns the identifier of the wrapped class, in the format
 \code{ClassName_Version}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSInstanceMap$classID()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSInstanceMap$classID()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An \link{RSString} containing the class ID.
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{map$classID()$value()  # "MyClass_1.0"
+}
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Returns}{
-An \link{RSString} containing the class ID.
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-map$classID()$value()  # "MyClass_1.0"
-}
-}
-\if{html}{\out{</div>}}
-
-}
-
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSInstanceMap-wrappedClass"></a>}}
 \if{latex}{\out{\hypertarget{method-RSInstanceMap-wrappedClass}{}}}
-\subsection{Method \code{wrappedClass()}}{
-Returns the \code{RSWrappedClass} object associated with this instance map.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSInstanceMap$wrappedClass()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-An object of class \code{RSWrappedClass}.
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-cls <- map$wrappedClass()
+\subsection{\code{RSInstanceMap$wrappedClass()}}{
+  Returns the \code{RSWrappedClass} object associated with this instance map.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSInstanceMap$wrappedClass()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An object of class \code{RSWrappedClass}.
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{cls <- map$wrappedClass()
 cls$className()  # "MyClass"
 }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
 
-}
-
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSInstanceMap-objects"></a>}}
 \if{latex}{\out{\hypertarget{method-RSInstanceMap-objects}{}}}
-\subsection{Method \code{objects()}}{
-Returns the current set of instance objects associated with the class.
-This may be a mutable set (\code{RSMutableSet}) before finalization,
-or an immutable set (\code{RSSet}) after finalization.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSInstanceMap$objects()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-An \code{RSSet} or \code{RSMutableSet} object.
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-objs <- map$objects()
+\subsection{\code{RSInstanceMap$objects()}}{
+  Returns an immutable snapshot of the current instance set.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSInstanceMap$objects()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An \code{RSSet} containing the current instances.
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{objs <- map$objects()
 objs$count()
 }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
 
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSInstanceMap-value"></a>}}
+\if{latex}{\out{\hypertarget{method-RSInstanceMap-value}{}}}
+\subsection{\code{RSInstanceMap$value()}}{
+  Returns the same immutable snapshot as \code{objects()}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSInstanceMap$value()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An \code{RSSet} containing the current instances.
+  }
 }
 
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSInstanceMap-objectsForEncoding"></a>}}
+\if{latex}{\out{\hypertarget{method-RSInstanceMap-objectsForEncoding}{}}}
+\subsection{\code{RSInstanceMap$objectsForEncoding()}}{
+  Returns the wrapped class and an immutable instance snapshot
+for encoding.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSInstanceMap$objectsForEncoding()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list containing the wrapped class and an \code{RSSet} snapshot.
+  }
 }
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSInstanceMap-addObject"></a>}}
 \if{latex}{\out{\hypertarget{method-RSInstanceMap-addObject}{}}}
-\subsection{Method \code{addObject()}}{
-Adds a new instance object to the set of associated instances.
+\subsection{\code{RSInstanceMap$addObject()}}{
+  Adds a new instance object to the set of associated instances.
 This method is only valid before the map has been finalized.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSInstanceMap$addObject(obj)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSInstanceMap$addObject(obj)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{obj}}{An instance with the wrapped class ID to be added.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The instance map itself (invisibly).
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{map$addObject(instance3)
+}
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{obj}}{An instance object to be added.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The instance map itself (invisibly).
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-map$addObject(instance3)
-}
-}
-\if{html}{\out{</div>}}
-
-}
-
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSInstanceMap-lockInstance"></a>}}
 \if{latex}{\out{\hypertarget{method-RSInstanceMap-lockInstance}{}}}
-\subsection{Method \code{lockInstance()}}{
-Locks the instance map by converting its internal storage from a mutable
+\subsection{\code{RSInstanceMap$lockInstance()}}{
+  Locks the instance map by converting its internal storage from a mutable
 \link{RSMutableSet} to an immutable \link{RSSet}, and making the map itself read-only.
 After this method is called, no further instances can be added to the map.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSInstanceMap$lockInstance()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSInstanceMap$lockInstance()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The locked instance map, invisibly.
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{map$lockInstance()
+map$addObject(obj)  # Error: map is locked
+}
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Returns}{
-The locked instance map, invisibly.
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-map$lockInstance()
-map$objects()$addObject(obj)  # Error: set is locked
-}
-}
-\if{html}{\out{</div>}}
-
-}
-
-}
 }

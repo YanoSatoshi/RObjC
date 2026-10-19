@@ -6,6 +6,24 @@ test_that("RSMutableSet: addObject stores unique elements", {
   expect_equal(s$count(), 2)
 })
 
+test_that("RSMutableSet validates a member hash before storage", {
+  calls <- 0L
+  ProbeItem <- RSObjectClass(
+    "MutableSetHashProbe", super_class = RSObject,
+    public = list(hash = function() {
+      calls <<- calls + 1L
+      stop("hash failure")
+    })
+  )
+  item <- ProbeItem$new()
+  set <- RSMutableSet$new()
+
+  expect_error(set$addObject(item), "hash failure", fixed = TRUE)
+  expect_identical(calls, 1L)
+  expect_equal(set$count(), 0)
+  expect_error(RSSet$new(objects = list(item)), "hash failure", fixed = TRUE)
+})
+
 test_that("RSMutableSet: containsObject returns TRUE if present", {
   s <- RSMutableSet$new()
   key <- RSString_withValue("x")
@@ -29,6 +47,27 @@ test_that("RSMutableSet: represents NULL with RSNull", {
   expect_true(s$containsObject(NULL))
   expect_true(s$member(NULL)$isKindOf(RSNull))
   expect_true(s$anyObject()$isKindOf(RSNull))
+})
+
+test_that("RSMutableSet accepts class and protocol generators", {
+  protocol <- RSProtocolClass("MutableSetGeneratorProtocol")
+  object <- RSString_withValue("member")
+  set <- RSMutableSet$new(list(RSString, protocol, object))
+  same <- RSSet$new(list(protocol, object, RSString))
+
+  expect_equal(set$count(), 3L)
+  expect_true(set$containsObject(RSString))
+  expect_identical(set$member(protocol), protocol)
+  expect_true(set$isEqual(same))
+  expect_identical(set$hash(), same$hash())
+  expect_identical(set$objectsForEncoding(), list(object))
+  expect_true(set$intersectSet(RSSet$new(list(protocol)))$containsObject(protocol))
+  expect_true(set$uniteSet(RSSet$new(list(protocol)))$containsObject(protocol))
+  expect_false(set$subtractSet(RSSet$new(list(protocol)))$containsObject(protocol))
+  set$removeObject(RSString)
+  expect_false(set$containsObject(RSString))
+  set$addObject(RSString)
+  expect_true(set$containsObject(RSString))
 })
 
 test_that("RSMutableSet: removeObject eliminates element", {

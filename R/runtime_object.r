@@ -1,5 +1,6 @@
 #' @include runtime_robjc.r
 
+
 #' @title Get an Object's Class
 #' @description Returns the class generator for an RObjC instance.
 #' @param obj An RObjC instance.

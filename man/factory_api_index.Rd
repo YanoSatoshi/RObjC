@@ -28,7 +28,7 @@ companion instance.
 \section{Protocols}{
 
 \itemize{
-\item \code{\link[=RSProtocolClass]{RSProtocolClass()}} declares a protocol and its required methods.
+\item \code{\link[=RSProtocolClass]{RSProtocolClass()}} declares a protocol and its expected method names.
 }
 }
 

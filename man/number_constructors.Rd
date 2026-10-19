@@ -14,13 +14,15 @@ RSNumber_withInteger(value)
 RSNumber_withDouble(value)
 }
 \arguments{
-\item{val}{An integer or double scalar, including \code{NA}.}
+\item{val}{An integer or double scalar without an S3 class attribute,
+including \code{NA} and \code{NaN}.}
 
-\item{value}{An integer or double scalar as specified by the function name.}
+\item{value}{An unclassed integer or double scalar as specified by the function name.}
 }
 \value{
 An \link{RSNumber} or \link{RSNANumber} instance.
 }
 \description{
-Wrap a numeric scalar. Missing values produce \link{RSNANumber}.
+Wrap a numeric scalar. \code{NA} produces \link{RSNANumber}; \code{NaN}
+remains an \link{RSNumber} value.
 }

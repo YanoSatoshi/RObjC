@@ -7,12 +7,18 @@
 #'
 #' @description
 #' `RSMutableDictionary` is a mutable, unordered key-value container. Keys and
-#' values are `RSObject` instances, with R `NULL` represented by [RSNull].
+#' values are RObjC objects, class generators, or protocol generators, with
+#' R `NULL` represented by [RSNull].
 #' Storage is delegated to the internal [RSConcreteDictionary] adapter.
 #'
-#' Keys are copied when inserted through `setObjectForKey()`. Copies of a
-#' dictionary duplicate the native table but continue to reference the same
-#' key and value objects.
+#' For an RObjC object key, insertion calls `key$copy()` in accordance with
+#' [RSCopying]. The returned object may be the original key: [RSObject]'s
+#' default `copy()` returns `self`. Class and protocol generators are retained
+#' by identity. Keep a stored key's hash- and equality-relevant state unchanged
+#' while it remains in the dictionary. Copies of a dictionary duplicate the
+#' native table but continue to reference the same key and value objects.
+#' A key's `hash()` is checked before native insertion and must return one
+#' nonmissing integer.
 #'
 #' @section Supported Initializations:
 #' - `key_value_pairs`: a list of [RSKeyValuePair] objects.
@@ -20,8 +26,8 @@
 #' - `keys` and `values`: separate collections of equal length.
 #'
 #' @section Convenience Constructor:
-#' `RSMutableDictionary$dictionaryWithDictionary(dictionary)` creates a mutable
-#' shallow copy with an independent native table.
+#' [RSMutableDictionary_withDictionary()] creates a mutable shallow copy with
+#' an independent native table.
 #'
 #' @export
 RSMutableDictionary <- RSObjectClass(
@@ -34,14 +40,27 @@ RSMutableDictionary <- RSObjectClass(
 
     .wrapNull = function(object) {
       if (is.null(object)) return(RSNull$null)
-      if (robjc_isRobjcObject(object)) return(object)
+      if (robjc_isRobjcObject(object) || robjc_isMetaClass(object)) return(object)
       stop(sprintf("Unsupported object type: %s", class(object)[1]))
     },
 
-    .storeObjectForKey = function(value, key, copy_key = TRUE) {
+    .wrapValue = function(value) {
+      if (is.null(value)) return(RSNull$null)
+      if (robjc_isRobjcObject(value) ||
+          robjc_isClass(value) ||
+          robjc_isProtocol(value)) return(value)
+      stop(sprintf("Unsupported value type: %s", class(value)[1]), call. = FALSE)
+    },
+
+    .storeObjectForKey = function(value, key) {
       key <- private$.wrapNull(key)
-      value <- private$.wrapNull(value)
-      if (copy_key) key <- key$copy()
+      value <- private$.wrapValue(value)
+      if (robjc_isRobjcObject(key)) key <- key$copy()
+      if (!robjc_isRobjcObject(key) && !robjc_isMetaClass(key))
+        stop("Copied key must be an RObjC object, class, or protocol.", call. = FALSE)
+      hash <- key$hash()
+      if (!is.integer(hash) || length(hash) != 1L || is.na(hash))
+        stop("Key hash() must return one non-missing integer.", call. = FALSE)
       private$.storage$set(key, value)
       invisible(self)
     }
@@ -82,7 +101,7 @@ RSMutableDictionary <- RSObjectClass(
       private$.storage <- RSConcreteDictionary$new()
 
       if (has_alternating) {
-        objects_and_keys <- cast_rs_storage_to_list(objects_and_keys)
+        objects_and_keys <- cast_collections_to_list(objects_and_keys)
         if (length(objects_and_keys) %% 2L != 0L) {
           stop("Length of 'objects_and_keys' must be even.")
         }
@@ -93,8 +112,8 @@ RSMutableDictionary <- RSObjectClass(
       }
 
       if (has_separate) {
-        keys <- cast_rs_storage_to_list(keys)
-        values <- cast_rs_storage_to_list(values)
+        keys <- cast_collections_to_list(keys)
+        values <- cast_collections_to_list(values)
         if (length(keys) != length(values)) {
           stop("Keys and values must have same length.")
         }
@@ -104,7 +123,7 @@ RSMutableDictionary <- RSObjectClass(
       }
 
       if (has_pairs) {
-        key_value_pairs <- cast_rs_storage_to_list(key_value_pairs)
+        key_value_pairs <- cast_collections_to_list(key_value_pairs)
         valid <- vapply(
           key_value_pairs,
           function(pair) {
@@ -124,29 +143,30 @@ RSMutableDictionary <- RSObjectClass(
     },
 
     #' @description Inserts or replaces a value for a key.
-    #' @param value An `RSObject` value, or `NULL`.
-    #' @param key An `RSObject` key, or `NULL`.
+    #' @param value An RObjC object, class generator, protocol generator, or `NULL`.
+    #' @param key An RObjC object key with a valid integer `hash()`, a class or
+    #'   protocol generator, or `NULL`.
     #' @return `self`, invisibly.
     setObjectForKey = function(value, key) {
       private$.storeObjectForKey(value, key)
     },
 
     #' @description Returns the value associated with a key.
-    #' @param key An `RSObject` key, or `NULL`.
+    #' @param key An RObjC object, class or protocol generator, or `NULL`.
     #' @return The stored object, or `NULL` if the key is absent.
     objectForKey = function(key) {
       private$.storage$get(private$.wrapNull(key))
     },
 
     #' @description Tests whether a key is present.
-    #' @param key An `RSObject` key, or `NULL`.
+    #' @param key An RObjC object, class or protocol generator, or `NULL`.
     #' @return A logical scalar.
     containsKey = function(key) {
       private$.storage$contains(private$.wrapNull(key))
     },
 
     #' @description Removes the value associated with a key, if present.
-    #' @param key An `RSObject` key, or `NULL`.
+    #' @param key An RObjC object, class or protocol generator, or `NULL`.
     #' @return `self`, invisibly.
     removeObjectForKey = function(key) {
       private$.storage$remove(private$.wrapNull(key))
@@ -160,7 +180,8 @@ RSMutableDictionary <- RSObjectClass(
       invisible(self)
     },
 
-    #' @description Adds or replaces an [RSKeyValuePair].
+    #' @description Adds or replaces an [RSKeyValuePair], calling `copy()` on an
+    #'   RObjC object key and retaining a generator key by identity.
     #' @param entry An `RSKeyValuePair` object.
     #' @return `self`, invisibly.
     addEntry = function(entry) {
@@ -168,7 +189,7 @@ RSMutableDictionary <- RSObjectClass(
         "Entry must be a kind of RSKeyValuePair" =
           robjc_isRobjcObject(entry) && entry$isKindOf(RSKeyValuePair)
       )
-      private$.storeObjectForKey(entry$value(), entry$key(), copy_key = FALSE)
+      private$.storeObjectForKey(entry$value(), entry$key())
     },
 
     #' @description Removes the entry with the supplied pair's key.
@@ -193,9 +214,10 @@ RSMutableDictionary <- RSObjectClass(
     #' @description Returns all entries as [RSKeyValuePair] objects.
     #' @return A list in unspecified order.
     allEntriesAsList = function() {
-      keys <- private$.storage$keys()
-      values <- private$.storage$values()
-      Map(RSKeyValuePair$new, keys, values)
+      lapply(
+        private$.storage$entries(),
+        function(entry) RSKeyValuePair$new(entry[[1L]], entry[[2L]])
+      )
     },
 
     #' @description Returns all entries as an [RSArray].
@@ -209,6 +231,35 @@ RSMutableDictionary <- RSObjectClass(
     #' @description Returns all keys as an [RSArray].
     #' @return An `RSArray`.
     allKeys = function() RSArray$new(self$allKeysAsList()),
+
+    #' @description Returns every key whose value is equal to `object`.
+    #' @param object An RObjC object, class or protocol generator, or `NULL` for [RSNull].
+    #' @return A list of matching keys in unspecified order.
+    allKeysForObjectAsList = function(object) {
+      object <- private$.wrapValue(object)
+      entries <- private$.storage$entries()
+      matching <- vapply(
+        entries,
+        function(entry) {
+          value <- entry[[2L]]
+          if (robjc_isRobjcObject(object))
+            isTRUE(object$isEqual(value))
+          else if (robjc_isMetaClass(object))
+            identical(object, value)
+          else
+            FALSE
+        },
+        logical(1)
+      )
+      lapply(entries[matching], function(entry) entry[[1L]])
+    },
+
+    #' @description Returns every key whose value is equal to `object`.
+    #' @param object An RObjC object, class or protocol generator, or `NULL` for [RSNull].
+    #' @return An [RSArray] of matching keys in unspecified order.
+    allKeysForObject = function(object) {
+      RSArray$new(self$allKeysForObjectAsList(object))
+    },
 
     #' @description Returns all values as a list.
     #' @return A list corresponding to `allKeysAsList()` when unmodified.
@@ -232,12 +283,20 @@ RSMutableDictionary <- RSObjectClass(
 
     #' @description Returns an immutable shallow copy.
     #' @return A new [RSDictionary].
-    copy = function() RSDictionary$dictionaryWithDictionary(self),
+    copy = function() {
+      .rs_dictionary_with_storage(
+        RSDictionary,
+        .rs_dictionary_storage(self)$duplicate()
+      )
+    },
 
     #' @description Returns an independent mutable shallow copy.
     #' @return A new `RSMutableDictionary`.
     mutableCopy = function() {
-      RSMutableDictionary$dictionaryWithDictionary(self)
+      .rs_dictionary_with_storage(
+        RSMutableDictionary,
+        .rs_dictionary_storage(self)$duplicate()
+      )
     },
 
     #' @description Computes an order-independent hash from the dictionary keys.
@@ -253,13 +312,14 @@ RSMutableDictionary <- RSObjectClass(
           self$count() != other$count()) {
         return(FALSE)
       }
-      for (key in self$allKeysAsList()) {
-        if (!other$containsKey(key)) return(FALSE)
-        if (!isTRUE(self$objectForKey(key)$isEqual(other$objectForKey(key)))) {
-          return(FALSE)
-        }
-      }
-      TRUE
+      all(vapply(
+        self$allKeysAsList(),
+        function(key) {
+          isTRUE(other$containsKey(key)) &&
+            isTRUE(self$objectForKey(key)$isEqual(other$objectForKey(key)))
+        },
+        logical(1)
+      ))
     },
 
     #' @description Returns a concise textual representation.
@@ -317,17 +377,4 @@ RSMutableDictionary <- RSObjectClass(
   result <- generator$new()
   result$.__enclos_env__$private$.storage <- storage
   result
-}
-
-# Creates a mutable dictionary with independent native storage.
-RSMutableDictionary$dictionaryWithDictionary <- function(dictionary) {
-  stopifnot(
-    "Object must be a dictionary" =
-      robjc_isRobjcObject(dictionary) &&
-      dictionary$isKindOf(RSMutableDictionary)
-  )
-  .rs_dictionary_with_storage(
-    RSMutableDictionary,
-    .rs_dictionary_storage(dictionary)$duplicate()
-  )
 }

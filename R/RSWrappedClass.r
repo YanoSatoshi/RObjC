@@ -12,6 +12,8 @@
 #' The version comes from the generator's `robjc_isa$version` field.
 #'
 #' Once created, its `class_ref` and `class_id` bindings are locked.
+#' Equality and hashing use `class_id`, so separate generators with the same
+#' name and version have equal wrappers.
 #'
 #' @section Inheritance:
 #' Inherits from [RSObject].
@@ -28,7 +30,7 @@
 #'
 #' @section Constraints:
 #' - Version strings must not contain underscores.
-#' - The input must be an RObjC class generator or an object with a `class()` method.
+#' - The input must be an RObjC object class generator or an RObjC instance.
 #'
 #' @seealso [RSClassReference], [RSInstanceMap], [RSObject]
 #'
@@ -81,11 +83,12 @@ RSWrappedClass <- RSObjectClass(
     #' }
     initialize = function(object) {
       super$initialize()
-      if ("R6ClassGenerator" %in% class(object)) {
+      if (robjc_isClass(object))
         klass <- object
-      } else {
+      else if (robjc_isRobjcObject(object))
         klass <- object$class()
-      }
+      else
+        stop("`object` must be an RObjC class or instance.", call. = FALSE)
       version <- klass$robjc_isa$version
       stopifnot("Do not contin '_' for version expression." = !grepl("_", version))
       self$class_id <- RSString_withValue(
@@ -96,6 +99,23 @@ RSWrappedClass <- RSObjectClass(
       lockBinding("class_ref", self)
       invisible(self)
     },
+
+
+
+    #' @description Compare class identifiers by class name and version.
+    #' @param other Another `RSWrappedClass` object.
+    #' @return `TRUE` if both wrappers have the same class ID, otherwise `FALSE`.
+    isEqual = function(other) {
+      robjc_isRobjcObject(other) &&
+        other$isKindOf(RSWrappedClass) &&
+        isTRUE(self$classID()$isEqual(other$classID()))
+    },
+
+
+
+    #' @description Hash the class identifier.
+    #' @return The class ID's integer hash.
+    hash = function() self$classID()$hash(),
 
 
 

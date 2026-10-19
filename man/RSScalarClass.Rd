@@ -11,9 +11,9 @@ RSScalarClass(
   protocols = list(),
   public = list(),
   private = NULL,
-  active = NULL,
   parent_env = parent.frame(),
-  version = "1.0.0"
+  version = "1.0.0",
+  na_singleton = TRUE
 )
 }
 \arguments{
@@ -22,20 +22,24 @@ produce a companion named \code{RSNA...}; other names receive an \code{NA} suffi
 
 \item{super_class}{An \link{RSScalar} class generator or one of its subclasses.}
 
-\item{na_value}{A length-one missing value, such as \code{NA_integer_},
-\code{NA_character_}, or \code{as.Date(NA)}. The factory passes it directly to the
+\item{na_value}{A dimensionless length-one missing value, such as \code{NA_integer_},
+\code{NA_character_}, \code{as.Date(NA)}, or \code{as.POSIXlt(NA)}. The factory passes it directly to the
 generated NA class's initializer.}
 
 \item{protocols}{Protocol class generators adopted by the new classes.}
 
-\item{public, private, active}{R6 members for the regular class. If \code{public}
+\item{public, private}{R6 members for the regular class. If \code{public}
 defines \code{initialize(val)}, that method must accept the supplied \code{na_value}
 when called on the generated NA subclass and pass it to
 \code{super$initialize(val)}. A default for \code{val} is not required.}
 
 \item{parent_env}{Parent environment for the generated R6 methods.}
 
-\item{version}{Class version; \verb{_} is reserved for class identifiers.}
+\item{version}{One non-empty, non-missing class version without \verb{_}.}
+
+\item{na_singleton}{Whether to mark the NA companion class as a singleton.
+The default is \code{TRUE}; \link{RSFactor} uses \code{FALSE} so each missing factor can
+retain its own levels and ordering.}
 }
 \value{
 The regular class generator, invisibly. Its \code{na} binding and its
@@ -45,8 +49,8 @@ shared-instance bindings are locked.
 }
 \description{
 Creates a regular scalar class derived from \link{RSScalar} and an NA companion
-class derived from that regular class. The companion is created as a
-singleton while this factory runs.
+class derived from that regular class. By default, the companion class is
+marked as a singleton and has a shared NA instance.
 }
 \details{
 The factory builds the regular class and attaches its identity, then builds
@@ -54,8 +58,10 @@ its NA subclass. It sets \code{isNAClass} before calling the NA subclass's
 \verb{$new(na_value)}. The inherited initializer stores the missing value through
 \link{RSScalar} when a subclass calls \code{super$initialize(val)}. The shared instance
 is saved in both classes' \code{robjc_isa$slot} and exposed as \code{Class$na}.
-The generated NA class still has a callable \verb{$new()} method; callers should
-use \code{Class$na} when they need the shared instance.
+Singleton NA companions reject direct \verb{$new()} calls after the shared
+instance is created; use \code{Class$na} for them. When \code{na_singleton = FALSE},
+the NA class remains directly constructible. \code{RSFactor_withFactor()} creates
+a new \link{RSNAFactor} for each missing factor to preserve its metadata.
 }
 \examples{
 Probe <- RSScalarClass("Probe", na_value = NA_integer_,

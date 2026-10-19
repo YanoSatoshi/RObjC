@@ -3,20 +3,19 @@
 #'
 #' @description
 #' Creates an R6 class generator that inherits from an existing RObjC object
-#' class. Supply R6 members through `public`, `private`, and `active`, then
+#' class. Supply R6 members through `public` and `private`, then
 #' create instances with the returned class generator's `$new()` method.
 #'
 #' A singleton class cannot be used as `super_class`; use
 #' [RSSingletonClass()] to declare a singleton subclass.
 #'
-#' @param class_name One character string naming the class.
+#' @param class_name One nonempty, nonmissing character string naming the class.
 #' @param super_class An RObjC object class generator to inherit from. Defaults
 #'   to [RSObject].
 #' @param protocols A list of protocol class generators adopted by the class.
-#' @param public,private,active R6 public members, private members, and active
-#'   bindings passed to [R6::R6Class()].
+#' @param public,private R6 public and private members passed to [R6::R6Class()].
 #' @param parent_env Parent environment for the generated R6 methods.
-#' @param version Class version. It must not contain `_`.
+#' @param version One non-empty, non-missing class version without `_`.
 #'
 #' @return The class generator, invisibly.
 #'
@@ -37,21 +36,19 @@ RSObjectClass <- function(
   protocols   = list(),   # list()
   public      = list(),   # list()
   private     = NULL,     # list()
-  active      = NULL,     # list()
   parent_env  = parent.frame(),
   version     = "1.0.0"   # character
 ) {
   # Get real-super-meta-class
   super_generator <- force(super_class)
   stopifnot(
-    "`class_name` must be a character scalar." =
-      is.character(class_name) && length(class_name) == 1L,
+    "`class_name` must be one nonempty character string." =
+      is.character(class_name) && length(class_name) == 1L &&
+      !is.na(class_name) && nzchar(class_name),
     "`super_class` must be a kind of RSObject." =
       robjc_isClass(super_generator),
     "Use `RSSingletonClass()` to declare a singleton subclass." =
-      !inherits(super_class, ROBJC_SINGLETON),
-    "Version string must not contain '_'." =
-      !grepl("_", version)
+      !inherits(super_class, ROBJC_SINGLETON)
   )
   klass <- do.call(
     R6::R6Class,
@@ -62,7 +59,6 @@ RSObjectClass <- function(
       inherit     = super_generator,
       public      = public,
       private     = private,
-      active      = active,
       parent_env  = parent_env
     )
   )

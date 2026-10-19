@@ -2,13 +2,16 @@
 #' @title RSHashOperatorProtocol Protocol
 #'
 #' @description
-#' The \code{RSHashOperatorProtocol} protocol defines the required interface for
-#' hash operator modules used by RS scalar and collection classes. It ensures
-#' consistent hash computation and set-based logic operations.
+#' The \code{RSHashOperatorProtocol} protocol names hash operator methods.
+#' A class can declare adoption of this protocol without implementing every
+#' method; `conformsTo()` checks the declaration. An operator must implement
+#' the methods required by the operation that uses it. For example,
+#' [RSMutableVector] needs `hashForScalar()`, while [RSMutableArray] needs
+#' `hashFromObjects()` and `hashesOfEachObject()`.
 #'
-#' A conforming module must implement the following methods:
+#' The protocol declares these method names:
 #'
-#' @section Required Methods:
+#' @section Declared Methods:
 #' \describe{
 #'
 #'   \item{\code{hashForScalar(val)}}{
@@ -40,7 +43,8 @@
 #'     Returns \code{TRUE} if two object lists represent the same unordered set.
 #'     Internally, the function must compare both hash values and the results of
 #'     each element’s \code{isEqual()} method.
-#'     Used for equality checks between containers like \code{Set} or \code{Dictionary}.
+#'     This method is available for comparing lists of hashable objects independently
+#'     of the native-backed set and dictionary implementations.
 #'   }
 #'
 #'   \item{\code{objectsAlsoIn(obj1, obj2)}}{
@@ -75,7 +79,13 @@
 #'
 #' @note
 #' All methods must be deterministic and consistent with the semantics of \code{hash()} and \code{isEqual()} on RS objects.
-#' The hash value format is not fixed but must support equality comparison.
+#' Protocol conformance checks the adoption declaration, not method presence
+#' or return types. Concrete
+#' consumers impose additional requirements: [RSMutableVector] collects
+#' `hashForScalar()` results as integers, while [RSMutableArray] documents
+#' `hashesOfEachObject()` as an integer vector and `hashFromObjects()` as one
+#' integer hash. When an array is stored as a dictionary key or set member,
+#' its `hash()` must return one nonmissing integer.
 #' Modules implementing this protocol are used by scalar, array, set, and
 #' dictionary classes.
 #'

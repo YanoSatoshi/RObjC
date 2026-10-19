@@ -9,14 +9,14 @@ test_that("RSRaw wraps every raw byte without an NA companion", {
   expect_null(RSRaw$na)
 })
 
-test_that("RSRaw compares and hashes byte values", {
+test_that("RSRaw has key equality and hash but no base R sort order", {
   first <- RSRaw$new(as.raw(16))
   same <- RSRaw$new(as.raw(16))
   later <- RSRaw$new(as.raw(17))
   expect_true(first$isEqual(same))
   expect_false(first$isEqual(later))
-  expect_identical(first$compare(later), -1L)
-  expect_identical(later$compare(first), 1L)
+  expect_error(first$compare(later), "Raw values cannot be sorted", fixed = TRUE)
+  expect_error(later$compare(first), "Raw values cannot be sorted", fixed = TRUE)
   expect_identical(first$hash(), same$hash())
   expect_type(first$hash(), "integer")
 })
@@ -25,5 +25,5 @@ test_that("RSRaw rejects other types and non-scalars", {
   expect_error(RSRaw$new(1L), "raw scalar", fixed = TRUE)
   expect_error(RSRaw_withValue(as.raw(c(1, 2))), "raw scalar", fixed = TRUE)
   expect_error(RSRaw$new(as.raw(1))$compare(RSNumber$new(1L)),
-               "not comparable", fixed = TRUE)
+               "Raw values cannot be sorted", fixed = TRUE)
 })

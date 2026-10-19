@@ -8,10 +8,27 @@ test_that("RSNull: value() returns NULL", {
   expect_null(n$value())
 })
 
+test_that("RSNull: description() returns one printable string", {
+  description <- RSNull$null$description()
+  expect_type(description, "character")
+  expect_length(description, 1L)
+  expect_match(description, "^<RSNull 0x[[:xdigit:]]+> NULL$")
+})
+
 test_that("RSNull: isEqual() returns TRUE for same instance", {
   a <- RSNull$null
   b <- RSNull$null
   expect_true(a$isEqual(b))  # Singleton = 常に同一インスタンス
+})
+
+test_that("RSNull compares only with its shared instance", {
+  null <- RSNull$null
+  expect_identical(null$compare(null), 0L)
+  expect_identical(null$compare(null, na.last = 0L), 0L)
+  expect_error(null$compare(RSNumber$new(1L)),
+               "Null objects are not comparable", fixed = TRUE)
+  expect_error(null$compare(null, na.last = NA),
+               "`na.last` must be TRUE or FALSE", fixed = TRUE)
 })
 
 test_that("RSNull: hash() is always 0", {

@@ -6,6 +6,12 @@ test_that("RSDateTime: wraps POSIXct correctly with timezone", {
   expect_equal(format(rsdt$value(), tz = "Asia/Tokyo"), "2024-01-01 21:00:00")
 })
 
+test_that("RSDateTime rejects a POSIXct class on a nonnumeric value", {
+  bad <- structure("x", class = c("POSIXct", "POSIXt"))
+  expect_error(RSDateTime$new(bad), "must be a numeric POSIX date-time", fixed = TRUE)
+  expect_error(RSDateTime_withDateTime(bad), "must be a numeric POSIX date-time", fixed = TRUE)
+})
+
 test_that("RSDateTime: compare() works correctly", {
   d1 <- RSDateTime$new(as.POSIXct("2023-01-01 00:00:00"))
   d2 <- RSDateTime$new(as.POSIXct("2023-01-01 12:00:00"))

@@ -2,12 +2,13 @@
 #' @title RSString: Character or Factor Scalar Wrapper
 #'
 #' @description
-#' `RSString` is a scalar wrapper class that encapsulates character or factor values.
-#' It inherits from `RSScalar` and provides support for equality comparison,
-#' hashing, and sorting. This class allows factor levels to be treated interchangeably
-#' with character strings at the scalar abstraction level.
+#' `RSString` wraps a character scalar. It inherits equality comparison, hashing,
+#' and sorting behavior from `RSScalar`. A factor input is converted to its
+#' character label; its levels and ordering are not retained.
 #'
 #' The constructor accepts a single-length character or factor value.
+#' A factor input is stored by its character label; use [RSFactor] to retain
+#' levels and ordering information.
 #' Use the factory method `RSString_withValue()` to construct an instance safely,
 #' especially when the input may be `NA`.
 #'
@@ -35,17 +36,37 @@ RSString <- RSScalarClass(
     #' The input must be of class `"character"` or `"factor"` and of length 1.
     #' If the value is `NA`, use `RSNAString` instead.
     #'
-    #' Internally, the value is stored as-is and handled by the parent `RSScalar` class.
+    #' A factor input is stored as its character label so string ordering is
+    #' independent of factor level codes.
     #'
-    #' @param val A scalar character or factor value. Must not be `NA`.
+    #' @param val An unclassed character scalar or a standard factor scalar.
+    #'   Must not be `NA`; S3 subclasses are not accepted.
     #'
     #' @return An initialized `RSString` object (invisible).
     initialize = function(val) {
-      super$initialize(val)
-      if (!inherits(val, c("character", "factor"))) {
-        stop("RSString can wrap character or factor values.")
-      }
+      if (!is.null(dim(val)))
+        stop("`val` must be a scalar.", call. = FALSE)
+      valid_class <- (is.character(val) && !is.object(val)) ||
+        identical(class(val), "factor") ||
+        identical(class(val), c("ordered", "factor"))
+      if (!valid_class)
+        stop("RSString requires an unclassed character or standard factor value.",
+             call. = FALSE)
+      super$initialize(as.character(val))
       invisible(self)
+    },
+
+    #' @description Compare strings for three-way sorting. Factor/string pairs
+    #'   have no shared sort order here; use `nativeCompare()` for base R value
+    #'   comparison.
+    #' @param other Another scalar object.
+    #' @param na.last Whether missing values sort last.
+    #' @return `-1L`, `0L`, or `1L` for comparable values.
+    compare = function(other, na.last = TRUE) {
+      if (robjc_isRobjcObject(other) && other$isKindOf(RSString) &&
+          xor(self$isKindOf(RSFactor), other$isKindOf(RSFactor)))
+        stop("Factor and string values have no shared ordering.", call. = FALSE)
+      super$compare(other, na.last = na.last)
     }
   )
 )

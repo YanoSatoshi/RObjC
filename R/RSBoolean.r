@@ -7,7 +7,8 @@
 #' It rejects NA values; use `RSNABoolean` for NA.
 #' 
 #' @section Methods:
-#' - `asNumber()` — Returns an `RSNumber` with value 1 or 0.
+#' - `asNumber()` — Returns an `RSNumber` with value 1L or 0L, or
+#'   `RSNumber$na` for a missing boolean.
 #' 
 #' @section Usage:
 #' To create an instance, use the static constructor:
@@ -25,22 +26,22 @@ RSBoolean <- RSScalarClass(
     #' Initializes an `RSBoolean` object by wrapping a logical scalar.
     #' This constructor verifies that the input is of class `logical`, and stores
     #' it as the internal value. Only scalar (length 1) logical values are supported.
-    #' @param val A logical scalar to be wrapped.
+    #' @param val A logical scalar without an S3 class attribute.
     #' @return The initialized `RSBoolean` object (invisible).
     initialize = function(val) {
+      if (!inherits(val, "logical")) stop("`val` must be of class logical")
+      if (is.object(val))
+        stop("S3 class attributes are not supported for RSBoolean.", call. = FALSE)
       super$initialize(val)
-      if (!inherits(val, "logical")) stop("val must be of class logical")
       invisible(self)
     },
 
     #' @description
-    #' Returns a numeric representation of the boolean value.
+    #' Returns an integer representation of the boolean value.
     #' Converts the internal logical value (`TRUE` or `FALSE`) to an `RSNumber`
-    #' object (`1` or `0`, respectively).
-    #' @return An `RSNumber` object with value `1` (for `TRUE`) or `0` (for `FALSE`).
-    asNumber = function() {
-      RSNumber$new(as.numeric(private$.val))
-    }
+    #' object (`1L` or `0L`, respectively). Missing values become `RSNumber$na`.
+    #' @return An `RSNumber` with value `1L` or `0L`, or the shared `RSNumber$na`.
+    asNumber = function() RSNumber_withValue(as.integer(private$.val))
 
   )
 )

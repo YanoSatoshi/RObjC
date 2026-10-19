@@ -2,9 +2,10 @@
 #' @include RSFactor.r
 #' @title RSString and RSFactor Convenience Constructors
 #' @description Construct string and factor wrappers. Missing values produce
-#'   the corresponding `RSNA*` class.
-#' @param val A character or factor scalar for `RSString_withValue`; a factor scalar
-#'   for `RSFactor_withFactor`.
+#'   the corresponding `RSNA*` class. `RSFactor_withFactor()` creates a new
+#'   `RSNAFactor` for each missing input, preserving its levels and ordering.
+#' @param val An unclassed character or standard factor scalar for
+#'   `RSString_withValue`; a standard factor scalar for `RSFactor_withFactor`.
 #' @param string A character scalar or an `RSString` instance.
 #' @return The corresponding scalar wrapper.
 #' @name string_constructors
@@ -17,7 +18,10 @@ RSString_empty <- function() RSString$new("")
 #' @rdname string_constructors
 #' @export
 RSString_withValue <- function(val) {
-  if (!(is.character(val) || is.factor(val)) || length(val) != 1L) {
+  valid_class <- (is.character(val) && !is.object(val)) ||
+    identical(class(val), "factor") ||
+    identical(class(val), c("ordered", "factor"))
+  if (!valid_class || length(val) != 1L || !is.null(dim(val))) {
     stop("`val` must be a character or factor scalar.", call. = FALSE)
   }
   if (is.na(val)) return(RSString$na)
@@ -39,9 +43,11 @@ RSString_withString <- function(string) {
 #' @rdname string_constructors
 #' @export
 RSFactor_withFactor <- function(val) {
-  if (!is.factor(val) || length(val) != 1L) {
+  standard_class <- identical(class(val), "factor") ||
+    identical(class(val), c("ordered", "factor"))
+  if (!standard_class || length(val) != 1L || !is.null(dim(val))) {
     stop("`val` must be a factor scalar.", call. = FALSE)
   }
-  if (is.na(val)) return(RSFactor$na)
+  if (is.na(val)) return(RSNAFactor$new(val))
   RSFactor$new(val)
 }

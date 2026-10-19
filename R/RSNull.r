@@ -14,6 +14,9 @@
 #' - `value()` – Always returns `NULL`
 #' - `hash()` – Always returns `0L`
 #' - `isEqual(other)` – Returns TRUE only for the same instance
+#' - `compare(other)` – Returns `0L` for the same instance; other objects are incomparable
+#' - `nativeCompare(other)` – Uses the same singleton comparison rule
+#' - `description()` – Returns a printable description of the null singleton
 #' 
 #' @section Usage:
 #' Use `RSNull$null` to retrieve the shared instance. Direct calls to `$new()`
@@ -49,6 +52,41 @@ RSNull <- RSSingletonClass(
       super$initialize(0L)
       private$.val <- NULL
       invisible(self)
+    },
+
+
+
+    #' @description Compare the singleton with itself.
+    #' @param other An object to compare with.
+    #' @param na.last Whether missing values sort last. Coerced to one
+    #'   nonmissing logical value, for consistency with `RSScalar$compare()`.
+    #' @return `0L` for the shared `RSNull` instance. Other objects are
+    #'   incomparable and cause an error.
+    compare = function(other, na.last = TRUE) {
+      na.last <- tryCatch(as.logical(na.last), error = function(e) NA)
+      if (!is.logical(na.last) || length(na.last) != 1L || is.na(na.last))
+        stop("`na.last` must be TRUE or FALSE.", call. = FALSE)
+      if (!identical(self, other))
+        stop("Null objects are not comparable.", call. = FALSE)
+      0L
+    },
+
+
+
+    #' @description Compare the null singleton using the same rule as `compare()`.
+    #' @param other An object to compare with.
+    #' @param na.last Whether missing values sort last.
+    #' @return `0L` for the shared `RSNull` instance; otherwise an error.
+    nativeCompare = function(other, na.last = TRUE) {
+      self$compare(other, na.last = na.last)
+    },
+
+
+
+    #' @description Return a one-line description of the null singleton.
+    #' @return A character scalar containing the class name, pointer, and `NULL`.
+    description = function() {
+      sprintf("<%s %s> NULL", self$class()$classname, get_pointer_hex(self))
     },
 
 

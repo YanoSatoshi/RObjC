@@ -4,7 +4,8 @@
 #' @description
 #' `RSNumber` wraps a numeric scalar (double or integer) in a value-object style,
 #' inheriting common scalar behavior from `RSScalar`.
-#' It disallows `NA` values directly; use `RSNANumber` instead.
+#' It disallows `NA` values directly; use `RSNANumber` instead. `NaN` is
+#' retained as a regular `RSNumber` value.
 #'
 #' @section Usage:
 #' Use \code{RSNumber_withValue(val)} to safely construct from a numeric scalar.
@@ -24,19 +25,23 @@ RSNumber <- RSScalarClass(
     #' @description
     #' Initializes an `RSNumber` instance by wrapping a scalar numeric value.
     #' The input must be of type numeric (either `double` or `integer`) and must not be `NA`.
+    #' `NaN` is accepted as a double value.
     #' If the input is `NA`, use the `RSNANumber` class instead.
     #'
     #' This method performs strict type validation and delegates scalar storage
     #' and behavior to the superclass `RSScalar`.
     #'
-    #' @param val A scalar numeric value. Must not be `NA`.
+    #' @param val An integer or double scalar without an S3 class attribute.
+    #'   Must not be `NA`.
     #'
     #' @return An initialized `RSNumber` object (invisible).
     initialize = function(val) {
-      super$initialize(val)
       if (!is.numeric(val)) {
         stop("val must be of class numeric")
       }
+      if (is.object(val))
+        stop("S3 class attributes are not supported for RSNumber.", call. = FALSE)
+      super$initialize(val)
       invisible(self)
     }
   )

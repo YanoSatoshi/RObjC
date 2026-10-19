@@ -12,8 +12,9 @@
 #' `resolveClassWith(new_cls)`.
 #'
 #' @details
-#' - `objectsForEncoding()`: Returns a list of robjc objects to be encoded
-#'   along with the object itself.
+#' - `objectsForEncoding()`: Returns a flat list of direct child robjc objects.
+#'   The encoder registers the current object separately. Overrides should
+#'   include `super$objectsForEncoding()` and omit `NULL` and ordinary R values.
 #' - `resolveClassWith(new_cls)`: Called during decoding to replace the object's
 #'   class reference (`.__isa`) with the actual runtime class.
 #'
@@ -68,7 +69,8 @@ RSEncoderProtocol <- RSProtocolClass(
 #'
 #' @details
 #' Required methods:
-#' - `encodedClasses()`: Returns the dictionary of classID → instance set.
+#' - `encodedClasses()`: Returns a list of [RSKeyValuePair] objects. Each key
+#'   is an [RSString] class ID and each value is an [RSInstanceMap].
 #' - `resolveClassesWithDictionary(class_map)`: Replaces placeholder class definitions
 #'   with actual runtime classes.
 #'

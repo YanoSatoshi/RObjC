@@ -6,11 +6,12 @@
 #' It inherits from `RSScalar` and supports equality checking, hashing, and
 #' use in hash-based containers such as `RSSet` and `RSDictionary`.
 #'
-#' The constructor ensures that the value is of class `"Date"`. To construct
+#' The constructor ensures that the value is a numeric `"Date"`. To construct
 #' safely from a value that may include `NA`, use the factory method `RSDate_withDate()`.
 #'
 #' @section Methods:
-#' - `hash()` – Converts the date to an integer representation for hashing.
+#' - `hash()` – Hashes the numeric day count without integer range truncation;
+#'   missing dates hash to `0L`.
 #'
 #' @section Usage:
 #' Use \code{RSDate_withDate(val)} to construct safely from a Date scalar.
@@ -32,25 +33,29 @@ RSDate <- RSScalarClass(
 
     #' @description
     #' Constructs a new `RSDate` object by wrapping a scalar Date value.
-    #' The input is validated to ensure it is of class `"Date"`, and an error is raised otherwise.
+    #' The input must have class `"Date"` and an integer or double day count.
     #' This method delegates scalar validation and storage to the superclass `RSScalar`.
     #' 
-    #' @param val A scalar object of class `"Date"`.
+    #' @param val A scalar with the standard `"Date"` class, without an S3 subclass.
     #' @return For `initialize()`: The constructed `RSDate` object (invisible).
     initialize = function(val) {
+      if (!identical(class(val), "Date") ||
+          !(typeof(val) %in% c("integer", "double")))
+        stop("`val` must be a numeric Date.", call. = FALSE)
       super$initialize(val)
-      if (!inherits(val, "Date"))   stop("val must be of class Date")
       invisible(self)
     },
 
 
     #' @description
-    #' Computes an integer hash value based on the numeric representation of the internal `Date` value.
+    #' Computes an integer hash from the numeric day count of the internal `Date` value.
     #' This enables consistent use of `RSDate` objects in hashed containers such as sets or dictionaries.
+    #' Missing dates hash to `0L`.
     #' 
-    #' @return For `hash()`: An integer hash corresponding to the number of days since 1970-01-01.
+    #' @return For `hash()`: An integer hash code.
     hash = function() {
-      as.integer(as.numeric(private$.val))
+      if (isTRUE(is.na(private$.val))) return(0L)
+      RSHashOperator$instance$hashForScalar(as.numeric(private$.val))
     }
   )
 )

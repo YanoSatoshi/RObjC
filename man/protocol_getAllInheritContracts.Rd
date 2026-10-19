@@ -2,7 +2,7 @@
 % Please edit documentation in R/runtime_protocol.r
 \name{protocol_getAllInheritContracts}
 \alias{protocol_getAllInheritContracts}
-\title{Get Inherited Protocol Requirements}
+\title{Get Inherited Protocol Method Names}
 \usage{
 protocol_getAllInheritContracts(protocol)
 }
@@ -13,6 +13,6 @@ protocol_getAllInheritContracts(protocol)
 A character vector of inherited method names.
 }
 \description{
-Collects unique method names required by all ancestor protocols.
+Collects unique method names declared by all ancestor protocols.
 }
 \keyword{internal}

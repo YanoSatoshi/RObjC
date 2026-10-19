@@ -2,22 +2,25 @@
 #'
 #' @description
 #' Creates a regular scalar class derived from [RSScalar] and an NA companion
-#' class derived from that regular class. The companion is created as a
-#' singleton while this factory runs.
+#' class derived from that regular class. By default, the companion class is
+#' marked as a singleton and has a shared NA instance.
 #'
 #' @param class_name A nonempty character scalar. Names beginning with `RS`
 #'   produce a companion named `RSNA...`; other names receive an `NA` suffix.
 #' @param super_class An [RSScalar] class generator or one of its subclasses.
-#' @param na_value A length-one missing value, such as `NA_integer_`,
-#'   `NA_character_`, or `as.Date(NA)`. The factory passes it directly to the
+#' @param na_value A dimensionless length-one missing value, such as `NA_integer_`,
+#'   `NA_character_`, `as.Date(NA)`, or `as.POSIXlt(NA)`. The factory passes it directly to the
 #'   generated NA class's initializer.
 #' @param protocols Protocol class generators adopted by the new classes.
-#' @param public,private,active R6 members for the regular class. If `public`
+#' @param public,private R6 members for the regular class. If `public`
 #'   defines `initialize(val)`, that method must accept the supplied `na_value`
 #'   when called on the generated NA subclass and pass it to
 #'   `super$initialize(val)`. A default for `val` is not required.
 #' @param parent_env Parent environment for the generated R6 methods.
-#' @param version Class version; `_` is reserved for class identifiers.
+#' @param version One non-empty, non-missing class version without `_`.
+#' @param na_singleton Whether to mark the NA companion class as a singleton.
+#'   The default is `TRUE`; [RSFactor] uses `FALSE` so each missing factor can
+#'   retain its own levels and ordering.
 #'
 #' @return The regular class generator, invisibly. Its `na` binding and its
 #'   `robjc_isa$slot` both reference the shared NA instance. The NA class
@@ -30,8 +33,10 @@
 #' `$new(na_value)`. The inherited initializer stores the missing value through
 #' [RSScalar] when a subclass calls `super$initialize(val)`. The shared instance
 #' is saved in both classes' `robjc_isa$slot` and exposed as `Class$na`.
-#' The generated NA class still has a callable `$new()` method; callers should
-#' use `Class$na` when they need the shared instance.
+#' Singleton NA companions reject direct `$new()` calls after the shared
+#' instance is created; use `Class$na` for them. When `na_singleton = FALSE`,
+#' the NA class remains directly constructible. `RSFactor_withFactor()` creates
+#' a new [RSNAFactor] for each missing factor to preserve its metadata.
 #'
 #' @examples
 #' Probe <- RSScalarClass("Probe", na_value = NA_integer_,
@@ -49,11 +54,13 @@ RSScalarClass <- function(
   protocols   = list(),
   public      = list(),
   private     = NULL,
-  active      = NULL,
   parent_env  = parent.frame(),
-  version     = "1.0.0"
+  version     = "1.0.0",
+  na_singleton = TRUE
 ) {
   super_generator <- force(super_class)
+  if (!is.logical(na_singleton) || length(na_singleton) != 1L || is.na(na_singleton))
+    stop("`na_singleton` must be TRUE or FALSE.", call. = FALSE)
   stopifnot(
     "`class_name` must be one nonempty character string." =
       is.character(class_name) && length(class_name) == 1L &&
@@ -65,12 +72,11 @@ RSScalarClass <- function(
         function(klass) identical(klass, RSScalar), logical(1)
       )),
     "Use `RSSingletonClass()` to declare a singleton subclass." =
-      !inherits(super_generator, ROBJC_SINGLETON),
-    "Version string must not contain '_'." =
-      is.character(version) && length(version) == 1L &&
-      !is.na(version) && !grepl("_", version)
+      !inherits(super_generator, ROBJC_SINGLETON)
   )
-  if (!is.atomic(na_value) || length(na_value) != 1L ||
+  if ((!is.atomic(na_value) && !inherits(na_value, "POSIXlt")) ||
+      length(na_value) != 1L ||
+      !is.null(dim(na_value)) ||
       !isTRUE(is.na(na_value)) || isTRUE(is.nan(na_value))) {
     stop("`na_value` must be a scalar NA.", call. = FALSE)
   }
@@ -84,7 +90,6 @@ RSScalarClass <- function(
       cloneable   = FALSE,
       public      = public,
       private     = private,
-      active      = active,
       parent_env  = parent_env
     )
   )
@@ -105,7 +110,8 @@ RSScalarClass <- function(
     na_value,
     parent_env,
     protocols = protocols,
-    version   = version
+    version   = version,
+    na_singleton = na_singleton
   )
 
   # The normal class slot holds the shared NA instance, matching the NA
@@ -127,7 +133,8 @@ rsscalar_make_na_class <- function(
   na_value,
   parent_env,
   protocols = list(),
-  version   = "0.0.3 alpha"
+  version   = "0.0.3 alpha",
+  na_singleton = TRUE
 ) {
   r6generator <- do.call(
     R6::R6Class,
@@ -150,7 +157,19 @@ rsscalar_make_na_class <- function(
   r6generator$robjc_isa$slot <- r6generator$new(na_value)
   r6generator$instance <- r6generator$robjc_isa$slot
   lockBinding("instance", r6generator)
-  class(r6generator) <- c(ROBJC_SINGLETON, ROBJC_CLASS, R6GENERATOR)
+  if (na_singleton) {
+    r6generator$new <- function(...) {
+      stop(
+        sprintf("%s is a singleton; use %s$na.", na_class_name, klass$classname),
+        call. = FALSE
+      )
+    }
+    lockBinding("new", r6generator)
+  }
+  class(r6generator) <- if (na_singleton)
+    c(ROBJC_SINGLETON, ROBJC_CLASS, R6GENERATOR)
+  else
+    c(ROBJC_CLASS, R6GENERATOR)
   robjc_freeze_isa(r6generator)
   return(r6generator)
 }

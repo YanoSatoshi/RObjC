@@ -20,6 +20,9 @@ The \code{RSNull$instance} and \code{RSNull$null} bindings are locked after crea
 \item \code{value()} – Always returns \code{NULL}
 \item \code{hash()} – Always returns \code{0L}
 \item \code{isEqual(other)} – Returns TRUE only for the same instance
+\item \code{compare(other)} – Returns \code{0L} for the same instance; other objects are incomparable
+\item \code{nativeCompare(other)} – Uses the same singleton comparison rule
+\item \code{description()} – Returns a printable description of the null singleton
 }
 }
 
@@ -36,101 +39,171 @@ x$isEqual(RSNull$null)  # TRUE
 
 }
 \section{Super classes}{
-\code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{\link[robjc:RSScalar]{robjc::RSScalar}} -> \code{RSNull}
+\code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSScalar]{RSScalar}} -> \code{RSNull}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-RSNull-new}{\code{RSNull$new()}}
-\item \href{#method-RSNull-isEqual}{\code{RSNull$isEqual()}}
-\item \href{#method-RSNull-hash}{\code{RSNull$hash()}}
-\item \href{#method-RSNull-value}{\code{RSNull$value()}}
+  \itemize{
+    \item \href{#method-RSNull-initialize}{\code{RSNull$new()}}
+    \item \href{#method-RSNull-compare}{\code{RSNull$compare()}}
+    \item \href{#method-RSNull-nativeCompare}{\code{RSNull$nativeCompare()}}
+    \item \href{#method-RSNull-description}{\code{RSNull$description()}}
+    \item \href{#method-RSNull-isEqual}{\code{RSNull$isEqual()}}
+    \item \href{#method-RSNull-hash}{\code{RSNull$hash()}}
+    \item \href{#method-RSNull-value}{\code{RSNull$value()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="copy"><a href='../../robjc/html/RSObject.html#method-RSObject-copy'><code>robjc::RSObject$copy()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="compare"><a href='../../robjc/html/RSScalar.html#method-RSScalar-compare'><code>robjc::RSScalar$compare()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="description"><a href='../../robjc/html/RSScalar.html#method-RSScalar-description'><code>robjc::RSScalar$description()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>RSObject$class()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>RSObject$conformsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="copy"><a href='../../robjc/html/RSObject.html#method-RSObject-copy'><code>RSObject$copy()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>RSObject$debugDescription()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>RSObject$inheritClassesAsList()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>RSObject$isKindOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>RSObject$print()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="nativeValue"><a href='../../robjc/html/RSScalar.html#method-RSScalar-nativeValue'><code>RSScalar$nativeValue()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSNull-new"></a>}}
-\if{latex}{\out{\hypertarget{method-RSNull-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes an \code{RSNull} instance. The factory invokes it to create the
+\if{html}{\out{<a id="method-RSNull-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-RSNull-initialize}{}}}
+\subsection{\code{RSNull$new()}}{
+  Initializes an \code{RSNull} instance. The factory invokes it to create the
 shared instance; use \code{RSNull$null} to retrieve that instance.
 
 It delegates scalar initialization, then stores \code{NULL} as the value.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSNull$new()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSNull$new()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The initialized \code{RSNull} instance (invisible).
+  }
 }
 
-\subsection{Returns}{
-The initialized \code{RSNull} instance (invisible).
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSNull-compare"></a>}}
+\if{latex}{\out{\hypertarget{method-RSNull-compare}{}}}
+\subsection{\code{RSNull$compare()}}{
+  Compare the singleton with itself.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSNull$compare(other, na.last = TRUE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{An object to compare with.}
+      \item{\code{na.last}}{Whether missing values sort last. Coerced to one
+nonmissing logical value, for consistency with \code{RSScalar$compare()}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{0L} for the shared \code{RSNull} instance. Other objects are
+incomparable and cause an error.
+  }
 }
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSNull-nativeCompare"></a>}}
+\if{latex}{\out{\hypertarget{method-RSNull-nativeCompare}{}}}
+\subsection{\code{RSNull$nativeCompare()}}{
+  Compare the null singleton using the same rule as \code{compare()}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSNull$nativeCompare(other, na.last = TRUE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{An object to compare with.}
+      \item{\code{na.last}}{Whether missing values sort last.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{0L} for the shared \code{RSNull} instance; otherwise an error.
+  }
 }
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSNull-description"></a>}}
+\if{latex}{\out{\hypertarget{method-RSNull-description}{}}}
+\subsection{\code{RSNull$description()}}{
+  Return a one-line description of the null singleton.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSNull$description()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A character scalar containing the class name, pointer, and \code{NULL}.
+  }
+}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSNull-isEqual"></a>}}
 \if{latex}{\out{\hypertarget{method-RSNull-isEqual}{}}}
-\subsection{Method \code{isEqual()}}{
-Determines whether another object is identical to self: \code{RSNull} singleton.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSNull$isEqual(other)}\if{html}{\out{</div>}}
+\subsection{\code{RSNull$isEqual()}}{
+  Determines whether another object is identical to self: \code{RSNull} singleton.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSNull$isEqual(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another object to compare against.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} if \code{other} is also an \code{RSNull} instance; otherwise \code{FALSE}.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{other}}{Another object to compare against.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{TRUE} if \code{other} is also an \code{RSNull} instance; otherwise \code{FALSE}.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSNull-hash"></a>}}
 \if{latex}{\out{\hypertarget{method-RSNull-hash}{}}}
-\subsection{Method \code{hash()}}{
-Returns a fixed integer hash value (\code{0L}) for all \code{RSNull} instances.
+\subsection{\code{RSNull$hash()}}{
+  Returns a fixed integer hash value (\code{0L}) for all \code{RSNull} instances.
 Since \code{RSNull} is a singleton and always represents the same conceptual null value,
 a constant hash ensures consistent behavior in hashed collections.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSNull$hash()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSNull$hash()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Integer scalar \code{0L}.
+  }
 }
 
-\subsection{Returns}{
-Integer scalar \code{0L}.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSNull-value"></a>}}
 \if{latex}{\out{\hypertarget{method-RSNull-value}{}}}
-\subsection{Method \code{value()}}{
-Returns the internal null value (\code{NULL}) wrapped by the \code{RSNull} instance.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSNull$value()}\if{html}{\out{</div>}}
+\subsection{\code{RSNull$value()}}{
+  Returns the internal null value (\code{NULL}) wrapped by the \code{RSNull} instance.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSNull$value()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{NULL}.
+  }
 }
 
-\subsection{Returns}{
-\code{NULL}.
-}
-}
 }

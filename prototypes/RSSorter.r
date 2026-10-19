@@ -1,3 +1,8 @@
+# todo REMOVE ME
+# C++ 化以前、Dictionary のハッシュテーブル構築と検索を支えるために用意した
+# 並べ替えモジュール。現在の Dictionary は C++ のハッシュテーブルを使い、
+# このクラスを参照しない。履歴確認のためソースのみ保存する。
+
 #' @include api_setup.r
 #' @title RSSorter: Sorting Module for Proxy and Compare Functions
 #'
@@ -43,7 +48,8 @@ RSSorter <- RSSingletonClass(
 
     #' @description
     #' Sorts a list of RS objects using a custom comparator function.
-    #' This method uses an in-place, non-recursive quicksort algorithm with support for arbitrary ordering logic.
+    #' This method uses a non-recursive quicksort and preserves input order
+    #' when the comparator returns zero.
     #'
     #' @param entries A list of RS objects to sort.
     #' @param compare_fn A function of two arguments that returns -1, 0, or 1 for less, equal, or greater.
@@ -52,6 +58,7 @@ RSSorter <- RSSingletonClass(
       n <- length(entries)
       if (n <= 1) return(entries)
       result <- entries
+      original_index <- seq_len(n)
       stack <- vector("list", n * 2L)
       top <- 1L
       stack[[top]] <- list(lo = 1L, hi = n)
@@ -64,20 +71,27 @@ RSSorter <- RSSingletonClass(
         # --- Pivot selection ---
         mid <- bitwShiftR(lo + hi, 1L)  # Select middle index as pivot
         pivot <- result[[mid]]
+        pivot_index <- original_index[[mid]]
         # --- Move pivot to the end ---
         result[[mid]] <- result[[hi]]
         result[[hi]] <- pivot
+        original_index[[mid]] <- original_index[[hi]]
+        original_index[[hi]] <- pivot_index
         # --- Partition step ---
         i <- lo
         for (j in lo:(hi - 1L)) {
-          if (compare_fn(result[[j]], pivot) < 0L) {
+          comparison <- compare_fn(result[[j]], pivot)
+          if (comparison < 0L ||
+              (comparison == 0L && original_index[[j]] < pivot_index)) {
             # Swap result[[i]] and result[[j]]
             result[c(i, j)] <- result[c(j, i)]
+            original_index[c(i, j)] <- original_index[c(j, i)]
             i <- i + 1L
           }
         }
         # --- Place pivot in final position ---
         result[c(i, hi)] <- result[c(hi, i)]
+        original_index[c(i, hi)] <- original_index[c(hi, i)]
         # --- Push subranges to stack for later processing ---
         # Left side: [lo, i - 1]
         if (i - 1L > lo) {

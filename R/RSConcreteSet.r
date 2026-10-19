@@ -79,9 +79,8 @@ RSConcreteSet <- R6::R6Class(
     #'   bridge. Package code should normally leave this as `NULL`.
     initialize = function(.native_ptr = NULL) {
       if (!is.null(.native_ptr)) {
-        if (typeof(.native_ptr) != "externalptr") {
+        if (typeof(.native_ptr) != "externalptr")
           stop(".native_ptr must be an external pointer")
-        }
         private$.native_ptr <- .native_ptr
       }
       invisible(self)
@@ -96,7 +95,8 @@ RSConcreteSet <- R6::R6Class(
     },
 
     #' @description Adds an object if no equal member is present.
-    #' @param item A hashable RObjC object. The object is retained, not copied.
+    #' @param item A hashable RObjC object or Class/Protocol generator. It is
+    #'   retained, not copied.
     #' @return `self`, invisibly.
     add = function(item) {
       set_add(private$.native(), item)
@@ -104,7 +104,7 @@ RSConcreteSet <- R6::R6Class(
     },
 
     #' @description Returns the stored object equal to `item`.
-    #' @param item A hashable RObjC object used for lookup.
+    #' @param item A hashable RObjC object or Class/Protocol generator used for lookup.
     #' @return The stored member, or `NULL` when absent.
     member = function(item) {
       set_member(private$.native(), item)
@@ -117,14 +117,14 @@ RSConcreteSet <- R6::R6Class(
     },
 
     #' @description Tests whether an equal member is present.
-    #' @param item A hashable RObjC object used for lookup.
+    #' @param item A hashable RObjC object or Class/Protocol generator used for lookup.
     #' @return A logical scalar.
     contains = function(item) {
       set_contains(private$.native(), item)
     },
 
     #' @description Removes the member equal to `item`.
-    #' @param item A hashable RObjC object used for lookup.
+    #' @param item A hashable RObjC object or Class/Protocol generator used for lookup.
     #' @return `TRUE` if a member was removed; otherwise `FALSE`.
     remove = function(item) {
       set_remove(private$.native(), item)

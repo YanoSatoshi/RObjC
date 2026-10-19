@@ -71,6 +71,20 @@ public:
     return result;
   }
 
+  Rcpp::List entries() const {
+    Rcpp::List result(storage_.size());
+    std::size_t index = 0;
+
+    for (const auto& entry : storage_) {
+      result[index++] = Rcpp::List::create(
+        entry.first,
+        entry.second
+      );
+    }
+
+    return result;
+  }
+
   bool remove(SEXP key) {
     auto it = storage_.find(key);
     if (it == storage_.end()) {
@@ -162,4 +176,10 @@ Rcpp::List dictionary_keys(SEXP xp) {
 Rcpp::List dictionary_values(SEXP xp) {
   Rcpp::XPtr<NativeDictionary> dict(xp);
   return dict->values();
+}
+
+// [[Rcpp::export]]
+Rcpp::List dictionary_entries(SEXP xp) {
+  Rcpp::XPtr<NativeDictionary> dict(xp);
+  return dict->entries();
 }

@@ -3,7 +3,7 @@
 #'
 #' @description
 #' `RSInstanceMap` represents a one-to-many mapping between a wrapped class
-#' (an object of class `RSWrappedClass`) and a mutable or immutable set of instance objects.
+#' (an object of class `RSWrappedClass`) and a set of instance objects.
 #' It is used internally in robjc serialization to track which objects were created
 #' from a given class, supporting reconstruction and encoding workflows.
 #'
@@ -16,8 +16,8 @@
 #' - the value is an `RSMutableSet` (converted to `RSSet` after finalization)
 #'
 #' @section Lifecycle:
-#' Use `$lockInstance()` to convert the map to an immutable state. Once finalized, the set of
-#' instances becomes locked and cannot be modified.
+#' Use `$lockInstance()` to convert the map to an immutable state. Before then,
+#' add instances through `$addObject()`; `$objects()` returns an immutable snapshot.
 #'
 #' @family robjc serialization
 #'
@@ -42,7 +42,8 @@ RSInstanceMap <- RSObjectClass(
     #' The instance list is wrapped in an `RSMutableSet`.
     #'
     #' @param class_ref An object of class `RSWrappedClass`.
-    #' @param objects A list of instance objects (optional). Defaults to an empty list.
+    #' @param objects A list of instances with the wrapped class ID (optional).
+    #'   Defaults to an empty list.
     #'
     #' @return A new `RSInstanceMap` object.
     #'
@@ -51,6 +52,16 @@ RSInstanceMap <- RSObjectClass(
     #' map <- RSInstanceMap$new(my_wrapped_class, list(obj1, obj2))
     #' }
     initialize = function(class_ref, objects = list()) {
+      if (!robjc_isRobjcObject(class_ref) || !class_ref$isKindOf(RSWrappedClass))
+        stop("`class_ref` must be an RSWrappedClass object.", call. = FALSE)
+      objects <- cast_collections_to_list(objects)
+      valid <- vapply(
+        objects,
+        function(obj) private$.matchesClassID(obj, class_ref),
+        logical(1)
+      )
+      if (!all(valid))
+        stop("Instances must belong to `class_ref`.", call. = FALSE)
       super$initialize(class_ref, RSMutableSet$new(objects))
       private$.locked <- FALSE
       invisible(self)
@@ -87,18 +98,29 @@ RSInstanceMap <- RSObjectClass(
 
 
     #' @description
-    #' Returns the current set of instance objects associated with the class.
-    #' This may be a mutable set (`RSMutableSet`) before finalization,
-    #' or an immutable set (`RSSet`) after finalization.
+    #' Returns an immutable snapshot of the current instance set.
     #'
-    #' @return An `RSSet` or `RSMutableSet` object.
+    #' @return An `RSSet` containing the current instances.
     #'
     #' @examples
     #' \dontrun{
     #' objs <- map$objects()
     #' objs$count()
     #' }
-    objects      = function() private$.value,
+    objects      = function() private$.value$copy(),
+
+
+
+    #' @description Returns the same immutable snapshot as `objects()`.
+    #' @return An `RSSet` containing the current instances.
+    value = function() self$objects(),
+
+
+
+    #' @description Returns the wrapped class and an immutable instance snapshot
+    #'   for encoding.
+    #' @return A list containing the wrapped class and an `RSSet` snapshot.
+    objectsForEncoding = function() list(private$.key, self$objects()),
 
 
 
@@ -106,7 +128,7 @@ RSInstanceMap <- RSObjectClass(
     #' Adds a new instance object to the set of associated instances.
     #' This method is only valid before the map has been finalized.
     #'
-    #' @param obj An instance object to be added.
+    #' @param obj An instance with the wrapped class ID to be added.
     #'
     #' @return The instance map itself (invisibly).
     #'
@@ -116,7 +138,10 @@ RSInstanceMap <- RSObjectClass(
     #' }
     addObject    = function(obj) {
       stopifnot("RSInstanceMap cannot modify after finalize." = !private$.locked)
+      if (!private$.matchesClassID(obj, private$.key))
+        stop("Instance must belong to `class_ref`.", call. = FALSE)
       private$.value$addObject(obj)
+      invisible(self)
     },
 
 
@@ -129,13 +154,12 @@ RSInstanceMap <- RSObjectClass(
     #' @return The locked instance map, invisibly.
     #'
     #' @note
-    #' This method should be called exactly once. A second call will result in an warning
-    #' due to locked bindings.
+    #' Repeated calls leave the locked map unchanged and issue a warning.
     #'
     #' @examples
     #' \dontrun{
     #' map$lockInstance()
-    #' map$objects()$addObject(obj)  # Error: set is locked
+    #' map$addObject(obj)  # Error: map is locked
     #' }
     lockInstance = function() {
       if (private$.locked) {
@@ -148,9 +172,18 @@ RSInstanceMap <- RSObjectClass(
       lockBinding(".key",   private)
       lockBinding(".value", private)
       lockBinding(".locked", private)
+      invisible(self)
     }
   ),
   private = list(
-    .locked = FALSE
+    .locked = FALSE,
+    .matchesClassID = function(obj, class_ref) {
+      if (!robjc_isRobjcObject(obj)) return(FALSE)
+      klass <- obj$class()
+      identical(
+        sprintf("%s_%s", klass$classname, klass$robjc_isa$version),
+        class_ref$classID()$value()
+      )
+    }
   )
 )

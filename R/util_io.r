@@ -24,33 +24,46 @@
 get_standard_robjc_classes <- function(as_class_name = TRUE) {
   ns <- asNamespace("robjc")
   exported <- getNamespaceExports("robjc")
-  generators <- Filter(function(name) {
-    obj <- tryCatch(
-      get(name, envir = ns, inherits = FALSE),
-      error = function(e) NULL
+  generators <-
+    Filter(
+      function(name) {
+        obj <- tryCatch(
+          get(name, envir = ns, inherits = FALSE),
+          error = function(e) NULL
+        )
+        inherits(obj, "R6ClassGenerator")
+      },
+      exported
     )
-    inherits(obj, "R6ClassGenerator")
-  }, exported)
-  std_classes <- Filter(function(name) {
-    klass <- get(name, envir = ns)
-    tryCatch({
-      inherits(klass$get_inherit(), "R6ClassGenerator") &&
-        identical(klass$get_inherit()$classname, "RSObject")
-    }, error = function(e) FALSE)
-  }, generators)
-  if (as_class_name) {
+  std_classes <-
+    Filter(
+      function(name) {
+        klass <- get(name, envir = ns)
+        robjc_isClass(klass) &&
+        any(
+          vapply(robjc_inheritChain(klass$robjc_isa)[-1L], identical, logical(1), RSObject)
+        )
+      },
+      generators
+    )
+  if (as_class_name)
     return(unname(std_classes))
-  } else {
-    cls_objects <- lapply(
-      std_classes,
-      function(nm) {
-        cls <- list(get(nm, envir = ns))
-        names(cls) <- nm
-        return(cls)
-      }
+  else
+    return(
+      stats::setNames(
+        lapply(std_classes, function(nm) get(nm, envir = ns)),
+        std_classes
+      )
     )
-    return(cls_objects)
-  }
+}
+
+.standard_robjc_class_dictionary <- function() {
+  classes <- get_standard_robjc_classes(FALSE)
+  wrapped <- lapply(classes, RSWrappedClass$new)
+  RSDictionary_withObjectsForKeys(
+    objects = wrapped,
+    keys = lapply(wrapped, function(object) object$classID())
+  )
 }
 
 
@@ -144,11 +157,16 @@ robjc_encode_and_save <- function(objects,
                                   compress = TRUE,
                                   compression_level = 6) {
   stopifnot(is.list(objects), is.character(names(objects)))
+  if (".__rs_encoded_data__" %in% names(objects))
+    stop("`.__rs_encoded_data__` is reserved for robjc metadata.", call. = FALSE)
   # robjc encode
   encoder <- RSClassEncoder$instance$refresh()
-  for (obj in objects) {
-    if (robjc_isRobjcObject(obj)) encoder$encodeObject(obj)
-  }
+  #! validation check V-048
+  #todo RObjC object を通常の list 内に入れて保存すると、このループは list を root と見なさず、内側の object を登録しない。復元後は isKindOf(現行クラス) が FALSE になる。対応するコンテナ範囲を決める。
+  #? # 対応範囲を通常の list に広げるなら、入れ子の RObjC object を探索して encodeObject() に渡す。広げないなら保存前に検出して拒否し、制約を文書化する。
+  for (obj in objects)
+    if (robjc_isRobjcObject(obj))
+      encoder$encodeObject(obj)
   metadata <- encoder$lockInstance()
   .prepare_native_collections_for_serialization(metadata)
   # construct save env
@@ -181,6 +199,8 @@ robjc_encode_and_save <- function(objects,
 #' A wrapper around `base::save()` that also stores robjc structural metadata.
 #' This function behaves like `save()` but includes encoded metadata needed
 #' to restore robjc objects.
+#' The name `.__rs_encoded_data__` is reserved for this metadata and cannot be
+#' used for an object being saved.
 #'
 #' @inheritParams base::save
 #'
@@ -197,7 +217,15 @@ robjc_save <- function(...,
                        compression_level,
                        eval.promises = TRUE,
                        precheck = TRUE) {
-  if (missing(file)) stop("`file` must be specified.")
+  #! validation check V-045
+  # base::save() と同じ引数を使えるようにする意図で、この2引数を設けたと考えられる。
+  # eval.promises = FALSE は、遅延評価された変数を評価せず promise のまま保存する指定。
+  # precheck = FALSE は、保存開始前の名前の存在確認を省く指定。
+  # 現在はエンコードのため mget() で値を先に取得するので、どちらの指定も反映されない。
+  #todo eval.promises と precheck は受け取るが、mget() が常に promise を強制評価し存在も先に確認する。FALSE を黙って受理してよいか判断する。
+  #? if (!isTRUE(eval.promises) || !isTRUE(precheck)) stop("`eval.promises = FALSE` and `precheck = FALSE` are not supported.", call. = FALSE)
+  if (missing(file))
+    stop("`file` must be specified.")
   dot_names <- as.character(substitute(list(...)))[-1L]
   all_names <- unique(c(dot_names, list))
   if (length(all_names) == 0L) stop("No objects specified to save.")
@@ -224,6 +252,8 @@ robjc_save <- function(...,
 #' @description
 #' Saves all objects in the given environment along with robjc metadata.
 #' Equivalent to `save.image()` but compatible with robjc framework.
+#' The name `.__rs_encoded_data__` is reserved for this metadata; an environment
+#' containing a variable with that name cannot be saved by this function.
 #'
 #' @param file File to save to (default: "RData")
 #' @param envir Environment to save (default: `.GlobalEnv`)
@@ -329,7 +359,8 @@ robjc_save_rds <- function(object,
 #' If some class IDs remain unresolved, a warning with class names will be shown.
 #'
 #' @param file Path to the `.rds` file to read.
-#' @param class_map Optional `RSDictionary` of custom classID → class mappings.
+#' @param class_map Optional `RSDictionary` or `RSMutableDictionary` mapping
+#'   [RSString] class IDs to matching [RSWrappedClass] objects for custom classes.
 #' @param refhook Optional function passed to `base::readRDS()`.
 #'
 #' @return Restored object with robjc class structure resolved.
@@ -342,39 +373,31 @@ robjc_read_rds <- function(file,
                            refhook = NULL) {
   stopifnot(file.exists(file))
   data <- readRDS(file = file, refhook = refhook)
-  if (!is.list(data) || !all(c("__object__", "__robjc__") %in% names(data))) {
+  if (!is.list(data) || !all(c("__object__", "__robjc__") %in% names(data)))
     stop("Invalid robjc RDS format: missing __object__ or __robjc__.")
-  }
   # --- STEP 1: Generate standard class dictionary ---
-  std_classes <- get_standard_robjc_classes(FALSE)
-  std_keys <- lapply(
-    std_classes,
-    function(cls) {
-      RSString_withValue(
-        paste(cls$classname, cls$robjc_isa$version, sep = "_")
-      )
-    }
-  )
-  std_map <- RSDictionary$dictionaryWithKeysAndObjects(
-    keys = std_keys,
-    objects = unname(std_classes)
-  )
+  std_map <- .standard_robjc_class_dictionary()
   # --- STEP 2: Merge std_map and class_map ---
   if (!is.null(class_map)) {
-    stopifnot(inherits(class_map, "RSDictionary"))
+    if (!robjc_isRobjcObject(class_map) || !class_map$isKindOf(RSMutableDictionary))
+      stop("`class_map` must be a dictionary.", call. = FALSE)
     std_map <- std_map$dictionaryByMergingWithDictionary(class_map)
   }
   # --- STEP 3: Operate decoding ---
   decoder <- RSClassDecoder$instance
   decoder$loadEncodedData(data$`__robjc__`)
   decoder$resolveClassesWithDictionary(std_map)
+  #! validation check V-046
+  #todo 未解決 class ID は resolveClassesWithDictionary() が stop するため、下の warning には到達しない。
   # --- Warn the unresolved classes exist. ---
   unresolved <- decoder$unresolved
   if (length(unresolved) > 0) {
-    warning(sprintf(
-      "The following class IDs could not be resolved:\n  - %s",
-      paste(unresolved, collapse = "\n  - ")
-    ))
+    warning(
+      sprintf(
+        "The following class IDs could not be resolved:\n  - %s",
+        paste(unresolved, collapse = "\n  - ")
+      )
+    )
   }
   return(data$`__object__`)
 }
@@ -398,11 +421,11 @@ robjc_read_rds <- function(file,
 #' a warning will be displayed.
 #'
 #' @param file Path to the `.rda` file.
-#' @param class_map Optional `RSDictionary` of custom classID → class mappings.
+#' @param class_map Optional `RSDictionary` or `RSMutableDictionary` mapping
+#'   [RSString] class IDs to matching [RSWrappedClass] objects for custom classes.
 #' @param envir Environment in which to load the objects (default: `.GlobalEnv`).
 #' @param verbose Logical. Print names of loaded objects?
-#' @param hookFunction Optional hook passed to `base::load()`.
-#' @param ... Additional arguments passed to `base::load()`.
+#' @param ... Reserved for compatibility; currently ignored.
 #'
 #' @return A character vector of names of objects created.
 #'
@@ -413,58 +436,48 @@ robjc_load <- function(file,
                        class_map = NULL,
                        envir = .GlobalEnv,
                        verbose = FALSE,
-                       hookFunction = NULL,
+                      #  hookFunction = NULL,
                        ...) {
   stopifnot(file.exists(file))
   # STEP 1: load all objects into isolated env
   temp_env <- new.env(parent = emptyenv())
-  loaded_names <- base::load(file = file, envir = temp_env,
-                             verbose = verbose,
-                             hookFunction = hookFunction, ...)
+  loaded_names <- base::load(file = file, envir = temp_env, verbose = verbose)
   # STEP 2: detect and extract metadata
-  if ("__rs_encoded_data__" %in% loaded_names) {
+  if (".__rs_encoded_data__" %in% loaded_names) {
     metadata <- temp_env$.__rs_encoded_data__
     if (!inherits(metadata, "RSDictionary")) {
       stop(".__rs_encoded_data__ must be a RSDictionary.")
     }
     # Standard class dictionary.
-    std_classes <- get_standard_robjc_classes(FALSE)
-    std_keys <- lapply(
-      std_classes,
-      function(cls) {
-        RSString_withValue(
-          paste(cls$classname, cls$robjc_isa$version, sep = "_")
-        )
-      }
-    )
-    std_map <- RSDictionary$dictionaryWithKeysAndObjects(
-      keys = std_keys,
-      objects = unname(std_classes)
-    )
+    std_map <- .standard_robjc_class_dictionary()
     # Custom class dictionary
     if (!is.null(class_map)) {
-      stopifnot(inherits(class_map, "RSDictionary"))
+      if (!robjc_isRobjcObject(class_map) || !class_map$isKindOf(RSMutableDictionary))
+        stop("`class_map` must be a dictionary.", call. = FALSE)
       std_map <- std_map$dictionaryByMergingWithDictionary(class_map)
     }
     # Operate decoding
     decoder <- RSClassDecoder$instance
     decoder$loadEncodedData(metadata)
     decoder$resolveClassesWithDictionary(std_map)
+    #! validation check V-046
+    #todo 現状は resolveClassesWithDictionary() が stop するため警告には到達しない。将来の save/load 改訂に向けて意図を残す。
     # Warns unresolved class exists.
     unresolved <- decoder$unresolved
     if (length(unresolved) > 0) {
-      warning(sprintf(
-        "The following class IDs could not be resolved:\n  - %s",
-        paste(unresolved, collapse = "\n  - ")
-      ))
+      warning(
+        sprintf(
+          "The following class IDs could not be resolved:\n  - %s",
+          paste(unresolved, collapse = "\n  - ")
+        )
+      )
     }
     # remove meta-data
     rm(list = ".__rs_encoded_data__", envir = temp_env)
     loaded_names <- setdiff(loaded_names, ".__rs_encoded_data__")
   }
   # STEP 3: output
-  for (name in loaded_names) {
+  for (name in loaded_names)
     assign(name, temp_env[[name]], envir = envir)
-  }
   invisible(loaded_names)
 }

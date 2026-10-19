@@ -5,11 +5,10 @@
 #' @description
 #' `RSClassRegistry` is an internal singleton class that manages the list of class names
 #' considered "standard" within the robjc framework. The current collector
-#' selects exported R6 generators that inherit directly from `RSObject`.
+#' selects exported RObjC class generators that inherit from `RSObject`.
 #'
-#' This registry is used during class resolution (e.g., in `robjc_load()` and `robjc_read_rds()`)
-#' to determine whether a serialized object's class name should be looked up in the
-#' robjc namespace or treated as a user-defined/global class.
+#' It provides a lookup of standard class names for class resolution. The
+#' current save/load paths collect standard classes separately.
 #'
 #' `RSSingletonClass()` creates the registry while package classes are loaded.
 #'
@@ -21,7 +20,7 @@
 #'
 #' @section Methods:
 #' \describe{
-#'   \item{initialize()}{Constructs the registry and collects class names using `get_standard_robjc_classes()`.}
+#'   \item{initialize()}{Constructs the registry; names are collected on first lookup.}
 #'   \item{isStandardClass(classname)}{Returns TRUE if the given class name is a registered standard robjc class.}
 #' }
 #'
@@ -32,36 +31,38 @@ RSClassRegistry <- RSSingletonClass(
   "RSClassRegistry",
   version = "0.0.3 alpha",
   super_class = RSObject,
+  private = list(
+    .class_dictionary = NULL
+  ),
   public = list(
 
-    #' @field std_classes
-    #' A character vector containing the names of all robjc standard classes.
-    #' These class names are automatically detected from the robjc namespace
-    #' and include all classes that inherit directly from `RSObject`.
-    #' This field is populated by `initialize()` via `get_standard_robjc_classes()`.
-    std_classes = character(),
-
-
     #' @description
-    #' Initializes the `RSClassRegistry` singleton. It populates the `std_classes` field
-    #' by scanning the robjc namespace and collecting all exported R6 classes that inherit
-    #' from `RSObject`. This ensures consistent resolution of standard class names during
-    #' deserialization.
+    #' Initializes the `RSClassRegistry` singleton. Standard classes are collected
+    #' on the first lookup, after the package has finished loading.
     initialize = function() {
       super$initialize()
-      self$std_classes <- get_standard_robjc_classes(as_class_name = TRUE)
+      invisible(self)
     },
 
 
     #' @description
     #' Checks whether a given class name is registered as a standard robjc class.
-    #' This is used during deserialization to determine whether to resolve the class
-    #' from the robjc namespace or from the global/user environment.
+    #' The first call collects standard class names after package loading.
     #'
     #' @param klass_name A character string representing the name of the class to check.
     #' @return TRUE if the class is a standard robjc class; FALSE otherwise.
     isStandardClass = function(klass_name) {
-      klass_name %in% self$std_classes
+      if (is.null(private$.class_dictionary)) {
+        classes <- get_standard_robjc_classes(as_class_name = FALSE)
+        keys <- lapply(names(classes), RSString_withString)
+        dictionary <- RSDictionary_withObjectsForKeys(
+          objects = classes, keys = keys
+        )
+        private$.class_dictionary <- dictionary
+      }
+      !is.null(
+        private$.class_dictionary$objectForKey(RSString_withString(klass_name))
+      )
     }
   )
 )

@@ -18,6 +18,9 @@ internal are documented for developers but are not exported.
 \item \code{\link[=robjc_isBelongingRobjc]{robjc_isBelongingRobjc()}} recognizes instances or generators.
 \item \code{\link[=robjc_inheritChain]{robjc_inheritChain()}} follows the classes in an ISA record.
 \item \link{R6GENERATOR} documents the runtime's type markers.
+\item RObjC generators expose \verb{$isEqual(other)} for reference identity and
+\verb{$hash()} for a non-missing integer hash derived from the generator
+environment address. The \verb{NA_integer_} bit pattern maps to \verb{0L}.
 \item \code{robjc_make_isa()}, \code{robjc_freeze_isa()},
 \code{robjc_make_singleton_isa()}, and \code{protocol_make_isa()} construct and
 lock ISA records for the class factories.
@@ -49,9 +52,9 @@ lock ISA records for the class factories.
 \item \code{\link[=protocol_getInheritProtocols]{protocol_getInheritProtocols()}} returns direct parent protocols.
 \item \code{\link[=protocol_getAllInheritProtocols]{protocol_getAllInheritProtocols()}} returns all parent protocols.
 \item \code{\link[=protocol_conformsTo]{protocol_conformsTo()}} checks protocol inheritance.
-\item \code{\link[=protocol_getContract]{protocol_getContract()}} returns directly declared requirements.
-\item \code{\link[=protocol_getAllInheritContracts]{protocol_getAllInheritContracts()}} returns inherited requirements.
-\item \code{\link[=protocol_getAllContracts]{protocol_getAllContracts()}} returns all requirements.
+\item \code{\link[=protocol_getContract]{protocol_getContract()}} returns directly declared method names.
+\item \code{\link[=protocol_getAllInheritContracts]{protocol_getAllInheritContracts()}} returns inherited method names.
+\item \code{\link[=protocol_getAllContracts]{protocol_getAllContracts()}} returns all declared method names.
 }
 }
 

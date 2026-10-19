@@ -13,25 +13,23 @@ RSRaw <- RSObjectClass(
   super_class = RSScalar,
   public = list(
     #' @description Initialize a raw scalar.
-    #' @param val A length-one raw value.
+    #' @param val A length-one raw value without an S3 class attribute.
     #' @return The initialized instance, invisibly.
     initialize = function(val) {
-      super$initialize(val)
       if (!is.raw(val) || length(val) != 1L)
         stop("`val` must be a raw scalar.", call. = FALSE)
+      if (is.object(val))
+        stop("S3 class attributes are not supported for RSRaw.", call. = FALSE)
+      super$initialize(val)
       invisible(self)
     },
 
-    #' @description Compare the numeric byte values of two raw scalars.
-    #' @param other Another `RSRaw` instance.
-    #' @param na.last Ignored; raw values cannot be missing.
-    #' @return `-1L`, `0L`, or `1L`.
+    #' @description Raw vectors cannot be sorted with base R `sort()` or `order()`.
+    #' @param other Another object.
+    #' @param na.last Unused; retained for the scalar comparison signature.
+    #' @return Never returns; raises an error.
     compare = function(other, na.last = TRUE) {
-      if (!is.logical(na.last) || length(na.last) != 1L || is.na(na.last))
-        stop("`na.last` must be TRUE or FALSE.", call. = FALSE)
-      if (!robjc_isRobjcObject(other) || !other$isKindOf(RSRaw))
-        stop("Raw classes are not comparable.", call. = FALSE)
-      as.integer(sign(as.integer(private$.val) - as.integer(other$value())))
+      stop("Raw values cannot be sorted by base R.", call. = FALSE)
     }
   )
 )

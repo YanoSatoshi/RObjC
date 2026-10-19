@@ -13,7 +13,7 @@ vignette: >
 required method names and may inherit requirements from other protocols.
 Declare protocols with `RSProtocolClass()` and pass their generators to an
 object class factory through `protocols`. Work with the generators directly;
-protocols are not normally instantiated with `$new()`.
+protocols cannot be instantiated with `$new()`.
 
 ## Declare a protocol
 
@@ -47,8 +47,7 @@ stopifnot(identical(Detailed$robjc_isa$slot, "details"))
 ```
 
 The direct contract is stored in `robjc_isa$slot`; parent protocols are stored
-in `robjc_isa$protocols`. These are class metadata, not methods to call on a
-protocol instance.
+in `robjc_isa$protocols`. These are metadata on the protocol generator.
 
 ## Adopt a protocol
 

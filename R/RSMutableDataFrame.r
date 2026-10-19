@@ -23,7 +23,7 @@
 #' @export
 RSMutableDataFrame <- RSObjectClass(
   "RSMutableDataFrame",
-  version = "0.0.3 alpha",
+  version = "0.0.1 alpha",
   super_class = RSObject,
   protocols = list(RSMutableCopying, RSCopying),
   private = list(
@@ -134,10 +134,14 @@ RSMutableDataFrame <- RSObjectClass(
 #' The comparison checks column names, row count, and full data equality including attributes.
 #'
 #' @param other Another `RSMutableDataFrame`.
-#' @return `TRUE` if equal; otherwise `FALSE`.
+#' @return `TRUE` if equal; `FALSE` for unequal or incompatible inputs.
     isEqual = function(other) {
-      if (robjc_isRobjcObject(other) || !other$isKindOf(RSMutableDataFrame)) return(FALSE)
+      if (!robjc_isRobjcObject(other) || !other$isKindOf(RSMutableDataFrame))
+        return(FALSE)
       private$.validateKeys()
+      #! validation check V-030
+      #todo all.equal() の近似等価は非推移的で hash とも合わない。base の identical(df0, df1) を軸に、key_columns を等価性に含めるか決める。
+      #? identical(private$.df, other$getData()) && identical(private$.key_columns, other$keyColumns())
       df1 <- private$.df
       df2 <- other$getData()
       if (!identical(colnames(df1), colnames(df2))) return(FALSE)
@@ -151,6 +155,8 @@ RSMutableDataFrame <- RSObjectClass(
 #' Computes a hash based on the contents of the key columns and metadata such as row count and column names.
 #' @return Integer hash value.
     hash = function() {
+      #! validation check V-030
+      #todo 選択列を文字列連結する現 hash は、identical() による等価性と key_columns の意味を決めてから再設計する。
       private$.validateKeys()
       df <- private$.df
       keys <- private$.key_columns
@@ -161,7 +167,7 @@ RSMutableDataFrame <- RSObjectClass(
       hash_basis <- paste(
         c(colnames(df), nrow(df), key_strings), collapse = "::"
       )
-      RSHashOperator$computeHashCodeWithString(hash_basis)
+      RSHashOperator$instance$computeHashCodeWithString(hash_basis)
     },
 
 

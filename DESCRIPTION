@@ -1,15 +1,14 @@
 Package: robjc
-Title: Objective-C Inspired OOP Framework for R Using R6
+Title: Objective-C Inspired OOP Framework for R using 'R6'
 Version: 0.0.3
 Authors@R: 
     person("Satoshi", "Yano", , "yanosatoshi@gmail.com", role = c("aut", "cre"))
 Description: Provides a lightweight object-oriented programming framework in R,
-    inspired by Objective-C, using R6 classes. Includes scalar wrappers, 
-    dictionary and set structures, protocol simulation, and safe copying.
+    inspired by Objective-C, using 'R6' classes. Includes scalar wrappers,
+    dictionary and set structures, protocol, and safe copying.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Suggests: 
     knitr,
     rmarkdown,
@@ -41,6 +40,7 @@ Collate:
     'RSModule.r'
     'RSHashOperatorProtocol.r'
     'RSHashOperator.r'
+    'RSComparable.r'
     'RSMutableCopying.r'
     'RSMutableArray.r'
     'RSArray.r'
@@ -70,7 +70,6 @@ Collate:
     'RSNumber.r'
     'RSRaw.r'
     'RSSet.r'
-    'RSSorter.r'
     'RSVector.r'
     'RSWrappedClass.r'
     'RcppExports.R'
@@ -90,3 +89,4 @@ Collate:
     'robjc-factories.r'
     'robjc-package.R'
     'zzz.r'
+Config/roxygen2/version: 8.1.1

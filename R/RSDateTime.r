@@ -32,19 +32,25 @@ RSDateTime <- RSScalarClass(
 
     #' @description
     #' Initializes an `RSDateTime` object from a scalar `POSIXct` or `POSIXlt` value.
-    #' The stored `POSIXct` value retains the input's time zone when specified.
+    #' The stored numeric `POSIXct` value retains the input's time zone when specified.
     #' Comparison and hashing use the represented instant.
     #'
-    #' @param val A scalar `POSIXct` or `POSIXlt` value.
+    #' @param val A scalar with the standard `POSIXct` or `POSIXlt` class,
+    #'   without an S3 subclass.
     #'
     #' @return An initialized `RSDateTime` object (invisible).
     initialize = function(val) {
-      super$initialize(val)
-      if (!inherits(val, "POSIXt") || length(val) != 1L)
+      standard_class <- identical(class(val), c("POSIXct", "POSIXt")) ||
+        identical(class(val), c("POSIXlt", "POSIXt"))
+      if (!standard_class || length(val) != 1L || !is.null(dim(val)))
         stop("`val` must be a POSIXct or POSIXlt scalar.", call. = FALSE)
       # Convert POSIXlt in its original time zone so its clock fields are not
       # reinterpreted; do not replace the input's display time zone.
-      private$.val <- as.POSIXct(val)
+      normalized <- as.POSIXct(val)
+      if (!inherits(normalized, "POSIXct") || !(typeof(normalized) %in% c("integer", "double")))
+        stop("`val` must be a numeric POSIX date-time.", call. = FALSE)
+      super$initialize(normalized)
+      private$.val <- normalized
       invisible(self)
     },
 
@@ -52,9 +58,11 @@ RSDateTime <- RSScalarClass(
     #' @description
     #' Hashes the numeric Unix timestamp, including fractional seconds.
     #' This remains defined for dates outside the 32-bit integer range.
+    #' Missing timestamps hash to `0L`.
     #'
     #' @return An integer hash value.
     hash = function() {
+      if (isTRUE(is.na(private$.val))) return(0L)
       RSHashOperator$instance$hashForScalar(as.numeric(private$.val))
     }
   )

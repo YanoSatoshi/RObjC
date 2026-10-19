@@ -4,10 +4,11 @@
 #' @description
 #' `RSArray` is a read-only subclass of `RSMutableArray`. Once created, its contents
 #' cannot be modified. Any attempt to mutate the array will raise an error.
-#' This class is suitable for safely sharing ordered collections without risk of modification.
+#' Its element count, order, and references cannot be changed after creation.
+#' A retained mutable element can still change state through another reference.
 #'
-#' Use `$copy()` to duplicate the array as-is, or `$mutableCopy()` to obtain
-#' a mutable version.
+#' `$copy()` returns the same immutable array. `$mutableCopy()` creates a new
+#' mutable container that shares its element references with the source.
 #'
 #' @note All mutation methods such as `addObject()`, `removeObjectAtIndex()`, etc.
 #' are overridden to raise errors.
@@ -69,9 +70,9 @@ RSArray <- RSObjectClass(
     #' @description
     #' This method is disabled for immutable `RSArray` objects. Attempting to call this method will result in an error.
     #' @param obj Ignored.
-    #' @param idx Ignored.
+    #' @param index Ignored.
     #' @return No return value. Always raises an error.
-    insertObjectAtIndex = function(obj, idx) {
+    insertObjectAtIndex = function(obj, index) {
       stop(msg_immutable_try_mutate(self$class()))
     },
 
@@ -80,9 +81,9 @@ RSArray <- RSObjectClass(
     #' @description
     #' This method is disabled for immutable `RSArray` objects. Attempting to call this method will result in an error.
     #' @param obj Ignored.
-    #' @param idx Ignored.
+    #' @param index Ignored.
     #' @return No return value. Always raises an error.
-    replaceObjectAtIndex = function(obj, idx) {
+    replaceObjectAtIndex = function(obj, index) {
       stop(msg_immutable_try_mutate(self$class()))
     },
 
@@ -90,10 +91,9 @@ RSArray <- RSObjectClass(
 
     #' @description
     #' This method is disabled for immutable `RSArray` objects. Attempting to call this method will result in an error.
-    #' @param obj Ignored.
-    #' @param idx Ignored.
+    #' @param index Ignored.
     #' @return No return value. Always raises an error.
-    removeObjectAtIndex = function(obj, idx) {
+    removeObjectAtIndex = function(index) {
       stop(msg_immutable_try_mutate(self$class()))
     },
 
@@ -101,9 +101,8 @@ RSArray <- RSObjectClass(
 
     #' @description
     #' This method is disabled for immutable `RSArray` objects. Attempting to call this method will result in an error.
-    #' @param obj Ignored.
     #' @return No return value. Always raises an error.
-    removeAllObjects = function(obj) {
+    removeAllObjects = function() {
       stop(msg_immutable_try_mutate(self$class()))
     }
   )

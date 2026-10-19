@@ -4,9 +4,9 @@
 \name{robjc-package}
 \alias{robjc}
 \alias{robjc-package}
-\title{robjc: Objective-C Inspired OOP Framework for R Using R6}
+\title{robjc: Objective-C Inspired OOP Framework for R using 'R6'}
 \description{
-Provides a lightweight object-oriented programming framework in R, inspired by Objective-C, using R6 classes. Includes scalar wrappers, dictionary and set structures, protocol simulation, and safe copying.
+Provides a lightweight object-oriented programming framework in R, inspired by Objective-C, using 'R6' classes. Includes scalar wrappers, dictionary and set structures, protocol, and safe copying.
 }
 \section{Documentation index}{
 
@@ -25,5 +25,10 @@ ExampleObject$new()$class()$classname
 }
 \author{
 \strong{Maintainer}: Satoshi Yano \email{yanosatoshi@gmail.com}
+
+Authors:
+\itemize{
+  \item Satoshi Yano \email{yanosatoshi@gmail.com}
+}
 
 }

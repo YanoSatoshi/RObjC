@@ -58,9 +58,9 @@ test_that("RSSet: mutableCopy returns RSMutableSet", {
   expect_equal(mcopy$count(), 2)
 })
 
-test_that("RSSet: setWithSet creates independent native storage", {
+test_that("RSSet_withSet creates independent native storage", {
   source <- RSMutableSet$new(list(RSString_withValue("a")))
-  copied <- RSSet$setWithSet(source)
+  copied <- RSSet_withSet(source)
 
   source$addObject(RSString_withValue("b"))
 

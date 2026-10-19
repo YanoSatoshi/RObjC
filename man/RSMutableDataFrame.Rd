@@ -23,268 +23,291 @@ hashing and equality comparisons.
 }
 
 \section{Super class}{
-\code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{RSMutableDataFrame}
+\code{\link[robjc:RSObject]{RSObject}} -> \code{RSMutableDataFrame}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-RSMutableDataFrame-new}{\code{RSMutableDataFrame$new()}}
-\item \href{#method-RSMutableDataFrame-getData}{\code{RSMutableDataFrame$getData()}}
-\item \href{#method-RSMutableDataFrame-setData}{\code{RSMutableDataFrame$setData()}}
-\item \href{#method-RSMutableDataFrame-getColumn}{\code{RSMutableDataFrame$getColumn()}}
-\item \href{#method-RSMutableDataFrame-setColumn}{\code{RSMutableDataFrame$setColumn()}}
-\item \href{#method-RSMutableDataFrame-nrow}{\code{RSMutableDataFrame$nrow()}}
-\item \href{#method-RSMutableDataFrame-ncol}{\code{RSMutableDataFrame$ncol()}}
-\item \href{#method-RSMutableDataFrame-colnames}{\code{RSMutableDataFrame$colnames()}}
-\item \href{#method-RSMutableDataFrame-rownames}{\code{RSMutableDataFrame$rownames()}}
-\item \href{#method-RSMutableDataFrame-keyColumns}{\code{RSMutableDataFrame$keyColumns()}}
-\item \href{#method-RSMutableDataFrame-isEqual}{\code{RSMutableDataFrame$isEqual()}}
-\item \href{#method-RSMutableDataFrame-hash}{\code{RSMutableDataFrame$hash()}}
-\item \href{#method-RSMutableDataFrame-copy}{\code{RSMutableDataFrame$copy()}}
-\item \href{#method-RSMutableDataFrame-mutableCopy}{\code{RSMutableDataFrame$mutableCopy()}}
+  \itemize{
+    \item \href{#method-RSMutableDataFrame-initialize}{\code{RSMutableDataFrame$new()}}
+    \item \href{#method-RSMutableDataFrame-getData}{\code{RSMutableDataFrame$getData()}}
+    \item \href{#method-RSMutableDataFrame-setData}{\code{RSMutableDataFrame$setData()}}
+    \item \href{#method-RSMutableDataFrame-getColumn}{\code{RSMutableDataFrame$getColumn()}}
+    \item \href{#method-RSMutableDataFrame-setColumn}{\code{RSMutableDataFrame$setColumn()}}
+    \item \href{#method-RSMutableDataFrame-nrow}{\code{RSMutableDataFrame$nrow()}}
+    \item \href{#method-RSMutableDataFrame-ncol}{\code{RSMutableDataFrame$ncol()}}
+    \item \href{#method-RSMutableDataFrame-colnames}{\code{RSMutableDataFrame$colnames()}}
+    \item \href{#method-RSMutableDataFrame-rownames}{\code{RSMutableDataFrame$rownames()}}
+    \item \href{#method-RSMutableDataFrame-keyColumns}{\code{RSMutableDataFrame$keyColumns()}}
+    \item \href{#method-RSMutableDataFrame-isEqual}{\code{RSMutableDataFrame$isEqual()}}
+    \item \href{#method-RSMutableDataFrame-hash}{\code{RSMutableDataFrame$hash()}}
+    \item \href{#method-RSMutableDataFrame-copy}{\code{RSMutableDataFrame$copy()}}
+    \item \href{#method-RSMutableDataFrame-mutableCopy}{\code{RSMutableDataFrame$mutableCopy()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="description"><a href='../../robjc/html/RSObject.html#method-RSObject-description'><code>robjc::RSObject$description()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>RSObject$class()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>RSObject$conformsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>RSObject$debugDescription()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="description"><a href='../../robjc/html/RSObject.html#method-RSObject-description'><code>RSObject$description()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>RSObject$inheritClassesAsList()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>RSObject$isKindOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>RSObject$print()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDataFrame-new"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes the object with a tibble and a vector of key column names.
+\if{html}{\out{<a id="method-RSMutableDataFrame-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-initialize}{}}}
+\subsection{\code{RSMutableDataFrame$new()}}{
+  Initializes the object with a tibble and a vector of key column names.
 If \code{key_columns} is empty, all atomic columns are selected as keys.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableDataFrame$new(df = data.frame(), key_columns = character())}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableDataFrame$new(df = data.frame(), key_columns = character())}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{df}}{A \code{data.frame} or \code{tibble}.}
+      \item{\code{key_columns}}{Character vector of key column names.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{df}}{A \code{data.frame} or \code{tibble}.}
-
-\item{\code{key_columns}}{Character vector of key column names.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableDataFrame-getData"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableDataFrame-getData}{}}}
-\subsection{Method \code{getData()}}{
-Returns the internal tibble object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableDataFrame$getData()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableDataFrame$getData()}}{
+  Returns the internal tibble object.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableDataFrame$getData()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A \code{tibble::tibble} object.
+  }
 }
 
-\subsection{Returns}{
-A \code{tibble::tibble} object.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableDataFrame-setData"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableDataFrame-setData}{}}}
-\subsection{Method \code{setData()}}{
-Replaces the entire data frame. The input is converted to a tibble.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableDataFrame$setData(df)}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableDataFrame$setData()}}{
+  Replaces the entire data frame. The input is converted to a tibble.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableDataFrame$setData(df)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{df}}{A \code{data.frame} or \code{tibble}.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{df}}{A \code{data.frame} or \code{tibble}.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableDataFrame-getColumn"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableDataFrame-getColumn}{}}}
-\subsection{Method \code{getColumn()}}{
-Returns the values stored in the specified column.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableDataFrame$getColumn(name)}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableDataFrame$getColumn()}}{
+  Returns the values stored in the specified column.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableDataFrame$getColumn(name)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{name}}{Column name.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A vector of column values.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{name}}{Column name.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A vector of column values.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableDataFrame-setColumn"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableDataFrame-setColumn}{}}}
-\subsection{Method \code{setColumn()}}{
-Replaces a column's contents with a new vector of values.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableDataFrame$setColumn(name, values)}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableDataFrame$setColumn()}}{
+  Replaces a column's contents with a new vector of values.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableDataFrame$setColumn(name, values)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{name}}{Column name.}
+      \item{\code{values}}{A vector of replacement values.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{name}}{Column name.}
-
-\item{\code{values}}{A vector of replacement values.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableDataFrame-nrow"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableDataFrame-nrow}{}}}
-\subsection{Method \code{nrow()}}{
-Returns the number of rows in the data frame.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableDataFrame$nrow()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableDataFrame$nrow()}}{
+  Returns the number of rows in the data frame.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableDataFrame$nrow()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Integer.
+  }
 }
 
-\subsection{Returns}{
-Integer.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableDataFrame-ncol"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableDataFrame-ncol}{}}}
-\subsection{Method \code{ncol()}}{
-Returns the number of columns.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableDataFrame$ncol()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableDataFrame$ncol()}}{
+  Returns the number of columns.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableDataFrame$ncol()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Integer.
+  }
 }
 
-\subsection{Returns}{
-Integer.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableDataFrame-colnames"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableDataFrame-colnames}{}}}
-\subsection{Method \code{colnames()}}{
-Returns the column names of the data frame.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableDataFrame$colnames()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableDataFrame$colnames()}}{
+  Returns the column names of the data frame.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableDataFrame$colnames()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector.
+  }
 }
 
-\subsection{Returns}{
-Character vector.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableDataFrame-rownames"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableDataFrame-rownames}{}}}
-\subsection{Method \code{rownames()}}{
-Returns the row names of the data frame.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableDataFrame$rownames()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableDataFrame$rownames()}}{
+  Returns the row names of the data frame.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableDataFrame$rownames()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector.
+  }
 }
 
-\subsection{Returns}{
-Character vector.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableDataFrame-keyColumns"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableDataFrame-keyColumns}{}}}
-\subsection{Method \code{keyColumns()}}{
-Returns the names of the key columns used for hashing and comparison.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableDataFrame$keyColumns()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableDataFrame$keyColumns()}}{
+  Returns the names of the key columns used for hashing and comparison.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableDataFrame$keyColumns()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector.
+  }
 }
 
-\subsection{Returns}{
-Character vector.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableDataFrame-isEqual"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableDataFrame-isEqual}{}}}
-\subsection{Method \code{isEqual()}}{
-Compares this object to another \code{RSMutableDataFrame}.
+\subsection{\code{RSMutableDataFrame$isEqual()}}{
+  Compares this object to another \code{RSMutableDataFrame}.
 The comparison checks column names, row count, and full data equality including attributes.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableDataFrame$isEqual(other)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableDataFrame$isEqual(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another \code{RSMutableDataFrame}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} if equal; \code{FALSE} for unequal or incompatible inputs.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{other}}{Another \code{RSMutableDataFrame}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{TRUE} if equal; otherwise \code{FALSE}.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableDataFrame-hash"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableDataFrame-hash}{}}}
-\subsection{Method \code{hash()}}{
-Computes a hash based on the contents of the key columns and metadata such as row count and column names.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableDataFrame$hash()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableDataFrame$hash()}}{
+  Computes a hash based on the contents of the key columns and metadata such as row count and column names.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableDataFrame$hash()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Integer hash value.
+  }
 }
 
-\subsection{Returns}{
-Integer hash value.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableDataFrame-copy"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableDataFrame-copy}{}}}
-\subsection{Method \code{copy()}}{
-Returns an immutable copy of the data frame as an \code{RSDataFrame}.
+\subsection{\code{RSMutableDataFrame$copy()}}{
+  Returns an immutable copy of the data frame as an \code{RSDataFrame}.
 
 This performs a shallow copy: the underlying tibble is shared,
 while the wrapper class is replaced with its immutable counterpart.
 
 This method is typically used to convert a mutable data frame to its immutable form.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableDataFrame$copy()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableDataFrame$copy()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \code{RSDataFrame} instance.
+  }
 }
 
-\subsection{Returns}{
-A new \code{RSDataFrame} instance.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableDataFrame-mutableCopy"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableDataFrame-mutableCopy}{}}}
-\subsection{Method \code{mutableCopy()}}{
-Returns a mutable copy of the data frame as an \code{RSMutableDataFrame}.
+\subsection{\code{RSMutableDataFrame$mutableCopy()}}{
+  Returns a mutable copy of the data frame as an \code{RSMutableDataFrame}.
 
 This performs a shallow copy: the underlying tibble is reused,
 while the wrapper is recreated. If the original is already mutable,
 returning \code{self} would be acceptable depending on context.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableDataFrame$mutableCopy()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableDataFrame$mutableCopy()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \code{RSMutableDataFrame} instance.
+  }
 }
 
-\subsection{Returns}{
-A new \code{RSMutableDataFrame} instance.
-}
-}
 }

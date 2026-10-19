@@ -58,13 +58,15 @@ stopifnot(identical(widget$class(), Widget))
 
 `RSProtocolClass()` records required method names, not implementations.
 `super_protocols` can inherit requirements from other protocols. Pass the
-protocol generator in a class's `protocols` list, then implement its methods:
+protocol generator in a class's `protocols` list, then implement its methods.
+Protocol generators cannot create instances with `$new()`:
 
 ```{r}
 Labeled <- RSProtocolClass(
   "VignetteLabeled",
   contract_methods = "label"
 )
+stopifnot(is.null(Labeled$new))
 LabeledWidget <- RSObjectClass(
   "VignetteLabeledWidget",
   protocols = list(Labeled),
@@ -117,6 +119,8 @@ stopifnot(identical(Count$na$class()$classname, "VignetteCountNA"))
 Names starting with `RS` produce an `RSNA...` companion; other names receive
 an `NA` suffix. The factory sets `isNAClass` before initializing the companion,
 so type-specific initialization can distinguish it from regular instances.
-The generated NA class also has `$new()`, but `Class$na` is the shared instance.
+By default, the generated NA class disables `$new()`; use `Class$na` for its
+shared instance. With `na_singleton = FALSE`, the NA class remains directly
+constructible so each missing value can retain its own metadata.
 For choosing a constructor and distinguishing `NULL` from typed NA, see
 `vignette("robjc_scalar_values", package = "robjc")`.

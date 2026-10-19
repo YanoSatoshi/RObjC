@@ -1,4 +1,6 @@
+# ------------
 # Internal S3 markers for identity records.
+# ------------
 ISA_ROOT      <- "RSIsA"
 
 ISA_OBJECT    <- "RSObjectIsA"
@@ -9,6 +11,9 @@ lockBinding("ISA_ROOT",     environment())
 lockBinding("ISA_OBJECT",   environment())
 lockBinding("ISA_PROTOCOL", environment())
 
+
+
+# ------------
 #' Internal RObjC Type Markers
 #'
 #' @description Character constants used to mark R6 generators and RObjC
@@ -24,7 +29,11 @@ lockBinding("R6GENERATOR",      environment())
 lockBinding("ROBJC_CLASS",      environment())
 lockBinding("ROBJC_SINGLETON",  environment())
 
+
+
+# ------------
 # MetaClass
+# ------------
 #' @title Check for an RObjC Class Generator
 #'
 #' @description
@@ -51,16 +60,11 @@ robjc_isMetaClass <- function(obj) {
     inherits(obj$robjc_isa, ISA_ROOT)
 }
 
-robjc_isMetaClasses <- function(objs) {
-  is_envir  <- vapply(objs, is.environment, logical(1))
-  is_class  <- vapply(objs, function(obj) {inherits(obj, ROBJC_CLASS)}, logical(1))
-  is_null   <- vapply(objs, is.null, logical(1))
-  is_root   <- vapply(objs, function(obj) {inherits(obj$robjc_isa, ISA_ROOT)}, logical(1))
-  return(is_envir & is_class & is_null & is_root)
-}
 
 
+# ------------
 # MetaClass ClassObj
+# ------------
 #' @title Check for an RObjC Object Class
 #' @description Tests whether an object is an RObjC object class generator,
 #'   including singleton and scalar classes. Protocol generators return `FALSE`.
@@ -75,14 +79,11 @@ robjc_isClass <- function(obj) {
     inherits(obj$robjc_isa, ISA_OBJECT)
 }
 
-robjc_isClasses <- function(objs) {
-  is_meta   <- vapply(objs, robjc_isMetaClass, logical(1))
-  is_class  <- vapply(objs, function(obj) {inherits(obj$robjc_isa, ISA_OBJECT)}, logical(1))
-  return(is_meta & is_class)
-}
 
 
+# ------------
 # MetaClass ProtocolObj
+# ------------
 #' @title Check for an RObjC Protocol Class
 #' @description Tests whether an object is an RObjC protocol class generator.
 #' @param obj Any R object.
@@ -96,14 +97,11 @@ robjc_isProtocol <- function(obj) {
     inherits(obj$robjc_isa, ISA_PROTOCOL)
 }
 
-robjc_isProtocols <- function(objs) {
-  is_meta   <- vapply(objs, robjc_isMetaClass, logical(1))
-  is_prtcl  <- vapply(objs, function(obj) {inherits(obj$robjc_isa, ISA_PROTOCOL)}, logical(1))
-  return(is_meta & is_prtcl)
-}
 
 
+# ------------
 # Instance
+# ------------
 #' @title Check for an RObjC Instance
 #' @description Tests whether an object is an instance of an RObjC object class.
 #'   Class and protocol generators return `FALSE`.
@@ -116,16 +114,22 @@ robjc_isProtocols <- function(objs) {
 #' robjc_isRobjcObject(RSObject)
 #' @export
 robjc_isRobjcObject <- function(obj) {
-  if (is.null(obj) || !is.environment(obj)) return(FALSE) # not environment
-  if (inherits(obj, ROBJC_CLASS))           return(FALSE) # meta-class
+  if (is.null(obj) || !is.environment(obj))
+    return(FALSE) # not environment
+  if (inherits(obj, ROBJC_CLASS))
+    return(FALSE) # meta-class
   enclos <- obj$.__enclos_env__
-  if (is.null(enclos) || is.null(enclos$private)) return(FALSE) # not instance
+  if (!is.environment(enclos) || !is.environment(enclos$private))
+    return(FALSE)
   isa <- enclos$private$.__isa
-  !is.null(isa) && inherits(isa, ISA_OBJECT) # confirm
+  is.environment(isa) && inherits(isa, ISA_OBJECT)
 }
 
 
+
+# ------------
 # Instance or MetaClass
+# ------------
 #' @title Check for an RObjC Instance or Generator
 #' @description Tests whether an object is either an RObjC instance or an RObjC
 #'   class or protocol generator.
@@ -138,6 +142,10 @@ robjc_isBelongingRobjc <- function(obj) {
 }
 
 
+
+# ------------
+# Inherit chain
+# ------------
 #' @title Get a Class Inheritance Chain
 #' @description Returns the class recorded in an RObjC identity record,
 #'   followed by each of its parent classes up to the root.
@@ -148,6 +156,8 @@ robjc_isBelongingRobjc <- function(obj) {
 #' robjc_inheritChain(RSObject$robjc_isa)
 #' @export
 robjc_inheritChain <- function(isa) {
+  if (!is.environment(isa) || !inherits(isa, ISA_ROOT))
+    stop("`isa` must be an RObjC identity record.", call. = FALSE)
   chain <- list(isa$class)
   klass <- isa$super
   while(!is.null(klass)) {
@@ -158,6 +168,39 @@ robjc_inheritChain <- function(isa) {
 }
 
 
+
+# ------------
+# `hash()` & `isEqual()` insertion
+# ------------
+# Give every RObjC generator identity-based value methods. Use the address of
+# the generator environment itself; get_pointer_hex() identifies the method
+# environment and therefore does not serve this purpose. Map the bit pattern
+# reserved for R's NA_integer_ to 0L so generator hashes remain non-missing.
+robjc_install_meta_value_methods <- function(generator) {
+  generator$isEqual <- function(other) identical(generator, other)
+  generator$hash <- function() {
+    address <- base::format.default(generator)
+    hex <- sub("^<environment: 0x([[:xdigit:]]+)>$", "\\1", address)
+    if (identical(hex, address))
+      stop("Could not determine generator address.", call. = FALSE)
+    hex <- paste0(strrep("0", max(0L, 8L - nchar(hex))), hex)
+    hex <- substr(hex, nchar(hex) - 7L, nchar(hex))
+    upper <- strtoi(substr(hex, 1L, 4L), base = 16L)
+    lower <- strtoi(substr(hex, 5L, 8L), base = 16L)
+    hash_code <- bitwOr(bitwShiftL(upper, 16L), lower)
+    if (is.na(hash_code)) 0L else hash_code
+  }
+  lockBinding("isEqual", generator)
+  lockBinding("hash", generator)
+  invisible(generator)
+}
+
+
+
+
+# ------------
+# Make `isa`
+# ------------
 #' @title Attach RObjC Identity to a Generator
 #' @description Internal helper that creates and attaches an identity environment
 #'   to a class or protocol generator and its private instance fields.
@@ -175,17 +218,16 @@ robjc_make_isa <- function(
   slot = NULL,
   version = "0.0.3 alpha"
 ) {
-  stopifnot(
-    "`super_class` cannot be NULL." =
-      !is.null(super_class),
-    "`version` must be a character (length:1L)." =
-      is.character(version) && length(version) == 1L
-  )
+  if (!is.list(protocols) || !all(vapply(protocols, robjc_isProtocol, logical(1))))
+    stop("`protocols` must be a list of RObjC protocols.", call. = FALSE)
+  if (!is.character(version) || length(version) != 1L || is.na(version) || !nzchar(version))
+    stop("`version` must be one non-empty character string.", call. = FALSE)
+  if (grepl("_", version, fixed = TRUE))
+    stop("Version string must not contain '_'.", call. = FALSE)
+  if (is.null(super_class))
+    stop("`super_class` cannot be NULL.", call. = FALSE)
   if (!inherits(super_class$robjc_isa, ISA_ROOT))
-    stop(
-      sprintf("%s does not inherit RSIsA", super_class$classname),
-      call. = FALSE
-    )
+    stop(sprintf("%s does not inherit RSIsA", super_class$classname), call. = FALSE)
   isa <- list2env(
     list(
       class     = r6generator,
@@ -202,15 +244,20 @@ robjc_make_isa <- function(
   else if (inherits(super_class$robjc_isa, ISA_PROTOCOL))
     class(isa) <- c(ISA_PROTOCOL, ISA_ROOT)
   else
-    stop("FATAL ERROR")
+    stop("FATAL ERROR", call. = FALSE)
   r6generator$robjc_isa             <- isa
   r6generator$private_fields$.__isa <- isa
   # make generator S3
   class(r6generator) <- c(ROBJC_CLASS, R6GENERATOR)
+  robjc_install_meta_value_methods(r6generator)
   invisible(isa)
 }
 
 
+
+# ------------
+# Freeze `isa`
+# ------------
 #' @title Lock RObjC Class Identity
 #' @description Internal helper that locks a generator's `robjc_isa`
 #'   environment and its binding on the generator.
@@ -226,8 +273,9 @@ robjc_freeze_isa <- function(klass) {
 
 
 
-
-
+# ------------
+# Make singleton
+# ------------
 #' @title Attach Singleton Identity and Create Its Instance
 #' @description Internal helper that initializes class identity, calls `$new()`
 #'   without arguments, and stores the instance on the generator and in its
@@ -258,115 +306,6 @@ robjc_make_singleton_isa <- function(
   r6generator$robjc_isa$slot <- r6generator$new()
   r6generator$instance <- r6generator$robjc_isa$slot
   lockBinding("instance", r6generator)
-  ## deactivate $new
-  # r6generator$._constractor <- r6generator$new
-  # r6generator$new <- function(...) {
-  #   stop("Cannot instantiate a Singleton directly.", call. = FALSE)
-  # }
-  # lockBinding("new", r6generator)
   class(r6generator) <- c(ROBJC_SINGLETON, ROBJC_CLASS, R6GENERATOR)
-  invisible(isa)
+  invisible(r6generator$robjc_isa)
 }
-
-
-
-
-
-
-# as.selector <- function(sel_name) {
-#   stopifnot(is.character(sel_name), length(sel_name) == 1)
-#   structure(sel_name, class = "SEL")
-# }
-
-
-
-
-
-
-
-# ### Class
-# Class robjc_getClass(const char *name);
-# Class robjc_getMetaClass(const char *name);
-## R6Generator robjc_get_class(character);  # no metaclass in robjc. Class & MetaClass are the same.
-
-# # no implement
-# Class robjc_allocateClassPair(Class superclass, const char *name, size_t extraBytes);
-# # no implement
-# void robjc_registerClassPair(Class cls);
-## Do not know when need.
-
-
-# const char *class_getName(Class cls);
-## use `cls$classname` instead
-
-# Class class_getSuperclass(Class cls);
-## use `cls$robjc_isa$super_class` instead
-
-# BOOL class_isMetaClass(Class cls);
-## use `!is.null(cls$robjc_isa)` instead. Will be functionalize.
-
-# size_t class_getInstanceSize(Class cls);
-## Currently no idea. Does anyone need?
-
-# ### Methods
-# RSMethod <- R6::R6Class("RSMethod", public = SEL, TypeEncoding, IMP)
-# 
-#
-# Method class_getInstanceMethod(Class cls, SEL name);
-# cls$public_methods[[name]], cls$private_methods[[name]], cls$injection$methods[[name]]
-# `cls$injection` is for variant/method injecting environment.
-
-# Method class_getClassMethod(Class cls, SEL name);
-# `cls$.meta` will be implement.
-# .meta$class_vars
-# .meta$class_methods
-
-# IMP method_getImplementation(Method m);
-# 
-
-
-# SEL method_getName(Method m);
-
-# const char *method_getTypeEncoding(Method m);
-
-# IMP class_getMethodImplementation(Class cls, SEL name);
-
-# BOOL class_addMethod(Class cls, SEL name, IMP imp, const char *types);
-
-# IMP class_replaceMethod(Class cls, SEL name, IMP imp, const char *types);
-
-
-# ### Properties: @property readonly etc.
-# ##  Never implements under current R6Class
-# objc_property_t class_getProperty(Class cls, const char *name);
-
-# objc_property_t *class_copyPropertyList(Class cls, unsigned int *outCount);
-
-# const char *property_getName(objc_property_t property);
-
-# const char *property_getAttributes(objc_property_t property);
-
-
-
-# ### Ivars
-# Ivar class_getInstanceVariable(Class cls, const char *name);
-
-# Ivar class_getClassVariable(Class cls, const char *name);
-
-# const char *ivar_getName(Ivar v);
-
-## very difficult.
-# const char *ivar_getTypeEncoding(Ivar v);
-
-# ptrdiff_t ivar_getOffset(Ivar v);
-# rubicon-objc.readthedocs.io
-
-
-
-
-# ### SELs
-# SEL sel_registerName(const char *str);
-
-# const char *sel_getName(SEL sel);
-
-# BOOL sel_isEqual(SEL lhs, SEL rhs);

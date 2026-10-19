@@ -3,13 +3,15 @@
 #' @description Wraps an atomic vector with indexed mutation and copying methods.
 #' Added and searched values must have the stored vector's type and class.
 #' Numeric indices are converted with `as.integer()` before bounds checks.
+#' A supplied hash operator must hash equal stored values consistently and
+#' remain stable while the vector is used as a key or set member.
 #' @return The `RSMutableVector` class generator.
 #' @export
 RSMutableVector <- RSObjectClass(
   "RSMutableVector",
   version     = "0.0.3 alpha",
   super_class = RSObject,
-  protocols   = list(RSMutableCopying, RSCopying),
+  protocols   = list(RSMutableCopying, RSCopying, RSComparable),
   public      = list(
     #' @description Initialize the vector and its hash operator.
     #' @param vec An atomic vector without dimensions.
@@ -174,32 +176,38 @@ RSMutableVector <- RSObjectClass(
     #' @description
     #' Computes an aggregate hash by combining the hash values of all elements.
     #' This is used for fast comparison and dictionary key support.
+    #' If the XOR result is R's `NA_integer_` bit pattern, returns `0L`.
     #'
-    #' @return An integer hash value.
+    #' @return One non-missing integer hash value.
     hash = function() {
       hashes <- self$hashesOfValues()
-      Reduce(bitwXor, hashes, init = 0L)
+      hash_code <- Reduce(bitwXor, hashes, init = 0L)
+      if (is.na(hash_code)) 0L else hash_code
     },
 
 
 
     #' @description
     #' Computes a hash code for each scalar value in the vector.
+    #' A missing result from the hash operator raises an error.
     #'
-    #' @return An integer vector of hashes.
+    #' @return An integer vector of non-missing hashes.
     hashesOfValues = function() {
-      if (length(private$.vec) == 0) return(0L)
+      if (length(private$.vec) == 0L) return(integer())
       operator <- self$hashOperator()
-      vapply(private$.vec, operator$hashForScalar, integer(1))
+      hashes <- vapply(private$.vec, operator$hashForScalar, integer(1))
+      if (anyNA(hashes))
+        stop("`hashForScalar()` must return non-missing integers.", call. = FALSE)
+      hashes
     },
 
 
 
     #' @description
-    #' Returns the `RSHashOperator` module instance used for hashing.
-    #' This method provides centralized access to hashing behavior.
+    #' Returns the hash operator supplied at initialization, or the default
+    #' [RSHashOperator] instance when none was supplied.
     #'
-    #' @return The singleton instance of `RSHashOperator`.
+    #' @return The stored hash operator. The default is `RSHashOperator$instance`.
     hashOperator = function() private$.hash_operator,
 
 
@@ -231,33 +239,50 @@ RSMutableVector <- RSObjectClass(
 
 
     #' @description
-    #' Compares this vector to another for equality, including value attributes.
+    #' Compares this vector to another for equality, including value attributes
+    #' and the identity of the hash operator.
     #'
     #' @param other Another vector object to compare with.
     #' @return `TRUE` if the vectors are equal; otherwise `FALSE`.
     isEqual = function(other) {
-      if (!robjc_isRobjcObject(other) || !other$isMemberOf(self$class()))
+      if (!robjc_isRobjcObject(other) || !other$isKindOf(RSMutableVector))
         return(FALSE)
-      identical(private$.vec, other$asVector())
+      identical(private$.hash_operator, other$hashOperator()) &&
+        identical(private$.vec, other$asVector())
     },
 
 
 
     #' @description
     #' Compares this vector to another for ordering.
-    #' The comparison is lexicographic: each element is compared in order using `compare()`.
-    #' If all elements are equal, the shorter array is considered smaller.
+    #' The comparison is lexicographic: each element is compared in order using
+    #' base R's sorting order. Stored vectors must have the same `typeof()` and
+    #' `class()`; use `nativeCompare()` for base R's cross-type value comparison.
+    #' If all elements are equal, the shorter vector is considered smaller.
+    #' Factor vectors with different levels cannot be ordered against each other.
+    #' Factor and non-factor vectors have no shared sorting order.
+    #' Raw vectors cannot be ordered, including empty raw vectors.
     #'
-    #' @param other Another `RSMutableVector` instance.
-    #' @param na.last Logical; if `TRUE`, NA values are treated as greater.
-    #' @return -1 if less than, 0 if equal, 1 if greater.
+    #' @param other Another `RSMutableVector` or `RSVector` instance.
+    #' @param na.last Whether NA values are treated as greater. Coerced with
+    #'   `as.logical()`; the result must be one nonmissing value.
+    #' @return `-1L` if less than, `0L` if equal, or `1L` if greater.
     compare = function(other, na.last = TRUE) {
+      na.last <- tryCatch(as.logical(na.last), error = function(e) NA)
       if (!is.logical(na.last) || length(na.last) != 1L || is.na(na.last))
         stop("`na.last` must be TRUE or FALSE.")
-      if (!robjc_isRobjcObject(other) || !other$isMemberOf(self$class()))
+      if (!robjc_isRobjcObject(other) || !other$isKindOf(RSMutableVector))
         stop("Cannot compare objects of different class.")
       left <- private$.vec
       right <- other$asVector()
+      if (xor(is.factor(left), is.factor(right)))
+        stop("Factor and non-factor vectors have no shared ordering.", call. = FALSE)
+      if (is.factor(left) && is.factor(right) && !identical(levels(left), levels(right)))
+        stop("Factor level sets differ.", call. = FALSE)
+      if (!identical(typeof(left), typeof(right)) || !identical(class(left), class(right)))
+        stop("Vector value types are not comparable.", call. = FALSE)
+      if (typeof(left) == "raw")
+        stop("Raw vectors cannot be sorted by base R.", call. = FALSE)
       for (i in seq_len(min(length(left), length(right)))) {
         left_na <- is.na(left[i])
         right_na <- is.na(right[i])
@@ -270,6 +295,45 @@ RSMutableVector <- RSObjectClass(
         )
         if (pair[1L] < pair[2L]) return(-1L)
         if (pair[1L] > pair[2L]) return(1L)
+      }
+      as.integer(sign(length(left) - length(right)))
+    },
+
+
+
+    #' @description Compare vectors lexicographically using base R's atomic
+    #'   value operators (`==`, `<`, and `>`), rather than `compare()`'s sorting
+    #'   rules. Each pair is compared as native R scalar values. Missing values
+    #'   (including `NaN`) tie and are placed according to `na.last`.
+    #' @param other Another `RSMutableVector` or `RSVector` instance.
+    #' @param na.last Whether missing values sort after nonmissing values.
+    #'   Coerced with `as.logical()`; the result must be one nonmissing value.
+    #' @return `-1L`, `0L`, or `1L`. An error is raised when base R has no
+    #'   ordering for unequal values.
+    nativeCompare = function(other, na.last = TRUE) {
+      na.last <- tryCatch(as.logical(na.last), error = function(e) NA)
+      if (!is.logical(na.last) || length(na.last) != 1L || is.na(na.last))
+        stop("`na.last` must be TRUE or FALSE.", call. = FALSE)
+      if (!robjc_isRobjcObject(other) || !other$isKindOf(RSMutableVector))
+        stop("`other` must be a vector object.", call. = FALSE)
+      left <- private$.vec
+      right <- other$asVector()
+      for (i in seq_len(min(length(left), length(right)))) {
+        left_value <- left[i]
+        right_value <- right[i]
+        left_na <- isTRUE(is.na(left_value))
+        right_na <- isTRUE(is.na(right_value))
+        if (left_na && right_na) next
+        if (left_na) return(if (na.last) 1L else -1L)
+        if (right_na) return(if (na.last) -1L else 1L)
+        if (isTRUE(left_value == right_value)) next
+        less <- left_value < right_value
+        if (isTRUE(less)) return(-1L)
+        if (length(less) != 1L || is.na(less))
+          stop("Native values have no ordering.", call. = FALSE)
+        greater <- left_value > right_value
+        if (isTRUE(greater)) return(1L)
+        stop("Native values have no ordering.", call. = FALSE)
       }
       as.integer(sign(length(left) - length(right)))
     }

@@ -12,12 +12,36 @@ test_that("RSString: compare() respects lexicographic order", {
   expect_equal(b$compare(c), 0)
 })
 
+test_that("RSString stores factor inputs as character labels", {
+  factor_value <- factor("z", levels = c("a", "z"))
+  text <- RSString_withValue("z")
+  earlier <- RSString_withValue("a")
+
+  for (string in list(RSString$new(factor_value), RSString_withValue(factor_value))) {
+    expect_identical(string$value(), "z")
+    expect_identical(string$nativeValue(), "z")
+    expect_true(string$isEqual(text))
+    expect_identical(string$hash(), text$hash())
+    expect_identical(string$compare(earlier), 1L)
+  }
+  factor_object <- RSFactor_withFactor(factor_value)
+  expect_identical(factor_object$nativeValue(), factor_value)
+})
+
 test_that("RSString: isEqual() matches identical string", {
   a <- RSString$new("test")
   b <- RSString$new("test")
   c <- RSString$new("diff")
   expect_true(a$isEqual(b))
   expect_false(a$isEqual(c))
+})
+
+test_that("RSString: isEqual() rejects incompatible objects without an error", {
+  string <- RSString_withValue("value")
+  expect_false(string$isEqual(RSNumber_withValue(1)))
+  expect_false(string$isEqual(RSNull$null))
+  expect_false(string$isEqual(NULL))
+  expect_error(string$compare(RSNull$null), "Scalar classes are not comparable")
 })
 
 test_that("RSString: hash() returns consistent integer", {

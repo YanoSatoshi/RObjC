@@ -1,14 +1,14 @@
-#  RSObject
+# RSObject
 #   └── RSWrappedClass
 #
 # RSClassEncoder$class_store : RSDictionary<RSString, RSClassReference>
 #   └── RSClassReference -> RSKeyValuePair
-#         ├─ key   = RSString;                         alias_getter: classID()      #nolint
-#         └─ value = RSInstanceMap -> RSKeyValuePair;  alias_getter: instanceMap()  #nolint
-#                     ├─ key   = RSWrappedClass;       alias_getter: wrappedClass() #nolint
-#                     └─ value = RS**Set;              alias_getter: objects()      #nolint
-
-
+#         ├─ key   = RSString;                         alias_getter: classID()
+#         └─ value = RSInstanceMap -> RSKeyValuePair;  alias_getter: instanceMap()
+#                     ├─ key   = RSWrappedClass;       alias_getter: wrappedClass()
+#                     └─ value = RS**Set;              alias_getter: objects()
+#
+#
 #' @include RSModule.r
 #' @include RSEncoding.r
 #' @include RSMutableDictionary.r
@@ -25,7 +25,8 @@
 #' be consumed by the `RSClassDecoder`.
 #'
 #' @field class_store
-#' An [RSMutableDictionary] that maps class IDs to [RSClassReference] objects.
+#' A dictionary that maps class IDs to [RSClassReference] objects. It is mutable
+#' until `lockInstance()` and an immutable [RSDictionary] afterward.
 #' Each entry represents a class and the set of encoded instances belonging to it.
 #'
 #' @field visited_env
@@ -83,14 +84,17 @@ RSClassEncoder <- RSSingletonClass(
     #' @return The `RSInstanceMap` stored for the object's class.
     #' @export
     encodingContainer = function(obj) {
-      version <- tryCatch(obj$classVersion(), error = function(e) "0.0")
+      if (self$status_frozen) stop("Encoder is frozen.", call. = FALSE)
+      if (!robjc_isRobjcObject(obj))
+        stop("`obj` must be an RObjC instance.", call. = FALSE)
+      klass <- obj$class()
+      version <- klass$robjc_isa$version
       stopifnot("Version string must not contain '_'." = !grepl("_", version))
       cls_name_var <- RSString_withValue(
-        sprintf("%s_%s", obj$class()$classname, version)
+        sprintf("%s_%s", klass$classname, version)
       )
       instance_map <- self$class_store$objectForKey(cls_name_var)
       if (is.null(instance_map)) {
-        klass <- obj$class()
         wrapped <- RSWrappedClass$new(klass)
         reference <- RSClassReference$new(wrapped, list())
         instance_map <- reference$instanceMap()
@@ -113,17 +117,25 @@ RSClassEncoder <- RSSingletonClass(
     #' @export
     encodeObject = function(obj) {
       stopifnot(!self$status_frozen)
-      # obj: instance inherits RSObject
-      oid <- obj$objectID()
-      if (exists(oid, envir = self$visited_env, inherits = FALSE)) {
-        return(invisible(NULL))
+      if (!robjc_isRobjcObject(obj))
+        stop("`obj` must be an RObjC instance.", call. = FALSE)
+      walk <- function(current) {
+        oid <- current$objectID()
+        if (exists(oid, envir = self$visited_env, inherits = FALSE))
+          return(invisible(NULL))
+        container <- self$encodingContainer(current)
+        container$addObject(current)
+        assign(oid, TRUE, envir = self$visited_env)
+        for (child in current$objectsForEncoding()) walk(child)
+        invisible(NULL)
       }
-      container <- self$encodingContainer(obj) # RSInstanceMap
-      container$objects()$addObject(obj)
-      assign(oid, TRUE, envir = self$visited_env)
-      for (child in obj$objectsForEncoding()) {
-        self$encodeObject(child)
-      }
+      tryCatch(
+        walk(obj),
+        error = function(e) {
+          self$refresh()
+          stop(e)
+        }
+      )
     },
 
 
@@ -139,25 +151,34 @@ RSClassEncoder <- RSSingletonClass(
     #' @return A frozen `RSDictionary` of all encoded classes and their instances.
     #' @export
     lockInstance = function() {
+      if (self$status_frozen) return(self$class_store)
       instance_maps <- self$class_store$allValuesAsList()
       # prepare class list
       add_class_safely <- function(cls) {
         ## only for class use not instance use
         cls_id <- get_pointer_hex(cls)
-        if (exists(cls_id, envir = self$visited_env, inherits = FALSE)) return()
+        if (exists(cls_id, envir = self$visited_env, inherits = FALSE))
+          return(invisible(NULL))
         wrapped_cls <- RSWrappedClass$new(cls)
+        if (self$class_store$containsKey(wrapped_cls$classID())) {
+          assign(cls_id, TRUE, envir = self$visited_env)
+          return(invisible(NULL))
+        }
         class_ref   <- RSClassReference$new(wrapped_cls)
         self$class_store$addEntry(class_ref)
         assign(cls_id, TRUE, envir = self$visited_env)
       }
       for (map in instance_maps) {
         wrapped_class <- map$wrappedClass()
-        super_classes <- wrapped_class$classObject()$rs_inherit_chain
+        super_classes <- robjc_inheritChain(
+          wrapped_class$classObject()$robjc_isa
+        )[-1L]
         for (super_cls in super_classes) add_class_safely(super_cls)
-        map$lockInstance()  # lock the instance map
       }
+      for (map in self$class_store$allValuesAsList()) map$lockInstance()
+      self$class_store <- self$class_store$copy()
       self$status_frozen <- TRUE
-      return(self$class_store$copy())
+      return(self$class_store)
     },
 
 

@@ -1,7 +1,8 @@
 #' @include RSDate.r
 #' @title RSDate Convenience Constructors
-#' @description Construct a date wrapper. A missing date produces [RSNADate].
-#' @param val A `Date` scalar, including a missing date.
+#' @description Construct a date wrapper. `NA` produces [RSNADate], while
+#'   `NaN` remains an [RSDate] value.
+#' @param val A scalar with the standard `Date` class, including `NA` and `NaN`.
 #' @return An [RSDate] or [RSNADate] instance.
 #' @name date_constructors
 NULL
@@ -13,8 +14,10 @@ RSDate_today <- function() RSDate$new(Sys.Date())
 #' @rdname date_constructors
 #' @export
 RSDate_withDate <- function(val) {
-  if (!inherits(val, "Date") || length(val) != 1L)
+  if (!identical(class(val), "Date") || length(val) != 1L || !is.null(dim(val)))
     stop("`val` must be a Date scalar.", call. = FALSE)
-  if (is.na(val)) return(RSDate$na)
+  if (!(typeof(val) %in% c("integer", "double")))
+    stop("`val` must be a numeric Date.", call. = FALSE)
+  if (is.na(val) && !is.nan(val)) return(RSDate$na)
   RSDate$new(val)
 }

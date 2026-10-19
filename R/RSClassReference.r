@@ -12,7 +12,8 @@
 #' Initialization validates that `class_ref` is an [RSWrappedClass] instance.
 #'
 #' @section Inheritance:
-#' Inherits from [RSKeyValuePair], which enforces that the key conforms to the [RSCopying] protocol.
+#' Inherits from [RSKeyValuePair]. `RSClassReference` uses an [RSString]
+#' class identifier as its key.
 #' - the key is an [RSString]
 #' - the value is an [RSInstanceMap]
 #'
@@ -65,12 +66,11 @@ RSClassReference <- RSObjectClass(
     #' @section Locking:
     #' The private key and value bindings are locked after initialization.
     initialize = function(class_ref, objects = list()) {
-      stopifnot("Class_ref is not kind of RSWrappedClass." =
-        class_ref$isKindOf(RSWrappedClass)
-      )
+      if (!robjc_isRobjcObject(class_ref) || !class_ref$isKindOf(RSWrappedClass))
+        stop("`class_ref` must be an RSWrappedClass object.", call. = FALSE)
       super$initialize(
         class_ref$class_id,
-        RSInstanceMap$new(class_ref, cast_rs_storage_to_list(objects))
+        RSInstanceMap$new(class_ref, cast_collections_to_list(objects))
       )
       lockBinding(".key",   private)
       lockBinding(".value", private)

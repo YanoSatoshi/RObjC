@@ -8,7 +8,8 @@ A concrete instance of \code{RSKeyValuePair}.
 }
 \description{
 \code{RSKeyValuePair} is a concrete class representing a key-value pair used in dictionary-like containers
-within the \code{robjc} object system. The key and value must both be instances of \code{RSObject}.
+within the \code{robjc} object system. Keys and values may be RObjC objects,
+class generators, or protocol generators.
 
 The class provides read-only accessors for the key and value. Equality and hashing are based
 solely on the key, which allows consistent behavior in hashed containers such as dictionaries or sets.
@@ -33,20 +34,20 @@ Inherits from \code{\link{RSObject}}. Unlike earlier versions, this class is now
 \section{Methods}{
 
 \itemize{
-\item \code{setKey(key)}: Replaces the key if the value is \code{RSNull}. Used during internal construction in mutable dictionaries.
+\item \code{setKey(key)}: Replaces the key if the value is \code{RSNull}.
 \item \code{isEqual(other)}: Compares equality based on the key only.
 \item \code{hash()}: Computes a hash value derived from the key.
-\item \code{objectsForEncoding()}: Returns both key and value as a list for serialization.
+\item \code{objectsForEncoding()}: Returns the key and any RObjC instance value for encoding.
 }
 }
 
 \examples{
 
 ## ------------------------------------------------
-## Method `RSKeyValuePair$setKey`
+## Method `RSKeyValuePair$setKey()`
 ## ------------------------------------------------
 
-# Safe usage for dictionary lookups
+# A pair with an RSNull value permits replacing its key.
 pair <- robjc:::RSKeyValuePair$new(RSNull$null, RSNull$null)
 pair$setKey(RSString_withValue("some_key"))
 
@@ -60,172 +61,176 @@ pair$setKey(RSString$new("b"))         # Error: not allowed when value is non-nu
 \link{RSObject}, \link{RSClassReference}
 }
 \section{Super class}{
-\code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{RSKeyValuePair}
+\code{\link[robjc:RSObject]{RSObject}} -> \code{RSKeyValuePair}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-RSKeyValuePair-new}{\code{RSKeyValuePair$new()}}
-\item \href{#method-RSKeyValuePair-key}{\code{RSKeyValuePair$key()}}
-\item \href{#method-RSKeyValuePair-setKey}{\code{RSKeyValuePair$setKey()}}
-\item \href{#method-RSKeyValuePair-value}{\code{RSKeyValuePair$value()}}
-\item \href{#method-RSKeyValuePair-isEqual}{\code{RSKeyValuePair$isEqual()}}
-\item \href{#method-RSKeyValuePair-hash}{\code{RSKeyValuePair$hash()}}
-\item \href{#method-RSKeyValuePair-objectsForEncoding}{\code{RSKeyValuePair$objectsForEncoding()}}
+  \itemize{
+    \item \href{#method-RSKeyValuePair-initialize}{\code{RSKeyValuePair$new()}}
+    \item \href{#method-RSKeyValuePair-key}{\code{RSKeyValuePair$key()}}
+    \item \href{#method-RSKeyValuePair-setKey}{\code{RSKeyValuePair$setKey()}}
+    \item \href{#method-RSKeyValuePair-value}{\code{RSKeyValuePair$value()}}
+    \item \href{#method-RSKeyValuePair-isEqual}{\code{RSKeyValuePair$isEqual()}}
+    \item \href{#method-RSKeyValuePair-hash}{\code{RSKeyValuePair$hash()}}
+    \item \href{#method-RSKeyValuePair-objectsForEncoding}{\code{RSKeyValuePair$objectsForEncoding()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="copy"><a href='../../robjc/html/RSObject.html#method-RSObject-copy'><code>robjc::RSObject$copy()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="description"><a href='../../robjc/html/RSObject.html#method-RSObject-description'><code>robjc::RSObject$description()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>RSObject$class()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>RSObject$conformsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="copy"><a href='../../robjc/html/RSObject.html#method-RSObject-copy'><code>RSObject$copy()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>RSObject$debugDescription()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="description"><a href='../../robjc/html/RSObject.html#method-RSObject-description'><code>RSObject$description()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>RSObject$inheritClassesAsList()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>RSObject$isKindOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>RSObject$print()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSKeyValuePair-new"></a>}}
-\if{latex}{\out{\hypertarget{method-RSKeyValuePair-new}{}}}
-\subsection{Method \code{new()}}{
-Constructs a new key-value pair object. Both key and value must inherit from \code{RSObject}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSKeyValuePair$new(key, value)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-RSKeyValuePair-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-RSKeyValuePair-initialize}{}}}
+\subsection{\code{RSKeyValuePair$new()}}{
+  Constructs a new key-value pair with a supported key and value.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSKeyValuePair$new(key, value)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{key}}{An RObjC object, class generator, or protocol generator.}
+      \item{\code{value}}{An RObjC object, class generator, or protocol generator.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \code{RSKeyValuePair} instance.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{key}}{An \code{RSObject} to be used as the key.}
-
-\item{\code{value}}{An \code{RSObject} to be associated as the value.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \code{RSKeyValuePair} instance.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSKeyValuePair-key"></a>}}
 \if{latex}{\out{\hypertarget{method-RSKeyValuePair-key}{}}}
-\subsection{Method \code{key()}}{
-Returns the key object associated with this pair.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSKeyValuePair$key()}\if{html}{\out{</div>}}
+\subsection{\code{RSKeyValuePair$key()}}{
+  Returns the key object associated with this pair.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSKeyValuePair$key()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The RObjC object, class generator, or protocol generator key.
+  }
 }
 
-\subsection{Returns}{
-An \code{RSObject} representing the key.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSKeyValuePair-setKey"></a>}}
 \if{latex}{\out{\hypertarget{method-RSKeyValuePair-setKey}{}}}
-\subsection{Method \code{setKey()}}{
-Replaces the key object in this key-value pair.
-This operation is only allowed when the value is \code{RSNull}, which signals that the pair is in a reusable placeholder state.
-
-This method is primarily intended for internal use in dictionary containers.
-Dictionaries often reuse a single \code{RSKeyValuePair} instance with an \code{RSNull} value
-to perform temporary lookups without allocating a new object each time.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSKeyValuePair$setKey(key)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{key}}{An \code{RSObject} to be used as the new key.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{# Safe usage for dictionary lookups
+\subsection{\code{RSKeyValuePair$setKey()}}{
+  Replaces the key object in this key-value pair.
+This operation is only allowed when the value is \code{RSNull}, which signals that
+the pair is in a reusable placeholder state.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSKeyValuePair$setKey(key)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{key}}{An RObjC object, class generator, or protocol generator.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{# A pair with an RSNull value permits replacing its key.
 pair <- robjc:::RSKeyValuePair$new(RSNull$null, RSNull$null)
 pair$setKey(RSString_withValue("some_key"))
 
-\dontrun{
 # This would raise an error
 pair <- RSKeyValuePair$new(RSString$new("a"), RSNumber$new(123))
 pair$setKey(RSString$new("b"))         # Error: not allowed when value is non-null
 }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
 
-}
-
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSKeyValuePair-value"></a>}}
 \if{latex}{\out{\hypertarget{method-RSKeyValuePair-value}{}}}
-\subsection{Method \code{value()}}{
-Returns the value object associated with this pair.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSKeyValuePair$value()}\if{html}{\out{</div>}}
+\subsection{\code{RSKeyValuePair$value()}}{
+  Returns the value object associated with this pair.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSKeyValuePair$value()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The stored RObjC object, class generator, or protocol generator.
+  }
 }
 
-\subsection{Returns}{
-An \code{RSObject} representing the value.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSKeyValuePair-isEqual"></a>}}
 \if{latex}{\out{\hypertarget{method-RSKeyValuePair-isEqual}{}}}
-\subsection{Method \code{isEqual()}}{
-Compares this pair to another by checking key equivalence.
+\subsection{\code{RSKeyValuePair$isEqual()}}{
+  Compares this pair to another by checking key equivalence.
 Only the key is considered for equality; the value is ignored.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSKeyValuePair$isEqual(other)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSKeyValuePair$isEqual(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another \code{RSKeyValuePair} instance.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} if the keys are equal; \code{FALSE} for other inputs.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{other}}{Another \code{RSKeyValuePair} instance.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{TRUE} if the keys are equal, otherwise \code{FALSE}.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSKeyValuePair-hash"></a>}}
 \if{latex}{\out{\hypertarget{method-RSKeyValuePair-hash}{}}}
-\subsection{Method \code{hash()}}{
-Computes the hash code based on the key only.
+\subsection{\code{RSKeyValuePair$hash()}}{
+  Computes the hash code based on the key only.
 This allows the pair to behave correctly in hash-based containers.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSKeyValuePair$hash()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSKeyValuePair$hash()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An integer hash value derived from the key.
+  }
 }
 
-\subsection{Returns}{
-An integer hash value derived from the key.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSKeyValuePair-objectsForEncoding"></a>}}
 \if{latex}{\out{\hypertarget{method-RSKeyValuePair-objectsForEncoding}{}}}
-\subsection{Method \code{objectsForEncoding()}}{
-Returns encoding objects, key and value
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSKeyValuePair$objectsForEncoding()}\if{html}{\out{</div>}}
+\subsection{\code{RSKeyValuePair$objectsForEncoding()}}{
+  Returns RObjC instance keys and values for encoding. Class and protocol
+generators are serialized as R values and are not traversed as child objects.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSKeyValuePair$objectsForEncoding()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of the RObjC instance key and value, when present.
+  }
 }
 
-\subsection{Returns}{
-List from key and value
-}
-}
 }

@@ -14,7 +14,7 @@
 #'   companion instance.
 #'
 #' @section Protocols:
-#' - [RSProtocolClass()] declares a protocol and its required methods.
+#' - [RSProtocolClass()] declares a protocol and its expected method names.
 #'
 #' @seealso [robjc-package], [class_index], [runtime_functions]
 #' @name factory_api_index

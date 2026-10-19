@@ -19,13 +19,6 @@ protocol_make_isa <- function(
     "`contract_methods` must be a character vector." =
       is.character(contract_methods)
   )
-  for (protocol in super_protocols) {
-    if (!inherits(protocol$robjc_isa, ISA_PROTOCOL))
-      stop(
-        sprintf("In `super_protocols`, %s is not a protocol.", protocol$classname),
-        call. = FALSE
-      )
-  }
   robjc_make_isa(
     r6generator,
     super_class = RSProtocol,
@@ -78,17 +71,17 @@ protocol_conformsTo <- function(protocol, target) {
 }
 
 
-#' @title Get a Protocol's Direct Contract
+#' @title Get a Protocol's Directly Declared Method Names
 #' @description Returns method names declared directly by a protocol, excluding
-#'   requirements inherited from parent protocols.
+#'   method names declared by parent protocols.
 #' @param protocol A protocol class generator.
 #' @return A character vector of method names.
 #' @keywords internal
 protocol_getContract <- function(protocol) protocol$robjc_isa$slot
 
 
-#' @title Get Inherited Protocol Requirements
-#' @description Collects unique method names required by all ancestor protocols.
+#' @title Get Inherited Protocol Method Names
+#' @description Collects unique method names declared by all ancestor protocols.
 #' @param protocol A protocol class generator.
 #' @return A character vector of inherited method names.
 #' @keywords internal
@@ -105,9 +98,9 @@ protocol_getAllInheritContracts <- function(protocol) {
 }
 
 
-#' @title Get All Protocol Requirements
+#' @title Get All Declared Protocol Method Names
 #' @description Combines a protocol's directly declared method names with all
-#'   requirements inherited from its parent protocols.
+#'   method names declared by its parent protocols.
 #' @param protocol A protocol class generator.
 #' @return A character vector of unique method names.
 #' @examples
@@ -115,8 +108,8 @@ protocol_getAllInheritContracts <- function(protocol) {
 #' robjc:::protocol_getAllContracts(Printable)
 #' @keywords internal
 protocol_getAllContracts <- function(protocol) {
-  inherits <- protocol_getAllInheritContracts(protocol)
-  domestic <- protocol_getContract(protocol)
-  merged <- unique(c(domestic, inherits))
+  inherits  <- protocol_getAllInheritContracts(protocol)
+  domestic  <- protocol_getContract(protocol)
+  merged    <- unique(c(domestic, inherits))
   return(merged)
 }

@@ -10,421 +10,496 @@ The \code{RSMutableVector} class generator.
 Wraps an atomic vector with indexed mutation and copying methods.
 Added and searched values must have the stored vector's type and class.
 Numeric indices are converted with \code{as.integer()} before bounds checks.
+A supplied hash operator must hash equal stored values consistently and
+remain stable while the vector is used as a key or set member.
 }
 \section{Super class}{
-\code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{RSMutableVector}
+\code{\link[robjc:RSObject]{RSObject}} -> \code{RSMutableVector}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-RSMutableVector-new}{\code{RSMutableVector$new()}}
-\item \href{#method-RSMutableVector-values}{\code{RSMutableVector$values()}}
-\item \href{#method-RSMutableVector-appendValues}{\code{RSMutableVector$appendValues()}}
-\item \href{#method-RSMutableVector-insertValuesAtIndex}{\code{RSMutableVector$insertValuesAtIndex()}}
-\item \href{#method-RSMutableVector-replaceValuesAtIndices}{\code{RSMutableVector$replaceValuesAtIndices()}}
-\item \href{#method-RSMutableVector-removeValuesAtIndices}{\code{RSMutableVector$removeValuesAtIndices()}}
-\item \href{#method-RSMutableVector-removeAllValues}{\code{RSMutableVector$removeAllValues()}}
-\item \href{#method-RSMutableVector-valueAtIndex}{\code{RSMutableVector$valueAtIndex()}}
-\item \href{#method-RSMutableVector-containsValues}{\code{RSMutableVector$containsValues()}}
-\item \href{#method-RSMutableVector-indicesOfValues}{\code{RSMutableVector$indicesOfValues()}}
-\item \href{#method-RSMutableVector-asVector}{\code{RSMutableVector$asVector()}}
-\item \href{#method-RSMutableVector-count}{\code{RSMutableVector$count()}}
-\item \href{#method-RSMutableVector-copy}{\code{RSMutableVector$copy()}}
-\item \href{#method-RSMutableVector-mutableCopy}{\code{RSMutableVector$mutableCopy()}}
-\item \href{#method-RSMutableVector-hash}{\code{RSMutableVector$hash()}}
-\item \href{#method-RSMutableVector-hashesOfValues}{\code{RSMutableVector$hashesOfValues()}}
-\item \href{#method-RSMutableVector-hashOperator}{\code{RSMutableVector$hashOperator()}}
-\item \href{#method-RSMutableVector-description}{\code{RSMutableVector$description()}}
-\item \href{#method-RSMutableVector-print}{\code{RSMutableVector$print()}}
-\item \href{#method-RSMutableVector-isEqual}{\code{RSMutableVector$isEqual()}}
-\item \href{#method-RSMutableVector-compare}{\code{RSMutableVector$compare()}}
+  \itemize{
+    \item \href{#method-RSMutableVector-initialize}{\code{RSMutableVector$new()}}
+    \item \href{#method-RSMutableVector-values}{\code{RSMutableVector$values()}}
+    \item \href{#method-RSMutableVector-appendValues}{\code{RSMutableVector$appendValues()}}
+    \item \href{#method-RSMutableVector-insertValuesAtIndex}{\code{RSMutableVector$insertValuesAtIndex()}}
+    \item \href{#method-RSMutableVector-replaceValuesAtIndices}{\code{RSMutableVector$replaceValuesAtIndices()}}
+    \item \href{#method-RSMutableVector-removeValuesAtIndices}{\code{RSMutableVector$removeValuesAtIndices()}}
+    \item \href{#method-RSMutableVector-removeAllValues}{\code{RSMutableVector$removeAllValues()}}
+    \item \href{#method-RSMutableVector-valueAtIndex}{\code{RSMutableVector$valueAtIndex()}}
+    \item \href{#method-RSMutableVector-containsValues}{\code{RSMutableVector$containsValues()}}
+    \item \href{#method-RSMutableVector-indicesOfValues}{\code{RSMutableVector$indicesOfValues()}}
+    \item \href{#method-RSMutableVector-asVector}{\code{RSMutableVector$asVector()}}
+    \item \href{#method-RSMutableVector-count}{\code{RSMutableVector$count()}}
+    \item \href{#method-RSMutableVector-copy}{\code{RSMutableVector$copy()}}
+    \item \href{#method-RSMutableVector-mutableCopy}{\code{RSMutableVector$mutableCopy()}}
+    \item \href{#method-RSMutableVector-hash}{\code{RSMutableVector$hash()}}
+    \item \href{#method-RSMutableVector-hashesOfValues}{\code{RSMutableVector$hashesOfValues()}}
+    \item \href{#method-RSMutableVector-hashOperator}{\code{RSMutableVector$hashOperator()}}
+    \item \href{#method-RSMutableVector-description}{\code{RSMutableVector$description()}}
+    \item \href{#method-RSMutableVector-print}{\code{RSMutableVector$print()}}
+    \item \href{#method-RSMutableVector-isEqual}{\code{RSMutableVector$isEqual()}}
+    \item \href{#method-RSMutableVector-compare}{\code{RSMutableVector$compare()}}
+    \item \href{#method-RSMutableVector-nativeCompare}{\code{RSMutableVector$nativeCompare()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>RSObject$class()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>RSObject$conformsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>RSObject$debugDescription()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>RSObject$inheritClassesAsList()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>RSObject$isKindOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableVector-new"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableVector-new}{}}}
-\subsection{Method \code{new()}}{
-Initialize the vector and its hash operator.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$new(vec, hash_operator = RSHashOperator$instance)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-RSMutableVector-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableVector-initialize}{}}}
+\subsection{\code{RSMutableVector$new()}}{
+  Initialize the vector and its hash operator.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$new(vec, hash_operator = RSHashOperator$instance)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{vec}}{An atomic vector without dimensions.}
+      \item{\code{hash_operator}}{An object providing \code{hashForScalar()}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The initialized instance, invisibly.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{vec}}{An atomic vector without dimensions.}
-
-\item{\code{hash_operator}}{An object providing \code{hashForScalar()}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The initialized instance, invisibly.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-values"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-values}{}}}
-\subsection{Method \code{values()}}{
-Return the stored values.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$values()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableVector$values()}}{
+  Return the stored values.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$values()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The atomic vector.
+  }
 }
 
-\subsection{Returns}{
-The atomic vector.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-appendValues"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-appendValues}{}}}
-\subsection{Method \code{appendValues()}}{
-Append values to the vector.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$appendValues(values)}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableVector$appendValues()}}{
+  Append values to the vector.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$appendValues(values)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{values}}{Values with the stored vector's type and class.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The instance, invisibly.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{values}}{Values with the stored vector's type and class.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The instance, invisibly.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-insertValuesAtIndex"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-insertValuesAtIndex}{}}}
-\subsection{Method \code{insertValuesAtIndex()}}{
-Insert values before a one-based index.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$insertValuesAtIndex(values, index)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{values}}{Values with the stored vector's type and class.}
-
-\item{\code{index}}{Numeric position from 1 through \code{count() + 1}; converted
+\subsection{\code{RSMutableVector$insertValuesAtIndex()}}{
+  Insert values before a one-based index.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$insertValuesAtIndex(values, index)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{values}}{Values with the stored vector's type and class.}
+      \item{\code{index}}{Numeric position from 1 through \code{count() + 1}; converted
 with \code{as.integer()}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The instance, invisibly.
+  }
 }
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The instance, invisibly.
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-replaceValuesAtIndices"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-replaceValuesAtIndices}{}}}
-\subsection{Method \code{replaceValuesAtIndices()}}{
-Replace values at the specified one-based indices.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$replaceValuesAtIndices(values, indices)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{values}}{Replacement values, one per index, with the stored vector's
+\subsection{\code{RSMutableVector$replaceValuesAtIndices()}}{
+  Replace values at the specified one-based indices.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$replaceValuesAtIndices(values, indices)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{values}}{Replacement values, one per index, with the stored vector's
 type and class.}
+      \item{\code{indices}}{Numeric positions to replace; converted with \code{as.integer()}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The instance, invisibly.
+  }
+}
 
-\item{\code{indices}}{Numeric positions to replace; converted with \code{as.integer()}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The instance, invisibly.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-removeValuesAtIndices"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-removeValuesAtIndices}{}}}
-\subsection{Method \code{removeValuesAtIndices()}}{
-Remove values at the specified one-based indices.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$removeValuesAtIndices(indices)}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableVector$removeValuesAtIndices()}}{
+  Remove values at the specified one-based indices.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$removeValuesAtIndices(indices)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{indices}}{Numeric positions to remove; converted with \code{as.integer()}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The instance, invisibly.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{indices}}{Numeric positions to remove; converted with \code{as.integer()}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The instance, invisibly.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-removeAllValues"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-removeAllValues}{}}}
-\subsection{Method \code{removeAllValues()}}{
-Remove every value while preserving the vector type.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$removeAllValues()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableVector$removeAllValues()}}{
+  Remove every value while preserving the vector type.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$removeAllValues()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The instance, invisibly.
+  }
 }
 
-\subsection{Returns}{
-The instance, invisibly.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-valueAtIndex"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-valueAtIndex}{}}}
-\subsection{Method \code{valueAtIndex()}}{
-Return the value at a one-based index.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$valueAtIndex(index)}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableVector$valueAtIndex()}}{
+  Return the value at a one-based index.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$valueAtIndex(index)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{index}}{Numeric position to read; converted with \code{as.integer()}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A length-one value.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{index}}{Numeric position to read; converted with \code{as.integer()}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A length-one value.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-containsValues"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-containsValues}{}}}
-\subsection{Method \code{containsValues()}}{
-Test whether each value occurs in the vector.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$containsValues(values)}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableVector$containsValues()}}{
+  Test whether each value occurs in the vector.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$containsValues(values)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{values}}{Values with the stored vector's type and class to search for.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A logical vector.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{values}}{Values with the stored vector's type and class to search for.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A logical vector.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-indicesOfValues"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-indicesOfValues}{}}}
-\subsection{Method \code{indicesOfValues()}}{
-Find the first matching index for each value.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$indicesOfValues(values)}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableVector$indicesOfValues()}}{
+  Find the first matching index for each value.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$indicesOfValues(values)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{values}}{Values with the stored vector's type and class to search for.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Integer indices, with \code{NA} for values not found.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{values}}{Values with the stored vector's type and class to search for.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Integer indices, with \code{NA} for values not found.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-asVector"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-asVector}{}}}
-\subsection{Method \code{asVector()}}{
-Return the stored atomic vector.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$asVector()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableVector$asVector()}}{
+  Return the stored atomic vector.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$asVector()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The atomic vector.
+  }
 }
 
-\subsection{Returns}{
-The atomic vector.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-count"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-count}{}}}
-\subsection{Method \code{count()}}{
-Return the number of values.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$count()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableVector$count()}}{
+  Return the number of values.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$count()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An integer count.
+  }
 }
 
-\subsection{Returns}{
-An integer count.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-copy"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-copy}{}}}
-\subsection{Method \code{copy()}}{
-Create an immutable \code{RSVector} with the same values.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$copy()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableVector$copy()}}{
+  Create an immutable \code{RSVector} with the same values.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$copy()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \code{RSVector} instance.
+  }
 }
 
-\subsection{Returns}{
-A new \code{RSVector} instance.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-mutableCopy"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-mutableCopy}{}}}
-\subsection{Method \code{mutableCopy()}}{
-Returns a new mutable vector with the same values and hash operator.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$mutableCopy()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableVector$mutableCopy()}}{
+  Returns a new mutable vector with the same values and hash operator.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$mutableCopy()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \code{RSMutableVector} instance.
+  }
 }
 
-\subsection{Returns}{
-A new \code{RSMutableVector} instance.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-hash"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-hash}{}}}
-\subsection{Method \code{hash()}}{
-Computes an aggregate hash by combining the hash values of all elements.
+\subsection{\code{RSMutableVector$hash()}}{
+  Computes an aggregate hash by combining the hash values of all elements.
 This is used for fast comparison and dictionary key support.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$hash()}\if{html}{\out{</div>}}
+If the XOR result is R's \code{NA_integer_} bit pattern, returns \code{0L}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$hash()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    One non-missing integer hash value.
+  }
 }
 
-\subsection{Returns}{
-An integer hash value.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-hashesOfValues"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-hashesOfValues}{}}}
-\subsection{Method \code{hashesOfValues()}}{
-Computes a hash code for each scalar value in the vector.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$hashesOfValues()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableVector$hashesOfValues()}}{
+  Computes a hash code for each scalar value in the vector.
+A missing result from the hash operator raises an error.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$hashesOfValues()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An integer vector of non-missing hashes.
+  }
 }
 
-\subsection{Returns}{
-An integer vector of hashes.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-hashOperator"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-hashOperator}{}}}
-\subsection{Method \code{hashOperator()}}{
-Returns the \code{RSHashOperator} module instance used for hashing.
-This method provides centralized access to hashing behavior.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$hashOperator()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableVector$hashOperator()}}{
+  Returns the hash operator supplied at initialization, or the default
+\link{RSHashOperator} instance when none was supplied.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$hashOperator()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The stored hash operator. The default is \code{RSHashOperator$instance}.
+  }
 }
 
-\subsection{Returns}{
-The singleton instance of \code{RSHashOperator}.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-description"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-description}{}}}
-\subsection{Method \code{description()}}{
-Returns a concise textual summary of the vector,
+\subsection{\code{RSMutableVector$description()}}{
+  Returns a concise textual summary of the vector,
 including its class name and the current number of stored values.
 This is primarily used for human-readable identification and logging.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$description()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$description()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A character string in the form \code{"<ClassName: N values>"},
+where \code{ClassName} is the actual class of the object and \code{N} is the number of elements it contains.
+  }
 }
 
-\subsection{Returns}{
-A character string in the form \code{"<ClassName: N values>"},
-where \code{ClassName} is the actual class of the object and \code{N} is the number of elements it contains.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-print"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-print}{}}}
-\subsection{Method \code{print()}}{
-Prints a concise, human-readable summary of the object to the console,
+\subsection{\code{RSMutableVector$print()}}{
+  Prints a concise, human-readable summary of the object to the console,
 including its class name and element count as returned by \code{description()}.
 Any additional arguments are ignored.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$print(...)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$print(...)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{...}}{Ignored. Included for compatibility with the generic \code{print()} signature.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The object itself, invisibly.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Ignored. Included for compatibility with the generic \code{print()} signature.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The object itself, invisibly.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-isEqual"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-isEqual}{}}}
-\subsection{Method \code{isEqual()}}{
-Compares this vector to another for equality, including value attributes.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$isEqual(other)}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableVector$isEqual()}}{
+  Compares this vector to another for equality, including value attributes
+and the identity of the hash operator.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$isEqual(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another vector object to compare with.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} if the vectors are equal; otherwise \code{FALSE}.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{other}}{Another vector object to compare with.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{TRUE} if the vectors are equal; otherwise \code{FALSE}.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableVector-compare"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableVector-compare}{}}}
-\subsection{Method \code{compare()}}{
-Compares this vector to another for ordering.
-The comparison is lexicographic: each element is compared in order using \code{compare()}.
-If all elements are equal, the shorter array is considered smaller.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableVector$compare(other, na.last = TRUE)}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableVector$compare()}}{
+  Compares this vector to another for ordering.
+The comparison is lexicographic: each element is compared in order using
+base R's sorting order. Stored vectors must have the same \code{typeof()} and
+\code{class()}; use \code{nativeCompare()} for base R's cross-type value comparison.
+If all elements are equal, the shorter vector is considered smaller.
+Factor vectors with different levels cannot be ordered against each other.
+Factor and non-factor vectors have no shared sorting order.
+Raw vectors cannot be ordered, including empty raw vectors.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$compare(other, na.last = TRUE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another \code{RSMutableVector} or \code{RSVector} instance.}
+      \item{\code{na.last}}{Whether NA values are treated as greater. Coerced with
+\code{as.logical()}; the result must be one nonmissing value.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{-1L} if less than, \code{0L} if equal, or \code{1L} if greater.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{other}}{Another \code{RSMutableVector} instance.}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSMutableVector-nativeCompare"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableVector-nativeCompare}{}}}
+\subsection{\code{RSMutableVector$nativeCompare()}}{
+  Compare vectors lexicographically using base R's atomic
+value operators (\code{==}, \code{<}, and \code{>}), rather than \code{compare()}'s sorting
+rules. Each pair is compared as native R scalar values. Missing values
+(including \code{NaN}) tie and are placed according to \code{na.last}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$nativeCompare(other, na.last = TRUE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another \code{RSMutableVector} or \code{RSVector} instance.}
+      \item{\code{na.last}}{Whether missing values sort after nonmissing values.
+Coerced with \code{as.logical()}; the result must be one nonmissing value.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{-1L}, \code{0L}, or \code{1L}. An error is raised when base R has no
+ordering for unequal values.
+  }
+}
 
-\item{\code{na.last}}{Logical; if \code{TRUE}, NA values are treated as greater.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
--1 if less than, 0 if equal, 1 if greater.
-}
-}
 }

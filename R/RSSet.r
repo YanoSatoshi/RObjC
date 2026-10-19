@@ -11,8 +11,8 @@
 #' initially references the same member objects.
 #'
 #' @section Convenience Constructor:
-#' `RSSet$setWithSet(set)` creates an immutable shallow copy with independent
-#' native storage.
+#' [RSSet_withSet()] creates an immutable shallow copy from a mutable set with
+#' independent native storage. An immutable set is returned as is.
 #'
 #' @export
 RSSet <- RSObjectClass(
@@ -22,7 +22,8 @@ RSSet <- RSObjectClass(
   protocols = list(RSCopying, RSMutableCopying),
   public = list(
     #' @description Constructs an immutable set retaining the supplied objects.
-    #' @param objects An optional list or RObjC collection of members. `NULL`
+    #' @param objects An optional list or RObjC collection of RObjC objects,
+    #'   class generators, or protocol generators. `NULL`
     #'   elements are represented by [RSNull].
     #' @return A new `RSSet` instance.
     initialize = function(objects = list()) {
@@ -53,14 +54,6 @@ RSSet <- RSObjectClass(
 
     #' @description Returns an independent mutable shallow copy.
     #' @return A new [RSMutableSet].
-    mutableCopy = function() RSMutableSet$setWithSet(self)
+    mutableCopy = function() super$mutableCopy()
   )
 )
-
-# Creates an immutable set with independent native storage.
-RSSet$setWithSet <- function(set) {
-  .rs_set_with_storage(
-    RSSet,
-    .rs_set_storage(set)$duplicate()
-  )
-}

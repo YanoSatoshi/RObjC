@@ -9,7 +9,7 @@ vignette: >
 
 # RSProtocol
 
-`RSProtocol` は protocol 宣言の基底 generator です。protocol は必須メソッドの名前を列挙し、別の protocol の要件を継承できます。`RSProtocolClass()` で宣言し、その generator をオブジェクトクラスのファクトリーの `protocols` に渡します。protocol は通常 `$new()` でインスタンス化せず、generator を直接使います。
+`RSProtocol` は protocol 宣言の基底 generator です。protocol は必須メソッドの名前を列挙し、別の protocol の要件を継承できます。`RSProtocolClass()` で宣言し、その generator をオブジェクトクラスのファクトリーの `protocols` に渡します。protocol の `$new()` は無効で、generator を直接使います。
 
 ## Protocol の宣言
 
@@ -39,7 +39,7 @@ Detailed <- RSProtocolClass(
 stopifnot(identical(Detailed$robjc_isa$slot, "details"))
 ```
 
-直接の要件は `robjc_isa$slot`、親 protocol は `robjc_isa$protocols` に記録されます。これらはクラスメタデータであり、protocol インスタンスのメソッドではありません。
+直接の要件は `robjc_isa$slot`、親 protocol は `robjc_isa$protocols` に記録されます。これらは protocol generator のメタデータです。
 
 ## Protocol の採用
 

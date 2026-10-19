@@ -3,11 +3,13 @@
 #'
 #' @description
 #' `RSMutableCopying` is a protocol for objects that can produce a mutable copy.
-#' Conforming classes must implement `mutableCopy()`.
+#' Adoption is a declaration and does not check methods. Because
+#' `mutableCopy()` is this protocol's only declared method, it is effectively
+#' required when mutable copying is used.
 #'
 #' This is typically used for immutable objects that support conversion into a mutable variant.
 #'
-#' @section Required Method:
+#' @section Declared Method (Required for Mutable Copying):
 #' - `mutableCopy()` — Returns a mutable copy of the object.
 #'
 #' @export

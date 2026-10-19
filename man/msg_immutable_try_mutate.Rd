@@ -13,10 +13,10 @@ msg_immutable_try_mutate(klass)
 A character string containing the error message.
 }
 \description{
-Generates a standardized error message when attempting to modify an immutable RS class.
-It suggests using the corresponding \verb{RSMutable*} class instead.
+Generates a standardized error message for an immutable RS class that has
+a corresponding \verb{RSMutable*} class. It suggests that mutable class instead.
 }
 \examples{
-# msg_immutable_try_mutate(RSNumber)
+# msg_immutable_try_mutate(RSArray)
 }
 \keyword{internal}
