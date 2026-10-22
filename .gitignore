@@ -7,5 +7,5 @@ inst/doc
 /temp_lib/
 src/*.o
 src/*.so
+/robjc_*.tar.gz
 /robjc.Rcheck/
-robjc_*.tar.gz
