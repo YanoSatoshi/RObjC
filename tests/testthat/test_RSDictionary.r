@@ -15,12 +15,42 @@ test_that("RSDictionary: objectForKey returns NULL for missing key", {
   expect_null(d$objectForKey(RSString_withValue("absent")))
 })
 
+test_that("RSDictionary: reverse lookup returns matching keys", {
+  dictionary <- RSDictionary$new(
+    keys = list(RSString_withValue("a"), RSString_withValue("b")),
+    values = list(RSNumber_withValue(1), RSNumber_withValue(1))
+  )
+  keys <- dictionary$allKeysForObjectAsList(RSNumber_withValue(1))
+  expect_setequal(vapply(keys, function(key) key$value(), character(1)), c("a", "b"))
+})
+
 test_that("RSDictionary: count returns correct size", {
   d <- RSDictionary$new(objects_and_keys = list(
     RSString_withValue("v1"), RSString_withValue("k1"),
     RSString_withValue("v2"), RSString_withValue("k2")
   ))
   expect_equal(d$count(), 2)
+})
+
+test_that("dictionary equality compares values for each matching key", {
+  keys <- list(RSString_withValue("a"), RSString_withValue("b"))
+  left <- RSDictionary$new(
+    keys = keys,
+    values = list(RSNumber_withValue(1L), RSNumber_withValue(2L))
+  )
+  equal <- RSMutableDictionary$new(
+    keys = rev(keys),
+    values = list(RSNumber_withValue(2L), RSNumber_withValue(1L))
+  )
+  different <- RSDictionary$new(
+    keys = keys,
+    values = list(RSNumber_withValue(1L), RSNumber_withValue(3L))
+  )
+
+  expect_identical(left$isEqual(equal), TRUE)
+  expect_identical(left$isEqual(different), FALSE)
+  expect_identical(left$isEqual(RSDictionary$new()), FALSE)
+  expect_identical(RSDictionary$new()$isEqual(RSDictionary$new()), TRUE)
 })
 
 test_that("RSDictionary: mutation methods are prohibited", {
@@ -68,13 +98,13 @@ test_that("RSDictionary: entry mutation aliases are prohibited", {
   expect_error(dictionary$removeAllEntries(), expected, fixed = TRUE)
 })
 
-test_that("RSDictionary: dictionaryWithDictionary clones native storage", {
+test_that("RSDictionary_withDictionary clones native storage", {
   key <- RSString_withValue("k")
   source <- RSMutableDictionary$new(
     keys = list(key), values = list(RSString_withValue("before"))
   )
 
-  dictionary <- RSDictionary$dictionaryWithDictionary(source)
+  dictionary <- RSDictionary_withDictionary(source)
   source$setObjectForKey(RSString_withValue("after"), key)
 
   expect_true(dictionary$isMemberOf(RSDictionary))

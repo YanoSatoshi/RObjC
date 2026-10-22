@@ -7,14 +7,17 @@
 RSScalar_withValue(val)
 }
 \arguments{
-\item{val}{\code{NULL} or a length-one logical, integer, double, character,
-factor, \code{Date}, or \code{POSIXct} value.}
+\item{val}{\code{NULL} or a length-one, dimensionless logical, integer, double, complex, raw,
+character, factor, \code{Date}, \code{POSIXct}, or \code{POSIXlt} value with its standard
+base R class.}
 }
 \value{
 An RObjC scalar instance.
 }
 \description{
 Choose the matching RObjC scalar class for a native R value.
-\code{NULL} returns the shared \link{RSNull}; missing values use the matching \verb{RSNA*}
-class through the typed API.
+\code{NULL} returns the shared \link{RSNull}; \code{NA} uses the matching \verb{RSNA*}
+class through the typed API, while supported \code{NaN} values remain in their
+regular scalar classes. Built-in scalar wrappers accept base R classes,
+not custom S3 subclasses.
 }

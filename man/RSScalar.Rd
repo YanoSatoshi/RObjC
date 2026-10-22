@@ -2,188 +2,221 @@
 % Please edit documentation in R/RSScalar.r
 \name{RSScalar}
 \alias{RSScalar}
-\title{RSScalar: Abstract Scalar Wrapper Base Class}
+\title{Scalar Base Class for the Paired-Class API}
+\value{
+The \code{RSScalar} class generator.
+}
 \description{
-\code{RSScalar} is the abstract base class for scalar wrappers in the RS framework,
-designed to emulate Objective-C's value object philosophy.
-It provides standard scalar behavior such as comparison, equality, hashing, and internal value access,
-and acts as a foundation for types like \code{RSNumber}, \code{RSString}, \code{RSDate}, etc.
-
-Declare subclasses with \code{\link[=RSScalarClass]{RSScalarClass()}}, which sets and locks the class-level
-\code{isNAClass} flag. It distinguishes regular values from NA-wrapper variants
-(e.g., \code{RSNumber} and \code{RSNANumber}).
-The constructor enforces length-1 scalar input and prohibits NA unless allowed by the subclass.
+\code{RSScalar} is an abstract base class that provides comparison, equality,
+hashing, and value access for
+scalar wrappers created by \code{\link[=RSScalarClass]{RSScalarClass()}}. It validates a scalar before
+storing it in private \code{.val}. Generated NA subclasses receive \code{na_value}
+through their initializer.
 }
-\note{
-Subclasses must call \code{super$initialize(val)} after setting their own fields.
-A companion \verb{RSNA*} class should be provided for representing NA values safely.
-}
-\section{Public Methods}{
-
-\itemize{
-\item \code{initialize(val)} – Validates and stores a scalar value.
-\item \code{compare(other, na.last = TRUE)} – Compares this scalar with another.
-\item \code{isEqual(other)} – Returns TRUE if both values are equal.
-\item \code{hash()} – Returns a numeric hash for the scalar value.
-\item \code{value()} – Returns the raw wrapped value.
-\item \code{description()} – Human-readable description string.
-}
-}
-
-\section{Usage}{
-
-Use \code{RSScalar_withValue(val)} as a convenience constructor.
-It automatically routes to the appropriate RS*** subclass based on the type of \code{val}.
-}
-
-\examples{
-num <- RSNumber_withValue(42)
-str <- RSString_withValue("hello")
-num$compare(RSNumber_withValue(100))  # returns -1
-
+\details{
+A regular subclass may define \code{initialize(val)} to validate its value type
+and call \code{super$initialize(val)}. The factory supplies \code{na_value} when it
+constructs the NA subclass's shared instance. Type-specific validation must
+allow that missing value when \code{self$class()$isNAClass} is \code{TRUE}.
+Singleton NA companions reject direct construction; use the corresponding
+class's \verb{$na} instance. A non-singleton NA companion accepts only an \code{NA}
+value when constructed directly. \code{NaN} remains a regular scalar value.
 }
 \section{Super class}{
-\code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{RSScalar}
+\code{\link[robjc:RSObject]{RSObject}} -> \code{RSScalar}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-RSScalar-new}{\code{RSScalar$new()}}
-\item \href{#method-RSScalar-compare}{\code{RSScalar$compare()}}
-\item \href{#method-RSScalar-description}{\code{RSScalar$description()}}
-\item \href{#method-RSScalar-isEqual}{\code{RSScalar$isEqual()}}
-\item \href{#method-RSScalar-hash}{\code{RSScalar$hash()}}
-\item \href{#method-RSScalar-value}{\code{RSScalar$value()}}
+  \itemize{
+    \item \href{#method-RSScalar-initialize}{\code{RSScalar$new()}}
+    \item \href{#method-RSScalar-compare}{\code{RSScalar$compare()}}
+    \item \href{#method-RSScalar-description}{\code{RSScalar$description()}}
+    \item \href{#method-RSScalar-isEqual}{\code{RSScalar$isEqual()}}
+    \item \href{#method-RSScalar-nativeValue}{\code{RSScalar$nativeValue()}}
+    \item \href{#method-RSScalar-nativeCompare}{\code{RSScalar$nativeCompare()}}
+    \item \href{#method-RSScalar-hash}{\code{RSScalar$hash()}}
+    \item \href{#method-RSScalar-value}{\code{RSScalar$value()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="copy"><a href='../../robjc/html/RSObject.html#method-RSObject-copy'><code>robjc::RSObject$copy()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>RSObject$class()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>RSObject$conformsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="copy"><a href='../../robjc/html/RSObject.html#method-RSObject-copy'><code>RSObject$copy()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>RSObject$debugDescription()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>RSObject$inheritClassesAsList()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>RSObject$isKindOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>RSObject$print()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSScalar-new"></a>}}
-\if{latex}{\out{\hypertarget{method-RSScalar-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes an \code{RSScalar} instance by validating and storing a single scalar value.
-This constructor enforces that the input value has a length of exactly 1, and
-verifies whether NA values are allowed based on the class's \code{isNAClass} flag.
-
-For inheriting classes (e.g., \code{RSNumber}, \code{RSString}), set \code{is_na_class}
-when calling \code{\link[=RSScalarClass]{RSScalarClass()}}. Use \code{FALSE} for regular scalar classes and
-\code{TRUE} for their NA counterparts. If a class does not allow NA values
-but receives one, the constructor will raise an informative error suggesting the
-appropriate NA class.
-
-Inheriting classes should override this method to add type-specific input validation,
-while still calling \code{super$initialize(val)} for scalar enforcement.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSScalar$new(val)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-RSScalar-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-RSScalar-initialize}{}}}
+\subsection{\code{RSScalar$new()}}{
+  Validate and store one scalar value. NA companion classes
+accept only \code{NA}, not \code{NaN} or a nonmissing value.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSScalar$new(val)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{val}}{An atomic scalar or a scalar \code{POSIXlt} value. \code{NA} is accepted
+only in a generated NA subclass; \code{NaN} remains a regular scalar value.
+Values with a \code{dim} attribute are rejected.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The initialized instance, invisibly.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{val}}{Wrapping value}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSScalar-compare"></a>}}
 \if{latex}{\out{\hypertarget{method-RSScalar-compare}{}}}
-\subsection{Method \code{compare()}}{
-Compares the scalar value with another RSScalar-derived object.
-Returns -1, 0, or 1 depending on comparison order.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSScalar$compare(other, na.last = TRUE)}\if{html}{\out{</div>}}
+\subsection{\code{RSScalar$compare()}}{
+  Compare this scalar with another scalar in the same class
+family using base R's sorting order. Missing values (including \code{NaN})
+are tied and placed according to \code{na.last}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSScalar$compare(other, na.last = TRUE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another \code{RSScalar} instance in the same class family.}
+      \item{\code{na.last}}{Whether a missing value sorts after nonmissing values.
+Coerced with \code{as.logical()}; the result must be one nonmissing value.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{-1L}, \code{0L}, or \code{1L}.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{other}}{Another RSScalar object.}
-
-\item{\code{na.last}}{Logical; whether NA should be treated as highest or lowest.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Integer: -1 if less than, 0 if equal, 1 if greater than.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSScalar-description"></a>}}
 \if{latex}{\out{\hypertarget{method-RSScalar-description}{}}}
-\subsection{Method \code{description()}}{
-Returns a concise textual representation of the scalar object.
-The output includes the class name, a hexadecimal pointer string identifying the instance,
-and the scalar value it wraps. This is primarily used for debugging or printing
-informative summaries of scalar objects.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSScalar$description()}\if{html}{\out{</div>}}
+\subsection{\code{RSScalar$description()}}{
+  Give a concise description of the wrapped value.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSScalar$description()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A character scalar.
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSScalar-isEqual"></a>}}
 \if{latex}{\out{\hypertarget{method-RSScalar-isEqual}{}}}
-\subsection{Method \code{isEqual()}}{
-Checks whether two scalar objects are equal.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSScalar$isEqual(other)}\if{html}{\out{</div>}}
+\subsection{\code{RSScalar$isEqual()}}{
+  Check key equality for compatible scalars. \code{NA} equals \code{NA}
+and \code{NaN} equals an identical \code{NaN} value so they can be used as keys.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSScalar$isEqual(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{An object to compare.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} when the values compare equal; \code{FALSE} for incompatible objects.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{other}}{Another RSScalar object.}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSScalar-nativeValue"></a>}}
+\if{latex}{\out{\hypertarget{method-RSScalar-nativeValue}{}}}
+\subsection{\code{RSScalar$nativeValue()}}{
+  Return the original native R value. This can differ from
+\code{value()}, which returns the scalar's object-level value.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSScalar$nativeValue()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The native R scalar.
+  }
 }
-\if{html}{\out{</div>}}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSScalar-nativeCompare"></a>}}
+\if{latex}{\out{\hypertarget{method-RSScalar-nativeCompare}{}}}
+\subsection{\code{RSScalar$nativeCompare()}}{
+  Compare native R values with base R's equality and ordering
+rules. Unlike \code{compare()}, this permits different scalar classes when
+base R can compare their values. Missing values (including \code{NaN}) are
+tied and placed according to \code{na.last}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSScalar$nativeCompare(other, na.last = TRUE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another \code{RSScalar} instance.}
+      \item{\code{na.last}}{Whether a missing value sorts after nonmissing values.
+Coerced with \code{as.logical()}; the result must be one nonmissing value.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{-1L}, \code{0L}, or \code{1L}. An error is raised when base R has no
+ordering for unequal values.
+  }
 }
-\subsection{Returns}{
-TRUE if values are considered equal; otherwise FALSE.
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSScalar-hash"></a>}}
 \if{latex}{\out{\hypertarget{method-RSScalar-hash}{}}}
-\subsection{Method \code{hash()}}{
-Returns a numeric hash of the wrapped scalar value.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSScalar$hash()}\if{html}{\out{</div>}}
+\subsection{\code{RSScalar$hash()}}{
+  Hash the wrapped scalar. \code{NA} and \code{NaN} hash to \code{0L}.
+The result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSScalar$hash()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    One non-missing integer hash code.
+  }
 }
 
-\subsection{Returns}{
-An integer suitable for use in hashing-based structures (e.g., sets, dictionaries).
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSScalar-value"></a>}}
 \if{latex}{\out{\hypertarget{method-RSScalar-value}{}}}
-\subsection{Method \code{value()}}{
-Returns the underlying R scalar value stored in the object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSScalar$value()}\if{html}{\out{</div>}}
+\subsection{\code{RSScalar$value()}}{
+  Return the stored R scalar.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSScalar$value()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The wrapped value.
+  }
 }
 
-\subsection{Returns}{
-A scalar value (numeric, character, logical, etc.).
-}
-}
 }

@@ -1,0 +1,76 @@
+---
+title: "Dictionary keys and copying in RObjC"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Dictionary keys and copying in RObjC}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Dictionary keys and copies
+
+`RSMutableDictionary` lets you insert, replace, and remove entries.
+`RSDictionary` exposes the same lookup methods but rejects mutation. Both use
+native storage and require RObjC objects as keys and values; R `NULL` is
+wrapped as `RSNull$null` when inserted.
+
+## Look up a key
+
+Dictionary lookup uses a key's `hash()` and `isEqual()` methods. A different
+`RSString` instance with the same value can find the entry. Missing keys
+return R `NULL`; a stored `NULL` returns the `RSNull$null` object, so
+`containsKey()` can distinguish the two cases.
+
+A custom key class should return `normalize_hash(computed_hash)` from its
+`hash()` method so the final value cannot be `NA_integer_`.
+
+```{r}
+library(robjc)
+
+key <- RSString_withValue("id")
+dictionary <- RSMutableDictionary$new()
+dictionary$setObjectForKey(NULL, key)
+stopifnot(dictionary$containsKey(RSString_withValue("id")))
+stopifnot(identical(dictionary$objectForKey(key), RSNull$null))
+stopifnot(!dictionary$containsKey(RSString_withValue("missing")))
+stopifnot(is.null(dictionary$objectForKey(RSString_withValue("missing"))))
+```
+
+Insertion calls `key$copy()`. The base `RSObject$copy()` returns the same
+object, while a subclass may return an independent key. The key's equality
+and hash must stay stable while stored: changing either can make a lookup
+miss an existing entry. Equal keys must have equal hashes; equal hashes alone
+do not make keys equal. See `vignette("robjc_object", package = "robjc")` for
+the equality example.
+
+## `copy()` and `mutableCopy()`
+
+Copying a dictionary duplicates its native table shallowly: the mappings
+become independent, while the existing key and value objects remain shared.
+The result depends on the source class:
+
+| Source | `copy()` | `mutableCopy()` |
+|:--|:--|:--|
+| `RSMutableDictionary` | New `RSDictionary` | New `RSMutableDictionary` |
+| `RSDictionary` | Same instance | New `RSMutableDictionary` |
+
+```{r}
+value <- RSString_withValue("before")
+source <- RSMutableDictionary$new(keys = list(key), values = list(value))
+immutable <- source$copy()
+editable <- source$mutableCopy()
+stopifnot(immutable$isMemberOf(RSDictionary))
+stopifnot(editable$isMemberOf(RSMutableDictionary))
+stopifnot(identical(immutable$objectForKey(key), value))
+
+source$setObjectForKey(RSString_withValue("after"), key)
+stopifnot(identical(source$objectForKey(key)$value(), "after"))
+stopifnot(identical(immutable$objectForKey(key)$value(), "before"))
+stopifnot(identical(editable$objectForKey(key)$value(), "before"))
+stopifnot(identical(immutable$copy(), immutable))
+```
+
+Replacing a mapping in one copy does not update the other tables. Because
+the objects in an existing mapping are shared, a mutable value object can
+still be changed through another reference. `RSDictionary` protects its
+mapping, not the internal state of every stored object.

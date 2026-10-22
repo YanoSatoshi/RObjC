@@ -32,9 +32,9 @@ RSMutableArray_withArray(array)
 RSMutableArray_withCapacity(capacity)
 }
 \arguments{
-\item{object}{An RObjC object.}
+\item{object}{An RObjC object, class generator, or protocol generator.}
 
-\item{objects}{A list of RObjC objects.}
+\item{objects}{A list of RObjC objects, class generators, or protocol generators.}
 
 \item{array}{An \code{RSArray} or \code{RSMutableArray} instance.}
 
@@ -46,6 +46,7 @@ An array of the type named by the function, except that copying an
 immutable array may return that same instance.
 }
 \description{
-Construct ordered collections from RObjC objects or an existing
-array. The \code{withObjects} input is an R list of objects.
+Construct ordered collections from RObjC objects, class or
+protocol generators, or an existing array. The \code{withObjects} input is an R list;
+its names are discarded because array elements are addressed by position.
 }

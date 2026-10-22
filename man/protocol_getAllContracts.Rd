@@ -2,7 +2,7 @@
 % Please edit documentation in R/runtime_protocol.r
 \name{protocol_getAllContracts}
 \alias{protocol_getAllContracts}
-\title{Get All Protocol Requirements}
+\title{Get All Declared Protocol Method Names}
 \usage{
 protocol_getAllContracts(protocol)
 }
@@ -14,7 +14,7 @@ A character vector of unique method names.
 }
 \description{
 Combines a protocol's directly declared method names with all
-requirements inherited from its parent protocols.
+method names declared by its parent protocols.
 }
 \examples{
 Printable <- RSProtocolClass("Printable", contract_methods = "print")

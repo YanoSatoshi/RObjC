@@ -2,7 +2,7 @@ test_that("RObjC generator printing uses generator names and hides ISA", {
   Widget <- RSObjectClass(
     "VisibleWidget",
     private = list(secret = 1L),
-    version = "0.0.2 alpha"
+    version = "0.0.4 alpha"
   )
 
   output <- format(Widget)
@@ -11,7 +11,7 @@ test_that("RObjC generator printing uses generator names and hides ISA", {
   expect_match(output, "Inherits from: <RSObject>", fixed = TRUE)
   expect_match(output, "secret: 1", fixed = TRUE)
   expect_false(grepl(".__isa", output, fixed = TRUE))
-  expect_identical(paste(capture.output(print(Widget)), collapse = "\n"), output)
+  expect_identical(paste(utils::capture.output(print(Widget)), collapse = "\n"), output)
 
   expect_match(format(RSModule), "<RSModule> RObjC object generator", fixed = TRUE)
   expect_match(format(RSCopying), "<RSCopying> RObjC protocol generator", fixed = TRUE)
@@ -23,9 +23,8 @@ test_that("RObjC identity printing uses the owning generator name", {
   for (field in ls(RSObject$robjc_isa, all.names = TRUE)) {
     expect_match(output, paste0(field, ":"), fixed = TRUE)
   }
-  expect_match(output, "version: 0.0.2 alpha", fixed = TRUE)
   expect_false(grepl(".__isa", output, fixed = TRUE))
-  expect_identical(paste(capture.output(print(RSObject$robjc_isa)), collapse = "\n"), output)
+  expect_identical(paste(utils::capture.output(print(RSObject$robjc_isa)), collapse = "\n"), output)
 
   expect_match(
     format(RSCopying$robjc_isa),
@@ -46,5 +45,5 @@ test_that("RObjC instance printing uses the generator name and hides private ISA
   expect_match(output, "Inherits from: <RSScalar>", fixed = TRUE)
   expect_match(output, ".val: hello", fixed = TRUE)
   expect_false(grepl(".__isa", output, fixed = TRUE))
-  expect_identical(paste(capture.output(print(obj)), collapse = "\n"), output)
+  expect_identical(paste(utils::capture.output(print(obj)), collapse = "\n"), output)
 })

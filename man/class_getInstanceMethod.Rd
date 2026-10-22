@@ -9,7 +9,7 @@ class_getInstanceMethod(klass, method_name)
 \arguments{
 \item{klass}{An RObjC class generator.}
 
-\item{method_name}{One character string naming the method.}
+\item{method_name}{One non-empty, non-missing character string naming the method.}
 }
 \value{
 The method function, or \code{NULL} when no class in the chain defines it.

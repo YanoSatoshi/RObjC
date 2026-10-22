@@ -1,22 +1,27 @@
 #' @title Cast RS Storage Objects to List
 #'
 #' @description
-#' Attempts to convert an RSObject-based storage object to a standard list using its `asList()` method,
-#' if supported. If the input is not an RSObject or does not respond to `asList`, it is returned unchanged.
+#' Returns an input list unchanged. Otherwise, accepts an RObjC instance with
+#' a public `asList()` method and requires that method to return a list.
+#' `NULL`, other inputs, and non-list `asList()` results are rejected.
 #'
-#' @param objects An object which may or may not be an instance of `RSObject`.
-#' @return A `list` if conversion is successful; otherwise, returns the input object as-is.
+#' @param collections A list or a RObjC collection that provides `asList()`.
+#' @return A list, including `list()` for an empty collection.
 #' @examples
 #' # Assuming `x` is an RSObject that supports asList:
-#' # cast_rs_storage_to_list(x)
+#' # cast_collections_to_list(x)
 #' 
 #' @keywords internal
-cast_rs_storage_to_list <- function(objects) {
-  if (is.list(objects)) return(objects)
-  stopifnot("Object is not kind of RSObject" = robjc_isRobjcObject(objects))
-  if (objects$respondsTo("asList")) {
-    return(objects$asList())
-  } else {return(NULL)}
+cast_collections_to_list <- function(collections) {
+  if (is.list(collections)) return(collections)
+  if (!robjc_isRobjcObject(collections))
+    stop("`collections` must be a list or RObjC instance.", call. = FALSE)
+  if (!collections$respondsTo("asList"))
+    stop("`collections` must provide `asList()`.", call. = FALSE)
+  result <- collections$asList()
+  if (!is.list(result))
+    stop("`asList()` must return a list.", call. = FALSE)
+  result
 }
 
 
@@ -24,13 +29,13 @@ cast_rs_storage_to_list <- function(objects) {
 #' @title Error Message for Immutable Object Mutation Attempts
 #'
 #' @description
-#' Generates a standardized error message when attempting to modify an immutable RS class.
-#' It suggests using the corresponding `RSMutable*` class instead.
+#' Generates a standardized error message for an immutable RS class that has
+#' a corresponding `RSMutable*` class. It suggests that mutable class instead.
 #'
 #' @param klass A class object that includes a `classname` field.
 #' @return A character string containing the error message.
 #' @examples
-#' # msg_immutable_try_mutate(RSNumber)
+#' # msg_immutable_try_mutate(RSArray)
 #' @keywords internal
 msg_immutable_try_mutate <- function(klass) {
   cls_name <- klass$classname

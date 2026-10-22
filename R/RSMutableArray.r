@@ -1,17 +1,22 @@
 #' @include api_setup.r
 #' @include RSMutableCopying.r
 #' @include RSCopying.r
+#' @include RSComparable.r
 #' @include RSHashOperator.r
 #' 
 #' @title RSMutableArray: Ordered, Mutable Object Container
 #'
 #' @description
 #' `RSMutableArray` is a dynamically resizable, ordered container that stores
-#' objects inheriting from `RSObject`. It allows indexed access and supports
+#' RObjC objects, class generators, and protocol generators. It allows indexed access and supports
 #' addition, insertion, replacement, and removal of elements.
+#' Added, inserted, and replacement elements follow the same value rule.
+#' Names on an input list are discarded; elements are addressed by position.
+#' A supplied hash operator must hash equal element sequences consistently and
+#' remain stable while the array is used as a key or set member.
 #'
-#' Elements are deep-copied into the array using the `RSCopying` protocol during insertion,
-#' ensuring structural isolation between containers.
+#' Elements are retained by reference. `copy()` and `mutableCopy()` create new
+#' containers that share their element objects with the source array.
 #'
 #' @section Core Methods:
 #' - `addObject(obj)` — Append an object
@@ -33,32 +38,50 @@
 #' @export
 RSMutableArray <- RSObjectClass(
   "RSMutableArray",
-  version = "0.0.2 alpha",
+  version = "0.0.4 alpha",
   super_class = RSObject,
-  protocols   = list(RSMutableCopying, RSCopying),
+  protocols   = list(RSMutableCopying, RSCopying, RSComparable),
   private = list(
     .storage = list(),
+    .validatedIndex = function(index, len, allow_end = FALSE) {
+      if (!is.numeric(index) || length(index) != 1L || !is.finite(index) ||
+          index != trunc(index) || index < 1 ||
+          index > len + as.integer(allow_end))
+        stop("Index out of bounds or not a whole number.", call. = FALSE)
+      index
+    },
+    .validElement = function(obj) {
+      robjc_isRobjcObject(obj) || robjc_isClass(obj) || robjc_isProtocol(obj)
+    },
     .hash_operator = NULL
   ),
   public = list(
 
     #' @description
-    #' Constructs a new mutable array instance. Optionally takes a list of RSObjects
+    #' Constructs a new mutable array instance. Optionally takes a list of RObjC values
     #' to initialize the array. 
     #'
-    #' @param objects A list of `RSObject`s to populate the array (default: empty).
-    #' @param hash_operator A module for hash operation.
+    #' @param objects A list of RObjC objects, class generators, or protocol generators
+    #'   (default: empty). List names are discarded.
+    #' @param hash_operator An RObjC object providing `hashFromObjects()` and
+    #'   `hashesOfEachObject()`.
     #' @return A new `RSMutableArray` instance.
     initialize = function(
       objects = list(),
       hash_operator = RSHashOperator$instance
     ) {
-      objects <- cast_rs_storage_to_list(objects)
+      objects <- cast_collections_to_list(objects)
       stopifnot(is.list(objects))
+      if (!robjc_isRobjcObject(hash_operator) ||
+          !hash_operator$respondsTo("hashFromObjects") ||
+          !hash_operator$respondsTo("hashesOfEachObject")) {
+        stop("`hash_operator` must provide `hashFromObjects()` and `hashesOfEachObject()`.",
+             call. = FALSE)
+      }
       super$initialize()
-      if (length(objects) > 0 && !all(vapply(objects, robjc_isRobjcObject, logical(1))))
-        stop("All elements must inherit from RSObject.")
-      private$.storage <- objects
+      if (length(objects) > 0 && !all(vapply(objects, private$.validElement, logical(1))))
+        stop("All elements must be RObjC objects, classes, or protocols.")
+      private$.storage <- unname(objects)
       private$.hash_operator <- hash_operator
       invisible(self)
     },
@@ -68,9 +91,11 @@ RSMutableArray <- RSObjectClass(
     #' @description
     #' Appends an object to the end of the array.  
     #'
-    #' @param obj An `RSObject`.
-    #' @return Invisible `NULL`.
+    #' @param obj An RObjC object, class generator, or protocol generator.
+    #' @return `self`, invisibly.
     addObject = function(obj) {
+      if (!private$.validElement(obj))
+        stop("Element must be an RObjC object, class, or protocol.", call. = FALSE)
       private$.storage <- c(private$.storage, list(obj))
       invisible(self)
     },
@@ -80,12 +105,13 @@ RSMutableArray <- RSObjectClass(
     #' @description
     #' Inserts an object at the specified index, shifting existing elements to the right.  
     #'
-    #' @param obj An `RSObject`.
-    #' @param index Integer position (1-based) where the object will be inserted.
-    #' @return Invisible `NULL`.
+    #' @param obj An RObjC object, class generator, or protocol generator.
+    #' @param index One-based, finite whole-number position where the object is inserted.
+    #' @return `self`, invisibly.
     insertObjectAtIndex = function(obj, index) {
-      len <- length(private$.storage)
-      if (index < 1 || index > len + 1) stop("Index out of bounds.")
+      index <- private$.validatedIndex(index, length(private$.storage), allow_end = TRUE)
+      if (!private$.validElement(obj))
+        stop("Element must be an RObjC object, class, or protocol.", call. = FALSE)
       private$.storage <-
         append(private$.storage, list(obj), after = index - 1L)
       invisible(self)
@@ -96,12 +122,13 @@ RSMutableArray <- RSObjectClass(
     #' @description
     #' Replaces the object at the specified index with a new one.
     #'
-    #' @param obj An `RSObject`.
-    #' @param index Integer index (1-based) of the object to replace.
-    #' @return Invisible `NULL`.
+    #' @param obj An RObjC object, class generator, or protocol generator.
+    #' @param index One-based, finite whole-number position to replace.
+    #' @return `self`, invisibly.
     replaceObjectAtIndex = function(obj, index) {
-      len <- length(private$.storage)
-      if (index < 1 || index > len) stop("Index out of bounds.")
+      index <- private$.validatedIndex(index, length(private$.storage))
+      if (!private$.validElement(obj))
+        stop("Element must be an RObjC object, class, or protocol.", call. = FALSE)
       private$.storage[[index]] <- obj
       invisible(self)
     },
@@ -112,11 +139,10 @@ RSMutableArray <- RSObjectClass(
     #' Removes the object at the given index from the array.
     #' The remaining elements are shifted to fill the gap.
     #'
-    #' @param index Integer index (1-based) of the object to remove.
-    #' @return Invisible `NULL`.
+    #' @param index One-based, finite whole-number position to remove.
+    #' @return `self`, invisibly.
     removeObjectAtIndex = function(index) {
-      len <- length(private$.storage)
-      if (index < 1 || index > len) stop("Index out of bounds.")
+      index <- private$.validatedIndex(index, length(private$.storage))
       private$.storage <- private$.storage[-index]
       invisible(self)
     },
@@ -126,7 +152,7 @@ RSMutableArray <- RSObjectClass(
     #' @description
     #' Clears all objects from the array, resulting in an empty container.
     #'
-    #' @return Invisible `NULL`.
+    #' @return `self`, invisibly.
     removeAllObjects = function() {
       private$.storage <- list()
       invisible(self)
@@ -137,11 +163,10 @@ RSMutableArray <- RSObjectClass(
     #' @description
     #' Returns the object stored at the specified index.
     #'
-    #' @param index Integer index (1-based).
-    #' @return An `RSObject` stored at the specified position.
+    #' @param index One-based, finite whole-number position to read.
+    #' @return The stored RObjC object, class generator, or protocol generator.
     objectAtIndex = function(index) {
-      len <- length(private$.storage)
-      if (index < 1 || index > len) stop("Index out of bounds.")
+      index <- private$.validatedIndex(index, length(private$.storage))
       private$.storage[[index]]
     },
 
@@ -151,11 +176,9 @@ RSMutableArray <- RSObjectClass(
     #' Checks whether the specified object is present in the array.
     #' Matching is performed using the `isEqual()` method.
     #'
-    #' @param obj An `RSObject` to search for.
+    #' @param obj An RObjC object, class generator, or protocol generator to search for.
     #' @return `TRUE` if the object is found; otherwise `FALSE`.
-    containsObject = function(obj) {
-      isTRUE(self$indexOfObject(obj))
-    },
+    containsObject = function(obj) !is.na(self$indexOfObject(obj)),
 
 
 
@@ -163,49 +186,50 @@ RSMutableArray <- RSObjectClass(
     #' Returns the 1-based index of the first occurrence of the given object.
     #' Comparison is done via `isEqual()`.
     #'
-    #' @param obj An `RSObject` to locate.
+    #' @param obj An RObjC object, class generator, or protocol generator to locate.
     #' @return An integer index if found; otherwise `as.integer(NA)`.
     indexOfObject = function(obj) {
       idxes <- vapply(
         private$.storage,
-        function(x) x$isEqual(obj),
+        function(x) isTRUE(x$isEqual(obj)),
         logical(1)
       )
-      if (any(idxes)) return(which(idxes)[1L]) else NA_integer
+      if (any(idxes)) return(which(idxes)[1L]) else NA_integer_
     },
 
 
 
     #' @description
-    #' Returns the full list of stored objects in their internal (possibly cloned) form.
-    #' This is a raw accessor used primarily for internal operations.
+    #' Returns an immutable [RSArray] containing the same element references.
     #'
-    #' @return A list of RS objects.
-    allObjects = function() {
-      self$copy()
-    },
+    #' @return An `RSArray`.
+    allObjects = function() self$copy(),
 
 
 
     #' @description
-    #' Returns the contents of the array as a standard R list of RS objects.
+    #' Returns the contents of the array as a standard R list of stored elements.
+    #' Elements remain RObjC objects, class generators, or protocol generators.
     #' Used for inspection, serialization, or iteration.
     #'
-    #' @return A list of RS objects.
-    asList = function() {
-      lapply(private$.storage, identity)
-    },
+    #' @return A list of stored elements.
+    asList = function() lapply(private$.storage, identity),
 
 
 
     #' @description
-    #' Converts the stored objects into a list of base R values (same with asList()).
-    #' Typically used for exporting array contents.
+    #' Returns the same element references as `asList()` in a standard R list.
     #'
-    #' @return A list of base R values.
-    allObjectsAsList = function() {
-      self$asList()
-    },
+    #' @return A list of stored elements.
+    allObjectsAsList = function() self$asList(),
+
+
+
+    #' @description Returns the RObjC instance elements for encoding.
+    #' Class and protocol generators remain R values and are not traversed as
+    #' child objects by the encoder.
+    #' @return A list of RObjC instance elements in array order.
+    objectsForEncoding = function() Filter(robjc_isRobjcObject, private$.storage),
 
 
 
@@ -213,9 +237,7 @@ RSMutableArray <- RSObjectClass(
     #' Returns the number of objects currently stored in the array.
     #'
     #' @return An integer count.
-    count = function() {
-      length(private$.storage)
-    },
+    count = function() length(private$.storage),
 
 
 
@@ -241,7 +263,8 @@ RSMutableArray <- RSObjectClass(
     #' This performs a shallow copy: the container is recreated,
     #' but the elements are shared as-is without deep duplication.
     #'
-    #' If the original array is already mutable, this method may simply return itself.
+    #' It always returns a separate mutable container that shares the original
+    #' element references.
     #' 
     #' @return An `RSMutableArray` object.
     mutableCopy = function() {
@@ -255,11 +278,12 @@ RSMutableArray <- RSObjectClass(
 
     #' @description
     #' Computes an aggregate hash for the array by combining the hash values of all contained elements.
-    #' This is used for fast comparison and dictionary key support.
+    #' This supports dictionary keys; array ordering uses element comparisons.
+    #' The final result passes through [normalize_hash()].
     #'
-    #' @return An integer hash value.
+    #' @return One non-missing integer hash value.
     hash = function() {
-      self$hashOperator()$hashFromObjects(private$.storage)
+      normalize_hash(self$hashOperator()$hashFromObjects(private$.storage))
     },
 
 
@@ -276,10 +300,10 @@ RSMutableArray <- RSObjectClass(
 
 
     #' @description
-    #' Returns the `RSHashOperator` module instance used for set operations and hashing.
-    #' This method provides centralized access to hashing behavior.
+    #' Returns the hash operator supplied at initialization, or the default
+    #' [RSHashOperator] instance when none was supplied.
     #'
-    #' @return The singleton instance of `RSHashOperator`.
+    #' @return The stored hash operator. The default is `RSHashOperator$instance`.
     hashOperator = function() {
       private$.hash_operator
     },
@@ -314,21 +338,24 @@ RSMutableArray <- RSObjectClass(
 
     #' @description
     #' Compares this array to another for equality.
-    #' Two arrays are equal if they have the same length and corresponding elements
-    #' are equal according to `isEqual()`.
+    #' Two arrays are equal if they use the same hash operator instance, have the
+    #' same length, and corresponding elements are equal according to `isEqual()`.
+    #' Mutable and immutable arrays satisfying these conditions are equal.
     #'
     #' @param other Another array object to compare with.
     #' @return `TRUE` if the arrays are equal; otherwise `FALSE`.
     isEqual = function(other) {
-      if (!other$isMemberOf(self$class())) return(FALSE)
+      if (!robjc_isRobjcObject(other) || !other$isKindOf(RSMutableArray))
+        return(FALSE)
+      if (!identical(private$.hash_operator, other$hashOperator()))
+        return(FALSE)
       other_objs <- other$asList()
       if (length(other_objs) != self$count()) return(FALSE)
       all(
-        mapply(
-          function(x, y) x$isEqual(y),
-          private$.storage,
-          other_objs,
-          USE.NAMES = FALSE
+        vapply(
+          seq_along(private$.storage),
+          function(i) isTRUE(private$.storage[[i]]$isEqual(other_objs[[i]])),
+          logical(1)
         )
       )
     },
@@ -337,22 +364,34 @@ RSMutableArray <- RSObjectClass(
 
     #' @description
     #' Compares this array to another for ordering.
-    #' The comparison is lexicographic: each element is compared in order using `compare()`.
-    #' If all elements are equal, the shorter array is considered smaller.
+    #' The comparison is lexicographic. Equal elements are skipped using
+    #' `isEqual()`. Differing elements must conform to [RSComparable] and are
+    #' ordered using `compare()`; otherwise comparison raises an error. If all
+    #' shared elements are equal, the shorter array is considered smaller.
     #'
     #' @param other Another `RSArray` or `RSMutableArray` to compare.
     #' @param na.last Logical; if `TRUE`, NA values are treated as greater.
     #' @return -1 if less than, 0 if equal, 1 if greater.
     compare = function(other, na.last = TRUE) {
-      if (!self$isMemberOf(other$class())) {
-        stop("Cannot compare objects of different class.")
+      na.last <- tryCatch(as.logical(na.last), error = function(e) NA)
+      if (!is.logical(na.last) || length(na.last) != 1L || is.na(na.last))
+        stop("`na.last` must be TRUE or FALSE.", call. = FALSE)
+      if (!robjc_isRobjcObject(other) || !other$isKindOf(RSMutableArray))
+        stop("Cannot compare objects of different class.", call. = FALSE)
+      left <- private$.storage
+      right <- other$asList()
+      for (i in seq_len(min(length(left), length(right)))) {
+        if (isTRUE(left[[i]]$isEqual(right[[i]]))) next
+        if (!robjc_isRobjcObject(left[[i]]) ||
+            !robjc_isRobjcObject(right[[i]]) ||
+            !left[[i]]$conformsTo(RSComparable) ||
+            !right[[i]]$conformsTo(RSComparable))
+          stop("Array elements are not comparable.", call. = FALSE)
+        result <- as.integer(sign(left[[i]]$compare(right[[i]], na.last = na.last)))
+        if (result != 0L)
+          return(result)
       }
-      h1 <- self$hash()
-      h2 <- other$hash()
-      na_val <- if (na.last) .Machine$double.xmax else .Machine$double.xmin
-      h1 <- if (is.na(h1)) na_val else h1
-      h2 <- if (is.na(h2)) na_val else h2
-      return(sign(h1 - h2))
+      as.integer(sign(length(left) - length(right)))
     }
   )
 )

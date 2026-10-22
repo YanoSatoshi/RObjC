@@ -14,6 +14,8 @@ the identifier in the format \verb{<ClassName>_<Version>}. The version string mu
 The version comes from the generator's \code{robjc_isa$version} field.
 
 Once created, its \code{class_ref} and \code{class_id} bindings are locked.
+Equality and hashing use \code{class_id}, so separate generators with the same
+name and version have equal wrappers.
 }
 \section{Inheritance}{
 
@@ -42,7 +44,7 @@ Inherits from \link{RSObject}.
 
 \itemize{
 \item Version strings must not contain underscores.
-\item The input must be an RObjC class generator or an object with a \code{class()} method.
+\item The input must be an RObjC object class generator or an RObjC instance.
 }
 
 
@@ -62,7 +64,7 @@ wrapped$version()      # => "1.0"
 
 
 ## ------------------------------------------------
-## Method `RSWrappedClass$new`
+## Method `RSWrappedClass$new()`
 ## ------------------------------------------------
 
 \dontrun{
@@ -70,7 +72,7 @@ wrapped <- RSWrappedClass$new(obj)
 }
 
 ## ------------------------------------------------
-## Method `RSWrappedClass$classObject`
+## Method `RSWrappedClass$classObject()`
 ## ------------------------------------------------
 
 \dontrun{
@@ -78,7 +80,7 @@ gen <- wrapped$classObject()
 }
 
 ## ------------------------------------------------
-## Method `RSWrappedClass$classID`
+## Method `RSWrappedClass$classID()`
 ## ------------------------------------------------
 
 \dontrun{
@@ -86,7 +88,7 @@ wrapped$classID()  # => RSString: "MyClass_1.0"
 }
 
 ## ------------------------------------------------
-## Method `RSWrappedClass$className`
+## Method `RSWrappedClass$className()`
 ## ------------------------------------------------
 
 \dontrun{
@@ -94,7 +96,7 @@ wrapped$className()  # "RSUser"
 }
 
 ## ------------------------------------------------
-## Method `RSWrappedClass$version`
+## Method `RSWrappedClass$version()`
 ## ------------------------------------------------
 
 \dontrun{
@@ -105,178 +107,202 @@ wrapped$version()  # "1.0"
 \link{RSClassReference}, \link{RSInstanceMap}, \link{RSObject}
 }
 \section{Super class}{
-\code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{RSWrappedClass}
+\code{\link[robjc:RSObject]{RSObject}} -> \code{RSWrappedClass}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{class_ref}}{The class object being wrapped. This is an R6 class generator, typically defined by the user.
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{class_ref}}{The class object being wrapped. This is an R6 class generator, typically defined by the user.
 It must inherit from \code{RSObject}. Used for accessing metadata or generating new instances.}
 
-\item{\code{class_id}}{\link{RSString}
+    \item{\code{class_id}}{\link{RSString}
 A string identifier uniquely representing the class. It is constructed as \verb{<ClassName>_<Version>}.
 The version comes from the class generator's \code{robjc_isa$version} field.
 The underscore character is reserved as a separator and must not appear in version strings.}
-}
-\if{html}{\out{</div>}}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-RSWrappedClass-new}{\code{RSWrappedClass$new()}}
-\item \href{#method-RSWrappedClass-classObject}{\code{RSWrappedClass$classObject()}}
-\item \href{#method-RSWrappedClass-classID}{\code{RSWrappedClass$classID()}}
-\item \href{#method-RSWrappedClass-className}{\code{RSWrappedClass$className()}}
-\item \href{#method-RSWrappedClass-version}{\code{RSWrappedClass$version()}}
+  \itemize{
+    \item \href{#method-RSWrappedClass-initialize}{\code{RSWrappedClass$new()}}
+    \item \href{#method-RSWrappedClass-isEqual}{\code{RSWrappedClass$isEqual()}}
+    \item \href{#method-RSWrappedClass-hash}{\code{RSWrappedClass$hash()}}
+    \item \href{#method-RSWrappedClass-classObject}{\code{RSWrappedClass$classObject()}}
+    \item \href{#method-RSWrappedClass-classID}{\code{RSWrappedClass$classID()}}
+    \item \href{#method-RSWrappedClass-className}{\code{RSWrappedClass$className()}}
+    \item \href{#method-RSWrappedClass-version}{\code{RSWrappedClass$version()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="copy"><a href='../../robjc/html/RSObject.html#method-RSObject-copy'><code>robjc::RSObject$copy()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="description"><a href='../../robjc/html/RSObject.html#method-RSObject-description'><code>robjc::RSObject$description()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="hash"><a href='../../robjc/html/RSObject.html#method-RSObject-hash'><code>robjc::RSObject$hash()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isEqual"><a href='../../robjc/html/RSObject.html#method-RSObject-isEqual'><code>robjc::RSObject$isEqual()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>RSObject$class()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>RSObject$conformsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="copy"><a href='../../robjc/html/RSObject.html#method-RSObject-copy'><code>RSObject$copy()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>RSObject$debugDescription()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="description"><a href='../../robjc/html/RSObject.html#method-RSObject-description'><code>RSObject$description()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>RSObject$inheritClassesAsList()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>RSObject$isKindOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>RSObject$print()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSWrappedClass-new"></a>}}
-\if{latex}{\out{\hypertarget{method-RSWrappedClass-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes a new wrapped class object based on the given RSObject instance.
+\if{html}{\out{<a id="method-RSWrappedClass-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-RSWrappedClass-initialize}{}}}
+\subsection{\code{RSWrappedClass$new()}}{
+  Initializes a new wrapped class object based on the given RSObject instance.
 The wrapper records the class generator and constructs a unique identifier
 from the class name and version.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSWrappedClass$new(object)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSWrappedClass$new(object)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{object}}{An RObjC object or its class generator.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The locked \code{RSWrappedClass} object (invisibly).
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{wrapped <- RSWrappedClass$new(obj)
+}
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{object}}{An RObjC object or its class generator.}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSWrappedClass-isEqual"></a>}}
+\if{latex}{\out{\hypertarget{method-RSWrappedClass-isEqual}{}}}
+\subsection{\code{RSWrappedClass$isEqual()}}{
+  Compare class identifiers by class name and version.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSWrappedClass$isEqual(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another \code{RSWrappedClass} object.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} if both wrappers have the same class ID, otherwise \code{FALSE}.
+  }
 }
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The locked \code{RSWrappedClass} object (invisibly).
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-wrapped <- RSWrappedClass$new(obj)
-}
-}
-\if{html}{\out{</div>}}
 
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSWrappedClass-hash"></a>}}
+\if{latex}{\out{\hypertarget{method-RSWrappedClass-hash}{}}}
+\subsection{\code{RSWrappedClass$hash()}}{
+  Hash the class identifier and normalize the result.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSWrappedClass$hash()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    One non-missing integer hash.
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSWrappedClass-classObject"></a>}}
 \if{latex}{\out{\hypertarget{method-RSWrappedClass-classObject}{}}}
-\subsection{Method \code{classObject()}}{
-Returns the underlying class generator object associated with the wrapped class.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSWrappedClass$classObject()}\if{html}{\out{</div>}}
+\subsection{\code{RSWrappedClass$classObject()}}{
+  Returns the underlying class generator object associated with the wrapped class.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSWrappedClass$classObject()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The R6 class generator (as returned by \code{obj$class()}).
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{gen <- wrapped$classObject()
+}
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Returns}{
-The R6 class generator (as returned by \code{obj$class()}).
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-gen <- wrapped$classObject()
-}
-}
-\if{html}{\out{</div>}}
-
-}
-
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSWrappedClass-classID"></a>}}
 \if{latex}{\out{\hypertarget{method-RSWrappedClass-classID}{}}}
-\subsection{Method \code{classID()}}{
-Returns the full class identifier string in the form \verb{<ClassName>_<Version>}.
+\subsection{\code{RSWrappedClass$classID()}}{
+  Returns the full class identifier string in the form \verb{<ClassName>_<Version>}.
 This value is returned as an \link{RSString} and can be used for keying in maps or registries.
 The value is immutable once the object is initialized.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSWrappedClass$classID()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSWrappedClass$classID()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An \link{RSString} object representing the class identifier.
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{wrapped$classID()  # => RSString: "MyClass_1.0"
+}
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Returns}{
-An \link{RSString} object representing the class identifier.
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-wrapped$classID()  # => RSString: "MyClass_1.0"
-}
-}
-\if{html}{\out{</div>}}
-
-}
-
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSWrappedClass-className"></a>}}
 \if{latex}{\out{\hypertarget{method-RSWrappedClass-className}{}}}
-\subsection{Method \code{className()}}{
-Returns the class name string of the wrapped class.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSWrappedClass$className()}\if{html}{\out{</div>}}
+\subsection{\code{RSWrappedClass$className()}}{
+  Returns the class name string of the wrapped class.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSWrappedClass$className()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A character string (e.g., \code{"MyClass"}).
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{wrapped$className()  # "RSUser"
+}
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Returns}{
-A character string (e.g., \code{"MyClass"}).
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-wrapped$className()  # "RSUser"
-}
-}
-\if{html}{\out{</div>}}
-
-}
-
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSWrappedClass-version"></a>}}
 \if{latex}{\out{\hypertarget{method-RSWrappedClass-version}{}}}
-\subsection{Method \code{version()}}{
-Returns the version string extracted from the class ID.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSWrappedClass$version()}\if{html}{\out{</div>}}
+\subsection{\code{RSWrappedClass$version()}}{
+  Returns the version string extracted from the class ID.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSWrappedClass$version()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A character string representing the version (e.g., \code{"1.0"}).
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{wrapped$version()  # "1.0"
+}
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Returns}{
-A character string representing the version (e.g., \code{"1.0"}).
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-wrapped$version()  # "1.0"
-}
-}
-\if{html}{\out{</div>}}
-
-}
-
-}
 }

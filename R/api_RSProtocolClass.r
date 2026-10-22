@@ -2,17 +2,20 @@
 #' @title Declare an RObjC Protocol
 #'
 #' @description
-#' Creates a protocol class generator whose contract is a set of required method
-#' names. A protocol can inherit requirements from other protocols through
-#' `super_protocols`.
+#' Creates a protocol class generator recording declared method names. A
+#' protocol can inherit declarations from other protocols through
+#' `super_protocols`. Adopting a protocol is a declaration: conformance checks
+#' do not verify method implementations. A class must provide the methods
+#' needed by the operations it uses. Generators returned by this function
+#' cannot create instances with `$new()`.
 #'
-#' @param protocol_name One character string naming the protocol.
+#' @param protocol_name One nonempty, nonmissing character string naming the protocol.
 #' @param super_protocols A list of RObjC protocol class generators whose
 #'   contracts are inherited.
-#' @param contract_methods Character vector of required method names declared
-#'   directly by this protocol.
+#' @param contract_methods Character vector of nonempty, nonmissing method
+#'   names declared directly by this protocol. `character(0)` is allowed.
 #' @param parent_env Parent environment for the generated R6 class.
-#' @param version Protocol version. It must not contain `_`.
+#' @param version One non-empty, non-missing protocol version without `_`.
 #'
 #' @return The protocol class generator, invisibly.
 #'
@@ -20,7 +23,9 @@
 #' The generator inherits from `RSProtocol`. Method names inherited from parent
 #' protocols are removed from its own contract, which is stored in
 #' `robjc_isa$slot`. Parent protocols and the version are also stored in
-#' `robjc_isa`; the metadata is locked after declaration.
+#' `robjc_isa`; the metadata is locked after declaration. R6 adds a new `$new()`
+#' binding to every generated class, so this factory removes and locks it for
+#' each protocol generator.
 #'
 #' @examples
 #' Printable <- RSProtocolClass("Printable", contract_methods = "print")
@@ -34,23 +39,17 @@ RSProtocolClass <- function(
   parent_env        = parent.frame(),
   version           = "1.0.0"   # character
 ) {
+  if (!is.list(super_protocols) || !all(vapply(super_protocols, robjc_isProtocol, logical(1))))
+    stop("`super_protocols` must be a list of RObjC protocols.", call. = FALSE)
   # check contract_methods by char
   stopifnot(
-    "`protocol_name` must be a character scalar." =
-      is.character(protocol_name) && length(protocol_name) == 1L,
-    "`contract_methods` must be character vector." =
-      is.character(contract_methods),
-    "`super_protocols` must be a list." =
-      is.list(super_protocols),
-    "Version string must not contain '_'." =
-      !grepl("_", version)
+    "`protocol_name` must be one nonempty character string." =
+      is.character(protocol_name) && length(protocol_name) == 1L &&
+      !is.na(protocol_name) && nzchar(protocol_name),
+    "`contract_methods` must contain nonempty character names." =
+      is.character(contract_methods) &&
+      all(!is.na(contract_methods) & nzchar(contract_methods))
   )
-  # check super_protocol existances
-  flag <- vapply(super_protocols, robjc_isProtocol, logical(1)) 
-  if (!all(flag))
-    stop(
-      sprintf("Not Protocol at indices: %s", paste(which(!flag), sep = ", "))
-    )
   # remove methods in contract_methods, those in super_protocols
   inherited_methods <- unique(
     as.character(
@@ -81,5 +80,7 @@ RSProtocolClass <- function(
     version           = version
   )
   robjc_freeze_isa(klass)
+  klass$new <- NULL
+  lockBinding("new", klass)
   invisible(klass)
 }

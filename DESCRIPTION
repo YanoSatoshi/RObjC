@@ -1,15 +1,14 @@
 Package: robjc
-Title: Objective-C Inspired OOP Framework for R Using R6
-Version: 0.0.2
+Title: Objective-C Inspired OOP Framework for R using 'R6'
+Version: 0.0.4
 Authors@R: 
     person("Satoshi", "Yano", , "yanosatoshi@gmail.com", role = c("aut", "cre"))
 Description: Provides a lightweight object-oriented programming framework in R,
-    inspired by Objective-C, using R6 classes. Includes scalar wrappers, 
-    dictionary and set structures, protocol simulation, and safe copying.
+    inspired by Objective-C, using 'R6' classes. Includes scalar wrappers,
+    dictionary and set structures, protocol, and safe copying.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Suggests: 
     knitr,
     rmarkdown,
@@ -20,6 +19,7 @@ LinkingTo: Rcpp
 VignetteBuilder: knitr
 Collate: 
     'utilities.r'
+    'api_RSScalarClass.r'
     'util_io.r'
     'Rcpp.r'
     'runtime_util.r'
@@ -33,7 +33,6 @@ Collate:
     'RSCopying.r'
     'RSObject.r'
     'primary_class_setup.r'
-    'api_RSScalarClass.r'
     'api_RSSingletonClass.r'
     'api_RSProtocolClass.r'
     'api_RSObjectClass.r'
@@ -41,6 +40,7 @@ Collate:
     'RSModule.r'
     'RSHashOperatorProtocol.r'
     'RSHashOperator.r'
+    'RSComparable.r'
     'RSMutableCopying.r'
     'RSMutableArray.r'
     'RSArray.r'
@@ -54,6 +54,7 @@ Collate:
     'RSKeyValuePair.r'
     'RSClassReference.r'
     'RSClassRegistry.r'
+    'RSComplex.r'
     'RSConcreteSet.r'
     'RSMutableDataFrame.r'
     'RSDataFrame.r'
@@ -64,19 +65,23 @@ Collate:
     'RSFactor.r'
     'RSInstanceMap.r'
     'RSMutableSet.r'
+    'RSMutableVector.r'
     'RSNull.r'
     'RSNumber.r'
+    'RSRaw.r'
     'RSSet.r'
-    'RSSorter.r'
+    'RSVector.r'
     'RSWrappedClass.r'
     'RcppExports.R'
     'api_RSArray.r'
     'api_RSBoolean.r'
+    'api_RSComplex.r'
     'api_RSDate.r'
     'api_RSDateTime.r'
     'api_RSDictionary.r'
     'api_RSNull.r'
     'api_RSNumber.r'
+    'api_RSRaw.r'
     'api_RSString.r'
     'api_RSScalar.r'
     'api_RSSet.r'
@@ -84,3 +89,4 @@ Collate:
     'robjc-factories.r'
     'robjc-package.R'
     'zzz.r'
+Config/roxygen2/version: 8.1.1

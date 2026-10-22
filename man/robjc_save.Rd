@@ -65,6 +65,8 @@ robjc_save(
 A wrapper around \code{base::save()} that also stores robjc structural metadata.
 This function behaves like \code{save()} but includes encoded metadata needed
 to restore robjc objects.
+The name \code{.__rs_encoded_data__} is reserved for this metadata and cannot be
+used for an object being saved.
 }
 \seealso{
 \code{\link[=robjc_save_image]{robjc_save_image()}}, \code{\link[base:save]{base::save()}}

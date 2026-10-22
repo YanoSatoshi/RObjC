@@ -2,7 +2,7 @@
 % Please edit documentation in R/runtime_protocol.r
 \name{protocol_getContract}
 \alias{protocol_getContract}
-\title{Get a Protocol's Direct Contract}
+\title{Get a Protocol's Directly Declared Method Names}
 \usage{
 protocol_getContract(protocol)
 }
@@ -14,6 +14,6 @@ A character vector of method names.
 }
 \description{
 Returns method names declared directly by a protocol, excluding
-requirements inherited from parent protocols.
+method names declared by parent protocols.
 }
 \keyword{internal}

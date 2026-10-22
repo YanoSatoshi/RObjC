@@ -1,6 +1,13 @@
+^.DS_Store$
 ^LICENSE\.md$
 ^doc$
 ^Meta$
 ^temp_lib$
 ^ALPHA_STATUS\.md$
+^VALIDATION_AUDIT\.md$
+^api_applied\.md$
+^api_candidate\.md$
 ^vignettes_jp$
+^robjc\.Rcheck$
+^robjc_*\.tar\.gz$
+^prototypes$

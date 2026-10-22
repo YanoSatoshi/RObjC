@@ -27,6 +27,10 @@ test_that("RSArray: insertObjectAtIndex raises error", {
     ary$insertObjectAtIndex(RSString_withValue("Y"), 1),
     msg_immutable_try_mutate(ary$class())
   )
+  expect_error(
+    ary$insertObjectAtIndex(obj = RSString_withValue("Y"), index = 1L),
+    msg_immutable_try_mutate(ary$class()), fixed = TRUE
+  )
 })
 
 test_that("RSArray: replaceObjectAtIndex raises error", {
@@ -35,10 +39,16 @@ test_that("RSArray: replaceObjectAtIndex raises error", {
     ary$replaceObjectAtIndex(RSString_withValue("W"), 1),
     msg_immutable_try_mutate(ary$class())
   )
+  expect_error(
+    ary$replaceObjectAtIndex(obj = RSString_withValue("W"), index = 1L),
+    msg_immutable_try_mutate(ary$class()), fixed = TRUE
+  )
 })
 
 test_that("RSArray: removeObjectAtIndex and removeAllObjects raise error", {
   ary <- RSArray$new(list(RSString_withValue("delete")))
   expect_error(ary$removeObjectAtIndex(1), msg_immutable_try_mutate(ary$class()))
+  expect_error(ary$removeObjectAtIndex(index = 1L),
+               msg_immutable_try_mutate(ary$class()), fixed = TRUE)
   expect_error(ary$removeAllObjects(), msg_immutable_try_mutate(ary$class()))
 })

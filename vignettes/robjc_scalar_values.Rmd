@@ -1,0 +1,95 @@
+---
+title: "Scalar values and missing values in RObjC"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Scalar values and missing values in RObjC}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Scalar values and missing values
+
+`RSScalar` is the base for wrappers around length-one R values. The regular
+scalar classes hold nonmissing values. Each class declared with
+`RSScalarClass()` also has a generated NA subclass and a shared missing
+instance at `Class$na`. `RSNull` represents R's `NULL` separately.
+
+## Choose a constructor
+
+Use `Class$new(val)` when the type is known and `val` is nonmissing. A typed
+convenience constructor, such as `RSNumber_withValue()`, accepts either a
+nonmissing scalar or an NA and returns the matching class. The general
+`RSScalar_withValue()` dispatches on the R type, including `NULL`.
+
+```{r}
+library(robjc)
+
+direct <- RSNumber$new(3L)
+typed <- RSNumber_withValue(3L)
+dispatched <- RSScalar_withValue(3L)
+stopifnot(direct$isMemberOf(RSNumber))
+stopifnot(typed$isMemberOf(RSNumber))
+stopifnot(dispatched$isMemberOf(RSNumber))
+stopifnot(identical(dispatched$value(), 3L))
+```
+
+Regular `Class$new(NA)` is rejected by `RSScalar$initialize()`. When missing
+input is possible, use the typed convenience constructor, the general
+dispatcher, or `Class$na` directly. The NA companion is shared, so repeated
+convenience calls return the same instance.
+
+```{r}
+stopifnot(identical(RSNumber_withValue(NA_integer_), RSNumber$na))
+stopifnot(identical(RSScalar_withValue(NA_real_), RSNumber$na))
+stopifnot(RSNumber$na$isMemberOf(RSNANumber))
+```
+
+## `NULL` and typed `NA` differ
+
+`NULL` means there is no R value; `NA` is a missing value of a particular
+type. `RSScalar_withValue(NULL)` returns the shared `RSNull$null`, whose
+`value()` is `NULL`. A typed NA instead returns the matching `Class$na`.
+
+| R input | Result |
+|:--|:--|
+| `NULL` | `RSNull$null` |
+| `NA` | `RSBoolean$na` |
+| `NA_integer_` or `NA_real_` | `RSNumber$na` |
+| `NA_character_` | `RSString$na` |
+| `NA_complex_` | `RSComplex$na` |
+| `factor(NA_character_)` | `RSFactor$na` |
+| `as.Date(NA)` | `RSDate$na` |
+| `as.POSIXct(NA)` | `RSDateTime$na` |
+
+```{r}
+stopifnot(identical(RSScalar_withValue(NULL), RSNull$null))
+stopifnot(is.null(RSNull$null$value()))
+stopifnot(identical(RSScalar_withValue(NA_character_), RSString$na))
+stopifnot(is.na(RSString$na$value()))
+```
+
+Each NA companion has one `na_value` chosen when its class is declared. The
+wrapper family, rather than every original R storage type, determines the
+stored NA: both integer and double missing values use `RSNumber$na`, whose
+`value()` is `NA_real_`. The shared NA instance also does not preserve
+per-input metadata such as a missing timestamp's time zone. Raw values have
+no NA representation and therefore `RSRaw` has no NA companion.
+
+## Date-time values
+
+`RSDateTime` accepts length-one `POSIXct` or `POSIXlt` values and stores a
+`POSIXct` value representing the same instant. A specified input time zone is
+retained for display. Equality and hashing use the instant, so two time zones
+can represent the same scalar value.
+
+```{r}
+utc <- RSDateTime_withDateTime(as.POSIXct("2024-01-01 12:00:00", tz = "UTC"))
+tokyo <- RSDateTime_withDateTime(as.POSIXct("2024-01-01 21:00:00", tz = "Asia/Tokyo"))
+stopifnot(identical(attr(utc$value(), "tzone"), "UTC"))
+stopifnot(identical(attr(tokyo$value(), "tzone"), "Asia/Tokyo"))
+stopifnot(utc$isEqual(tokyo))
+stopifnot(identical(utc$hash(), tokyo$hash()))
+```
+
+For declaring a new scalar class and choosing `na_value`, see
+`vignette("robjc_class_factories", package = "robjc")`.

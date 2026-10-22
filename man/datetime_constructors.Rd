@@ -11,12 +11,13 @@ RSDateTime_now()
 RSDateTime_withDateTime(val)
 }
 \arguments{
-\item{val}{A \code{POSIXct} scalar, including a missing timestamp.}
+\item{val}{A scalar with the standard \code{POSIXct} or \code{POSIXlt} class,
+including \code{NA} and \code{NaN}.}
 }
 \value{
 An \link{RSDateTime} or \link{RSNADateTime} instance.
 }
 \description{
-Construct a date-time wrapper. A missing timestamp produces
-\link{RSNADateTime}.
+Construct a date-time wrapper. \code{NA} produces \link{RSNADateTime},
+while \code{NaN} remains an \link{RSDateTime} value.
 }

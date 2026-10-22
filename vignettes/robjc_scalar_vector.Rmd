@@ -1,0 +1,68 @@
+---
+title: "Scalar and Vector values in RObjC"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Scalar and Vector values in RObjC}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Scalar and Vector
+
+Scalar and Vector wrappers both expose native R values through RObjC objects.
+The key difference is cardinality: a scalar wraps one value, while a vector
+wraps an atomic R vector. Neither is a list of RObjC element objects; use an
+`RSArray` for an ordered collection of objects.
+
+| Wrapper | Input | Accessor | Missing values |
+|:--|:--|:--|:--|
+| `RSScalar` subclasses | One R value | `value()` | Shared typed `Class$na` |
+| `RSVector` / `RSMutableVector` | An atomic R vector | `asVector()` | NA may occur within the vector |
+
+## Scalar: one typed value
+
+Use `RSScalar_withValue()` to choose a scalar class from a native R value, or
+a type-specific constructor such as `RSNumber_withValue()` when the expected
+type is known. A missing value returns the corresponding shared NA object;
+R `NULL` returns `RSNull$null`.
+
+```{r}
+library(robjc)
+
+scalar <- RSScalar_withValue(3L)
+stopifnot(scalar$isMemberOf(RSNumber))
+stopifnot(identical(scalar$value(), 3L))
+stopifnot(identical(RSScalar_withValue(NA_integer_), RSNumber$na))
+stopifnot(identical(RSScalar_withValue(NULL), RSNull$null))
+```
+
+For the constructor choices, typed NA classes, and date-time time zones, see
+`vignette("robjc_scalar_values", package = "robjc")`.
+
+## Vector: multiple native values
+
+`RSVector` is read-only; `RSMutableVector` supports appending, inserting,
+replacing, and removing values. Both accept an atomic vector without
+dimensions. Values supplied later must match the stored vector's R type and
+class. Vector values can contain NA without a separate NA Vector class.
+
+```{r}
+vector <- RSVector$new(c(1L, NA_integer_, 3L))
+stopifnot(identical(vector$asVector(), c(1L, NA_integer_, 3L)))
+stopifnot(is.na(vector$valueAtIndex(2L)))
+
+editable <- vector$mutableCopy()
+editable$appendValues(4L)
+stopifnot(identical(vector$count(), 3L))
+stopifnot(identical(editable$asVector(), c(1L, NA_integer_, 3L, 4L)))
+```
+
+Vector indices are one-based. Numeric indices are converted with
+`as.integer()` before bounds checks, so `2.9` selects position `2`. Search
+methods such as `containsValues()` and `indicesOfValues()` operate on native
+values, not wrapped scalar objects.
+
+```{r}
+stopifnot(identical(editable$valueAtIndex(2.9), NA_integer_))
+stopifnot(identical(editable$indicesOfValues(c(3L, 9L)), c(3L, NA_integer_)))
+```

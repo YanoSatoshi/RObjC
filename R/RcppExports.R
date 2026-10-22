@@ -41,6 +41,10 @@ dictionary_values <- function(xp) {
     .Call(`_robjc_dictionary_values`, xp)
 }
 
+dictionary_entries <- function(xp) {
+    .Call(`_robjc_dictionary_entries`, xp)
+}
+
 set_create <- function() {
     .Call(`_robjc_set_create`)
 }

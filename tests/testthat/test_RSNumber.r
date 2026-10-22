@@ -33,13 +33,13 @@ test_that("RSScalar_withValue() dispatches numeric correctly", {
 })
 
 test_that("RSNANumber: value is NA", {
-  nanum <- RSNANumber$new()
+  nanum <- RSNumber$na
   expect_true(is.na(nanum$value()))
 })
 
 test_that("RSNANumber: compare() with na.last = TRUE/FALSE", {
   num <- RSNumber$new(1)
-  na <- RSNANumber$new()
+  na <- RSNumber$na
   expect_equal(na$compare(num, na.last = TRUE), 1)
   expect_equal(na$compare(num, na.last = FALSE), -1)
   expect_equal(num$compare(na, na.last = TRUE), -1)
@@ -48,14 +48,14 @@ test_that("RSNANumber: compare() with na.last = TRUE/FALSE", {
 })
 
 test_that("RSNANumber: isEqual() true for same NA class", {
-  a <- RSNANumber$new()
-  b <- RSNANumber$new()
+  a <- RSNumber$na
+  b <- RSNumber$na
   expect_true(a$isEqual(b))
 })
 
 test_that("RSNANumber: hash() returns fixed hash", {
-  a <- RSNANumber$new()
-  b <- RSNANumber$new()
+  a <- RSNumber$na
+  b <- RSNumber$na
   expect_equal(a$hash(), b$hash())
 })
 

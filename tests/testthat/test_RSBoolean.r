@@ -11,6 +11,8 @@ test_that("RSBoolean: asNumber() works as expected", {
   expect_s3_class(tf$asNumber(), "RSNumber")
   expect_equal(tf$asNumber()$value(), 1)
   expect_equal(ff$asNumber()$value(), 0)
+  expect_identical(RSBoolean$na$asNumber(), RSNumber$na)
+  expect_true(is.na(RSBoolean$na$asNumber()$value()))
 })
 
 test_that("RSBoolean: compare() works correctly", {
@@ -43,13 +45,13 @@ test_that("RSScalar_withValue(TRUE/FALSE) returns RSBoolean", {
 })
 
 test_that("RSNABoolean: value is NA", {
-  na_bool <- RSNABoolean$new()
+  na_bool <- RSBoolean$na
   expect_true(is.na(na_bool$value()))
 })
 
 test_that("RSNABoolean: compare() with na.last = TRUE/FALSE", {
   tf <- RSBoolean$new(TRUE)
-  na <- RSNABoolean$new()
+  na <- RSBoolean$na
   expect_equal(na$compare(tf, na.last = TRUE), 1)
   expect_equal(na$compare(tf, na.last = FALSE), -1)
   expect_equal(tf$compare(na, na.last = TRUE), -1)
@@ -58,13 +60,13 @@ test_that("RSNABoolean: compare() with na.last = TRUE/FALSE", {
 })
 
 test_that("RSNABoolean: isEqual() true for same NA class", {
-  a <- RSNABoolean$new()
-  b <- RSNABoolean$new()
+  a <- RSBoolean$na
+  b <- RSBoolean$na
   expect_true(a$isEqual(b))
 })
 
 test_that("RSNABoolean: hash() returns consistent hash", {
-  a <- RSNABoolean$new()
-  b <- RSNABoolean$new()
+  a <- RSBoolean$na
+  b <- RSBoolean$na
   expect_equal(a$hash(), b$hash())
 })

@@ -11,7 +11,8 @@ It rejects NA values; use \code{RSNABoolean} for NA.
 \section{Methods}{
 
 \itemize{
-\item \code{asNumber()} — Returns an \code{RSNumber} with value 1 or 0.
+\item \code{asNumber()} — Returns an \code{RSNumber} with value 1L or 0L, or
+\code{RSNumber$na} for a missing boolean.
 }
 }
 
@@ -22,75 +23,78 @@ To create an instance, use the static constructor:
 }
 
 \section{Super classes}{
-\code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{\link[robjc:RSScalar]{robjc::RSScalar}} -> \code{RSBoolean}
+\code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSScalar]{RSScalar}} -> \code{RSBoolean}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-RSBoolean-new}{\code{RSBoolean$new()}}
-\item \href{#method-RSBoolean-asNumber}{\code{RSBoolean$asNumber()}}
+  \itemize{
+    \item \href{#method-RSBoolean-initialize}{\code{RSBoolean$new()}}
+    \item \href{#method-RSBoolean-asNumber}{\code{RSBoolean$asNumber()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="copy"><a href='../../robjc/html/RSObject.html#method-RSObject-copy'><code>robjc::RSObject$copy()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="compare"><a href='../../robjc/html/RSScalar.html#method-RSScalar-compare'><code>robjc::RSScalar$compare()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="description"><a href='../../robjc/html/RSScalar.html#method-RSScalar-description'><code>robjc::RSScalar$description()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="hash"><a href='../../robjc/html/RSScalar.html#method-RSScalar-hash'><code>robjc::RSScalar$hash()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="isEqual"><a href='../../robjc/html/RSScalar.html#method-RSScalar-isEqual'><code>robjc::RSScalar$isEqual()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="value"><a href='../../robjc/html/RSScalar.html#method-RSScalar-value'><code>robjc::RSScalar$value()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>RSObject$class()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>RSObject$conformsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="copy"><a href='../../robjc/html/RSObject.html#method-RSObject-copy'><code>RSObject$copy()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>RSObject$debugDescription()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>RSObject$inheritClassesAsList()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>RSObject$isKindOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>RSObject$print()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="compare"><a href='../../robjc/html/RSScalar.html#method-RSScalar-compare'><code>RSScalar$compare()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="description"><a href='../../robjc/html/RSScalar.html#method-RSScalar-description'><code>RSScalar$description()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="hash"><a href='../../robjc/html/RSScalar.html#method-RSScalar-hash'><code>RSScalar$hash()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="isEqual"><a href='../../robjc/html/RSScalar.html#method-RSScalar-isEqual'><code>RSScalar$isEqual()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="nativeCompare"><a href='../../robjc/html/RSScalar.html#method-RSScalar-nativeCompare'><code>RSScalar$nativeCompare()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="nativeValue"><a href='../../robjc/html/RSScalar.html#method-RSScalar-nativeValue'><code>RSScalar$nativeValue()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="value"><a href='../../robjc/html/RSScalar.html#method-RSScalar-value'><code>RSScalar$value()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSBoolean-new"></a>}}
-\if{latex}{\out{\hypertarget{method-RSBoolean-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes an \code{RSBoolean} object by wrapping a logical scalar.
+\if{html}{\out{<a id="method-RSBoolean-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-RSBoolean-initialize}{}}}
+\subsection{\code{RSBoolean$new()}}{
+  Initializes an \code{RSBoolean} object by wrapping a logical scalar.
 This constructor verifies that the input is of class \code{logical}, and stores
 it as the internal value. Only scalar (length 1) logical values are supported.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSBoolean$new(val)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSBoolean$new(val)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{val}}{A logical scalar without an S3 class attribute.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The initialized \code{RSBoolean} object (invisible).
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{val}}{A logical scalar to be wrapped.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The initialized \code{RSBoolean} object (invisible).
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSBoolean-asNumber"></a>}}
 \if{latex}{\out{\hypertarget{method-RSBoolean-asNumber}{}}}
-\subsection{Method \code{asNumber()}}{
-Returns a numeric representation of the boolean value.
+\subsection{\code{RSBoolean$asNumber()}}{
+  Returns an integer representation of the boolean value.
 Converts the internal logical value (\code{TRUE} or \code{FALSE}) to an \code{RSNumber}
-object (\code{1} or \code{0}, respectively).
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSBoolean$asNumber()}\if{html}{\out{</div>}}
+object (\code{1L} or \code{0L}, respectively). Missing values become \code{RSNumber$na}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSBoolean$asNumber()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An \code{RSNumber} with value \code{1L} or \code{0L}, or the shared \code{RSNumber$na}.
+  }
 }
 
-\subsection{Returns}{
-An \code{RSNumber} object with value \code{1} (for \code{TRUE}) or \code{0} (for \code{FALSE}).
-}
-}
 }

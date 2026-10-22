@@ -6,10 +6,11 @@
 \description{
 \code{RSArray} is a read-only subclass of \code{RSMutableArray}. Once created, its contents
 cannot be modified. Any attempt to mutate the array will raise an error.
-This class is suitable for safely sharing ordered collections without risk of modification.
+Its element count, order, and references cannot be changed after creation.
+A retained mutable element can still change state through another reference.
 
-Use \verb{$copy()} to duplicate the array as-is, or \verb{$mutableCopy()} to obtain
-a mutable version.
+\verb{$copy()} returns the same immutable array. \verb{$mutableCopy()} creates a new
+mutable container that shares its element references with the source.
 }
 \note{
 All mutation methods such as \code{addObject()}, \code{removeObjectAtIndex()}, etc.
@@ -25,192 +26,192 @@ tryCatch(
 
 }
 \section{Super classes}{
-\code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{\link[robjc:RSMutableArray]{robjc::RSMutableArray}} -> \code{RSArray}
+\code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSMutableArray]{RSMutableArray}} -> \code{RSArray}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-RSArray-copy}{\code{RSArray$copy()}}
-\item \href{#method-RSArray-mutableCopy}{\code{RSArray$mutableCopy()}}
-\item \href{#method-RSArray-addObject}{\code{RSArray$addObject()}}
-\item \href{#method-RSArray-insertObjectAtIndex}{\code{RSArray$insertObjectAtIndex()}}
-\item \href{#method-RSArray-replaceObjectAtIndex}{\code{RSArray$replaceObjectAtIndex()}}
-\item \href{#method-RSArray-removeObjectAtIndex}{\code{RSArray$removeObjectAtIndex()}}
-\item \href{#method-RSArray-removeAllObjects}{\code{RSArray$removeAllObjects()}}
+  \itemize{
+    \item \href{#method-RSArray-copy}{\code{RSArray$copy()}}
+    \item \href{#method-RSArray-mutableCopy}{\code{RSArray$mutableCopy()}}
+    \item \href{#method-RSArray-addObject}{\code{RSArray$addObject()}}
+    \item \href{#method-RSArray-insertObjectAtIndex}{\code{RSArray$insertObjectAtIndex()}}
+    \item \href{#method-RSArray-replaceObjectAtIndex}{\code{RSArray$replaceObjectAtIndex()}}
+    \item \href{#method-RSArray-removeObjectAtIndex}{\code{RSArray$removeObjectAtIndex()}}
+    \item \href{#method-RSArray-removeAllObjects}{\code{RSArray$removeAllObjects()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="allObjects"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-allObjects'><code>robjc::RSMutableArray$allObjects()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="allObjectsAsList"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-allObjectsAsList'><code>robjc::RSMutableArray$allObjectsAsList()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="asList"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-asList'><code>robjc::RSMutableArray$asList()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="compare"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-compare'><code>robjc::RSMutableArray$compare()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="containsObject"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-containsObject'><code>robjc::RSMutableArray$containsObject()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="count"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-count'><code>robjc::RSMutableArray$count()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="description"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-description'><code>robjc::RSMutableArray$description()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="hash"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-hash'><code>robjc::RSMutableArray$hash()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="hashOperator"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-hashOperator'><code>robjc::RSMutableArray$hashOperator()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="hashesOfObjects"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-hashesOfObjects'><code>robjc::RSMutableArray$hashesOfObjects()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="indexOfObject"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-indexOfObject'><code>robjc::RSMutableArray$indexOfObject()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="initialize"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-initialize'><code>robjc::RSMutableArray$initialize()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="isEqual"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-isEqual'><code>robjc::RSMutableArray$isEqual()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="objectAtIndex"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-objectAtIndex'><code>robjc::RSMutableArray$objectAtIndex()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="print"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-print'><code>robjc::RSMutableArray$print()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>RSObject$class()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>RSObject$conformsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>RSObject$debugDescription()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>RSObject$inheritClassesAsList()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>RSObject$isKindOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="allObjects"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-allObjects'><code>RSMutableArray$allObjects()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="allObjectsAsList"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-allObjectsAsList'><code>RSMutableArray$allObjectsAsList()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="asList"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-asList'><code>RSMutableArray$asList()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="compare"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-compare'><code>RSMutableArray$compare()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="containsObject"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-containsObject'><code>RSMutableArray$containsObject()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="count"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-count'><code>RSMutableArray$count()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="description"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-description'><code>RSMutableArray$description()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="hash"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-hash'><code>RSMutableArray$hash()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="hashOperator"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-hashOperator'><code>RSMutableArray$hashOperator()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="hashesOfObjects"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-hashesOfObjects'><code>RSMutableArray$hashesOfObjects()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="indexOfObject"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-indexOfObject'><code>RSMutableArray$indexOfObject()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="initialize"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-initialize'><code>RSMutableArray$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="isEqual"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-isEqual'><code>RSMutableArray$isEqual()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="objectAtIndex"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-objectAtIndex'><code>RSMutableArray$objectAtIndex()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="objectsForEncoding"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-objectsForEncoding'><code>RSMutableArray$objectsForEncoding()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableArray" data-id="print"><a href='../../robjc/html/RSMutableArray.html#method-RSMutableArray-print'><code>RSMutableArray$print()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSArray-copy"></a>}}
 \if{latex}{\out{\hypertarget{method-RSArray-copy}{}}}
-\subsection{Method \code{copy()}}{
-Returns the object itself, since \code{RSArray} is immutable.
+\subsection{\code{RSArray$copy()}}{
+  Returns the object itself, since \code{RSArray} is immutable.
 
 This is a no-op copy: the method simply returns \code{self},
 as immutable objects are safe to reuse without duplication.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSArray$copy()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSArray$copy()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The same \code{RSArray} instance (\code{self}).
+  }
 }
 
-\subsection{Returns}{
-The same \code{RSArray} instance (\code{self}).
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSArray-mutableCopy"></a>}}
 \if{latex}{\out{\hypertarget{method-RSArray-mutableCopy}{}}}
-\subsection{Method \code{mutableCopy()}}{
-Returns a mutable version of the current array.
+\subsection{\code{RSArray$mutableCopy()}}{
+  Returns a mutable version of the current array.
 
 This performs a shallow copy of the array elements and wraps them
 in a new \code{RSMutableArray} instance, allowing modifications to the content.
 
 This is typically used when an immutable array needs to be transitioned into
 a mutable one for editing.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSArray$mutableCopy()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSArray$mutableCopy()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \code{RSMutableArray} instance.
+  }
 }
 
-\subsection{Returns}{
-A new \code{RSMutableArray} instance.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSArray-addObject"></a>}}
 \if{latex}{\out{\hypertarget{method-RSArray-addObject}{}}}
-\subsection{Method \code{addObject()}}{
-This method is disabled for immutable \code{RSArray} objects. Attempting to call this method will result in an error.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSArray$addObject(obj)}\if{html}{\out{</div>}}
+\subsection{\code{RSArray$addObject()}}{
+  This method is disabled for immutable \code{RSArray} objects. Attempting to call this method will result in an error.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSArray$addObject(obj)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{obj}}{Ignored.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    No return value. Always raises an error.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{obj}}{Ignored.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-No return value. Always raises an error.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSArray-insertObjectAtIndex"></a>}}
 \if{latex}{\out{\hypertarget{method-RSArray-insertObjectAtIndex}{}}}
-\subsection{Method \code{insertObjectAtIndex()}}{
-This method is disabled for immutable \code{RSArray} objects. Attempting to call this method will result in an error.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSArray$insertObjectAtIndex(obj, idx)}\if{html}{\out{</div>}}
+\subsection{\code{RSArray$insertObjectAtIndex()}}{
+  This method is disabled for immutable \code{RSArray} objects. Attempting to call this method will result in an error.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSArray$insertObjectAtIndex(obj, index)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{obj}}{Ignored.}
+      \item{\code{index}}{Ignored.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    No return value. Always raises an error.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{obj}}{Ignored.}
-
-\item{\code{idx}}{Ignored.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-No return value. Always raises an error.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSArray-replaceObjectAtIndex"></a>}}
 \if{latex}{\out{\hypertarget{method-RSArray-replaceObjectAtIndex}{}}}
-\subsection{Method \code{replaceObjectAtIndex()}}{
-This method is disabled for immutable \code{RSArray} objects. Attempting to call this method will result in an error.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSArray$replaceObjectAtIndex(obj, idx)}\if{html}{\out{</div>}}
+\subsection{\code{RSArray$replaceObjectAtIndex()}}{
+  This method is disabled for immutable \code{RSArray} objects. Attempting to call this method will result in an error.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSArray$replaceObjectAtIndex(obj, index)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{obj}}{Ignored.}
+      \item{\code{index}}{Ignored.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    No return value. Always raises an error.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{obj}}{Ignored.}
-
-\item{\code{idx}}{Ignored.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-No return value. Always raises an error.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSArray-removeObjectAtIndex"></a>}}
 \if{latex}{\out{\hypertarget{method-RSArray-removeObjectAtIndex}{}}}
-\subsection{Method \code{removeObjectAtIndex()}}{
-This method is disabled for immutable \code{RSArray} objects. Attempting to call this method will result in an error.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSArray$removeObjectAtIndex(obj, idx)}\if{html}{\out{</div>}}
+\subsection{\code{RSArray$removeObjectAtIndex()}}{
+  This method is disabled for immutable \code{RSArray} objects. Attempting to call this method will result in an error.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSArray$removeObjectAtIndex(index)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{index}}{Ignored.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    No return value. Always raises an error.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{obj}}{Ignored.}
-
-\item{\code{idx}}{Ignored.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-No return value. Always raises an error.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSArray-removeAllObjects"></a>}}
 \if{latex}{\out{\hypertarget{method-RSArray-removeAllObjects}{}}}
-\subsection{Method \code{removeAllObjects()}}{
-This method is disabled for immutable \code{RSArray} objects. Attempting to call this method will result in an error.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSArray$removeAllObjects(obj)}\if{html}{\out{</div>}}
+\subsection{\code{RSArray$removeAllObjects()}}{
+  This method is disabled for immutable \code{RSArray} objects. Attempting to call this method will result in an error.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSArray$removeAllObjects()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    No return value. Always raises an error.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{obj}}{Ignored.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-No return value. Always raises an error.
-}
-}
 }

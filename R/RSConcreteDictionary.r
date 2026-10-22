@@ -21,6 +21,7 @@
 #' - `remove(key)` removes a key and reports whether it existed.
 #' - `clear()` removes every entry.
 #' - `keys()` and `values()` return the stored objects as lists.
+#' - `entries()` returns corresponding key-value pairs as two-element lists.
 #' - `count()` returns the number of entries.
 #' - `contentHash()` returns an order-independent aggregate hash of the keys.
 #' - `prepareForSerialization()` captures a temporary R snapshot used only to
@@ -75,9 +76,8 @@ RSConcreteDictionary <- R6::R6Class(
     #'   dictionary bridge. Package code should normally leave this as `NULL`.
     initialize = function(.native_ptr = NULL) {
       if (!is.null(.native_ptr)) {
-        if (typeof(.native_ptr) != "externalptr") {
+        if (typeof(.native_ptr) != "externalptr")
           stop(".native_ptr must be an external pointer")
-        }
         private$.native_ptr <- .native_ptr
       }
       invisible(self)
@@ -92,7 +92,7 @@ RSConcreteDictionary <- R6::R6Class(
     },
 
     #' @description Inserts or replaces a value for a key.
-    #' @param key Hashable RObjC key.
+#' @param key Hashable RObjC object or Class/Protocol generator key.
     #' @param value Object to store.
     #' @return `self`, invisibly.
     set = function(key, value) {
@@ -101,21 +101,21 @@ RSConcreteDictionary <- R6::R6Class(
     },
 
     #' @description Returns the value associated with a key.
-    #' @param key Hashable RObjC key.
+    #' @param key Hashable RObjC object or Class/Protocol generator key.
     #' @return The stored value, or `NULL` when the key is absent.
     get = function(key) {
       dictionary_get(private$.native(), key)
     },
 
     #' @description Tests whether the storage contains a key.
-    #' @param key Hashable RObjC key.
+    #' @param key Hashable RObjC object or Class/Protocol generator key.
     #' @return A logical scalar.
     contains = function(key) {
       dictionary_contains(private$.native(), key)
     },
 
     #' @description Removes the entry associated with a key.
-    #' @param key Hashable RObjC key.
+    #' @param key Hashable RObjC object or Class/Protocol generator key.
     #' @return `TRUE` if an entry was removed; otherwise `FALSE`.
     remove = function(key) {
       dictionary_remove(private$.native(), key)
@@ -138,6 +138,12 @@ RSConcreteDictionary <- R6::R6Class(
     #' @return A list of values corresponding to `keys()` when unmodified.
     values = function() {
       dictionary_values(private$.native())
+    },
+
+    #' @description Returns corresponding stored keys and values together.
+    #' @return A list of two-element lists, each containing a key and its value.
+    entries = function() {
+      dictionary_entries(private$.native())
     },
 
     #' @description Returns the number of entries.

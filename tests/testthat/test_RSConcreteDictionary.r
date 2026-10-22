@@ -28,6 +28,16 @@ test_that("RSConcreteDictionary enumerates corresponding keys and values", {
     function(i) identical(storage$get(keys[[i]]), values[[i]]),
     logical(1)
   )))
+
+  entries <- storage$entries()
+  expect_length(entries, 2)
+  expect_true(all(vapply(
+    entries,
+    function(entry) {
+      length(entry) == 2L && identical(storage$get(entry[[1L]]), entry[[2L]])
+    },
+    logical(1)
+  )))
 })
 
 test_that("RSConcreteDictionary duplicate has independent storage", {

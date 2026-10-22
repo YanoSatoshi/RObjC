@@ -9,16 +9,18 @@ vignette: >
 
 # Encoding and decoding strategy
 
-This vignette describes the current class metadata and encoding components. The
-save and restore entry points are still being integrated with the class factories.
+This vignette describes the class metadata and encoding components. For a
+complete save-and-restore example, see
+`vignette("robjc_encoding_use_case", package = "robjc")`.
 
 ## Class declarations
 
 `RSObjectClass()` creates object class generators, `RSProtocolClass()` creates
 protocol declarations, and `RSSingletonClass()` creates a shared instance when
 the class is declared. Singleton generators store that instance in `$instance`
-and `robjc_isa$slot`. `RSScalarClass()` sets `isNAClass` before creating a
-singleton scalar such as `RSNull`.
+and `robjc_isa$slot`. `RSScalarClass()` creates a regular scalar class and its
+shared NA companion; `RSNull` instead uses `RSSingletonClass()`. See
+`vignette("robjc_class_factories", package = "robjc")` for the declaration APIs.
 
 The factories attach `robjc_isa` to each generator and set the same metadata
 reference in the R6 private fields. The metadata contains the superclass,
@@ -49,16 +51,16 @@ snapshots so the adapters can rebuild native storage after deserialization.
 
 `RSClassDecoder` reads the encoded class references and resolves class IDs
 against runtime generators. `resolveClassWith()` replaces an object's private
-`.__isa` reference. It does not recreate the R6 instance's methods or fields.
+`.__isa` reference and updates its S3 class names. It does not recreate the R6
+instance's methods or fields.
 Unresolved class IDs are recorded in the decoder's `unresolved` field.
 
 ## Current I/O integration
 
 The factories expose singleton instances as `$instance`, and the public
 `robjc_save*()` and `robjc_read_rds()`/`robjc_load()` entry points use that
-accessor. Restoring an object against a changed class definition remains
-unresolved: `resolveClassWith()` updates class metadata, but does not rebuild
-the R6 instance's methods or fields.
+accessor. Restoration requires a matching class name and version. The decoder
+updates class metadata but does not rebuild the R6 instance's methods or fields.
 
 ## Example: encode, save, and read
 
@@ -79,13 +81,12 @@ path <- tempfile(fileext = ".rds")
 robjc_save_rds(obj, path)
 payload <- readRDS(path)
 stopifnot(all(c("__object__", "__robjc__") %in% names(payload)))
-loaded <- payload[["__object__"]]
+loaded <- robjc_read_rds(path)
 stopifnot(identical(loaded$value(), "hello"))
+stopifnot(identical(loaded$class(), RSString))
 unlink(path)
 ```
 
-`readRDS()` reads the serialized object and metadata as they were stored; it
-does not resolve saved class definitions against the current runtime. Full
-class-aware restoration through `robjc_read_rds()` is still under development;
-it currently fails for this `RSString` example. Restoration after a class
-definition changes also remains unresolved.
+`readRDS()` only reads the stored payload. `robjc_read_rds()` also resolves the
+saved class IDs against the current runtime. A changed class structure with the
+same name and version is not migrated automatically.

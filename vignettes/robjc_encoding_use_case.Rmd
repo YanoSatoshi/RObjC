@@ -1,0 +1,231 @@
+---
+title: "Use case: save and restore a notebook"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Use case: save and restore a notebook}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Save and restore a notebook
+
+Suppose an application stores a notebook with sections, and each section holds
+notes. One note appears in two sections. We want to save this graph to an RDS
+file, restore its class references, and keep the shared note as one object.
+
+The graph has three levels:
+
+```text
+Notebook
+├── Section "Current" ── shared Note, draft Note
+└── Section "Archive" ── shared Note
+```
+
+R saves the fields and references in this graph. The encoder records which
+RObjC instances belong to which class, so the decoder can reconnect them to
+class definitions available when the file is read.
+
+```{r}
+library(robjc)
+
+Note <- RSObjectClass(
+  "EncodingGuideNote", version = "1.0",
+  public = list(
+    title = NULL,     # character(1)
+    priority = NULL,  # numeric(1)
+    tags = NULL,      # character vector
+    initialize = function(title, priority = 1, tags = character()) {
+      super$initialize()
+      self$title <- title
+      self$priority <- priority
+      self$tags <- tags
+      invisible(self)
+    }
+  )
+)
+
+Section <- RSObjectClass(
+  "EncodingGuideSection", version = "1.0",
+  public = list(
+    name = NULL,   # character(1)
+    notes = NULL,  # list of Note objects
+    initialize = function(name, notes = list()) {
+      super$initialize()
+      self$name <- name
+      self$notes <- notes
+      invisible(self)
+    },
+    objectsForEncoding = function() {
+      c(super$objectsForEncoding(), self$notes)
+    }
+  )
+)
+
+Notebook <- RSObjectClass(
+  "EncodingGuideNotebook", version = "1.0",
+  public = list(
+    sections = NULL,  # list of Section objects
+    initialize = function(sections = list()) {
+      super$initialize()
+      self$sections <- sections
+      invisible(self)
+    },
+    objectsForEncoding = function() {
+      c(super$objectsForEncoding(), self$sections)
+    }
+  )
+)
+```
+
+`Note` has only native R values, so it inherits the empty
+`objectsForEncoding()` result from `RSObject`. `Section` returns its direct
+`Note` children; `Notebook` returns its direct `Section` children. The notebook
+does not need to list the notes itself: the encoder asks each section for its
+children as it walks the graph.
+
+## Native values and RObjC objects
+
+`objectsForEncoding()` does **not** convert every field into an encoded value.
+R's `saveRDS()` saves the contents of ordinary fields, including `numeric`,
+`character`, `logical`, and their vectors. The encoder's job here is narrower:
+it discovers RObjC objects whose **class references** need to be restored.
+
+| Field in this example | What it contains | Return from `objectsForEncoding()`? |
+| --- | --- | --- |
+| `Note$title`, `Section$name` | Base R `character` | No; R saves the value. |
+| `Note$priority`, `Note$tags` | Base R `numeric` and `character` vector | No; R saves the values. |
+| `Section$notes` | A list of `Note` objects | Yes; return each `Note`, not the enclosing list. |
+| `Notebook$sections` | A list of `Section` objects | Yes; return each `Section`. |
+
+The distinction is the **field's value**, not its mathematical meaning. A
+plain `2.5` is an R numeric value and needs no entry. An `RSNumber` object
+containing `2.5` is an RObjC object; if stored in a field, return that object
+so its class can be resolved. Likewise, a plain `"text"` is different from an
+`RSString` object. A regular R list containing only atomic values does not
+need to be returned. If a list contains RObjC objects, return those elements.
+
+## Rules for listing and registering objects
+
+- Override `objectsForEncoding()` when a class holds references to other RObjC
+  objects. Return a **flat list** of direct children. For a list field such as
+  `Section$notes`, append its elements; `list(self$notes)` would return a nested
+  list rather than the notes themselves.
+- Keep `NULL`, ordinary R values, and class generators out of the returned list.
+  An object with no children returns `list()`. Include an optional child only
+  when it is present.
+- Include `super$objectsForEncoding()` so children owned by a superclass are
+  retained. Do not include `self`: the encoder registers the current object
+  before asking it for children. Repeated references and cycles are allowed.
+- The encoder registers every returned child recursively and adds superclass
+  metadata at `lockInstance()`. There is no separate call to register a child
+  or its class.
+- At read time, provide `class_map` entries for **every saved custom class ID**,
+  including custom superclasses. Standard robjc classes are mapped automatically.
+
+If a child is omitted, R still saves its field, but the decoder has no entry
+with which to resolve that child's class reference.
+
+## Choose the starting object (root)
+
+A **root** is the object where the encoder starts walking; it does not mean the
+`RSObject` base class. In this example the `notebook` variable is the root.
+`robjc_save_rds(notebook, path)` saves that notebook as `__object__`, calls
+`encodeObject(notebook)`, follows the sections and notes returned at each
+level, and saves the resulting class metadata as `__robjc__`.
+
+Choosing a section as the root would register that section and its notes, but
+not an unrelated section elsewhere in the session. For several named roots,
+`robjc_save()` saves the named objects and encodes each RObjC root. A manual
+`encodeObject()` call only builds metadata in the encoder; it does not write an
+RDS file. The save functions handle that step.
+
+## Save the object graph
+
+We build two sections that share one `Note` instance. `robjc_save_rds()` passes
+the notebook root to the encoder and saves both the root and the metadata with
+`saveRDS()`. The traversal reaches each section, then each note. When it sees
+the shared note a second time, its visited-object record prevents a second
+registration.
+
+```{r}
+# Build the graph. `notebook` is the one root we choose to save.
+shared_note <- Note$new("Release checklist", 2.5, c("release", "shared"))
+draft_note <- Note$new("Draft outline", 1, "draft")
+notebook <- Notebook$new(list(
+  Section$new("Current", list(shared_note, draft_note)),
+  Section$new("Archive", list(shared_note))
+))
+
+# Save procedure: start encoding at `notebook` and write the RDS file.
+path <- tempfile(fileext = ".rds")
+robjc_save_rds(notebook, path)
+
+# Verification only: inspect the raw payload and count registered instances.
+# This readRDS() call does not resolve classes and is not part of normal loading.
+payload <- readRDS(path)
+entries <- payload$`__robjc__`$allEntriesAsList()
+object_counts <- stats::setNames(
+  vapply(entries, function(entry) as.integer(entry$value()$objects()$count()), integer(1)),
+  vapply(entries, function(entry) entry$key()$value(), character(1))
+)
+expected_ids <- c(
+  "EncodingGuideNotebook_1.0",
+  "EncodingGuideSection_1.0",
+  "EncodingGuideNote_1.0"
+)
+stopifnot(identical(unname(object_counts[expected_ids]), c(1L, 2L, 2L)))
+```
+
+The RDS payload has `__object__` for the saved root and `__robjc__` for class
+metadata. The counts show one notebook, two sections, and two *distinct* notes.
+The metadata may also contain ancestor classes with no direct instances.
+Direct `readRDS()` is useful for inspection; use `robjc_read_rds()` to resolve
+class references before working with the object.
+
+## Restore with the current classes
+
+The reader needs a map from each saved custom class ID to its current class
+generator. In a new R session, define or load all three classes first, then
+build the map. `RSWrappedClass` constructs the name-and-version ID for each
+generator; those IDs become the dictionary keys. The package's standard
+classes are mapped automatically.
+
+```{r}
+# Restore procedure: map each custom class ID to a current class definition.
+wrapped_classes <- lapply(list(Notebook, Section, Note), RSWrappedClass$new)
+class_map <- RSDictionary_withObjectsForKeys(
+  objects = wrapped_classes,
+  keys = lapply(wrapped_classes, function(x) x$classID())
+)
+
+# Restore procedure: read the file and resolve the saved class references.
+loaded <- robjc_read_rds(path, class_map = class_map)
+
+# Verification only: check classes, atomic fields, and the shared Note identity.
+stopifnot(identical(loaded$class(), Notebook))
+stopifnot(identical(loaded$sections[[1]]$class(), Section))
+stopifnot(identical(loaded$sections[[1]]$notes[[1]]$class(), Note))
+stopifnot(identical(loaded$sections[[1]]$name, "Current"))
+stopifnot(identical(loaded$sections[[1]]$notes[[2]]$title, "Draft outline"))
+stopifnot(identical(loaded$sections[[1]]$notes[[1]]$priority, 2.5))
+stopifnot(identical(loaded$sections[[1]]$notes[[1]]$tags, c("release", "shared")))
+stopifnot(identical(
+  loaded$sections[[1]]$notes[[1]],
+  loaded$sections[[2]]$notes[[1]]
+))
+
+# Clean up this example's temporary file.
+unlink(path)
+```
+
+The last check tests **object identity**, not just matching note text: both
+sections refer to the same restored `Note` instance. Class resolution updates
+the notebook, both sections, and both notes because each was registered during
+encoding. The title, priority, tags, and section name were restored by R's
+ordinary RDS serialization; they never appeared in `objectsForEncoding()`.
+
+The saved class name and version must match the current class definition.
+Class resolution updates the class reference and S3 class names; it does not
+migrate fields or replace the methods already carried by a serialized R6
+instance. For the underlying class table and traversal strategy, see
+`vignette("robjc_encoding_strategy", package = "robjc")`.

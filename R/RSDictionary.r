@@ -10,13 +10,13 @@
 #' storage that initially references the same key and value objects.
 #'
 #' @section Convenience Constructor:
-#' `RSDictionary$dictionaryWithDictionary(dictionary)` creates an immutable
-#' shallow copy with an independent native table.
+#' [RSDictionary_withDictionary()] creates an immutable shallow copy from a
+#' mutable dictionary. An immutable dictionary is returned unchanged.
 #'
 #' @export
 RSDictionary <- RSObjectClass(
   "RSDictionary",
-  version = "0.0.2 alpha",
+  version = "0.0.4 alpha",
   super_class = RSMutableDictionary,
   protocols = list(RSCopying, RSMutableCopying),
   public = list(
@@ -85,20 +85,7 @@ RSDictionary <- RSObjectClass(
     #' @description Returns an independent mutable shallow copy.
     #' @return A new [RSMutableDictionary].
     mutableCopy = function() {
-      RSMutableDictionary$dictionaryWithDictionary(self)
+      super$mutableCopy()
     }
   )
 )
-
-# Creates an immutable dictionary with independent native storage.
-RSDictionary$dictionaryWithDictionary <- function(dictionary) {
-  stopifnot(
-    "Object must be a dictionary" =
-      robjc_isRobjcObject(dictionary) &&
-      dictionary$isKindOf(RSMutableDictionary)
-  )
-  .rs_dictionary_with_storage(
-    RSDictionary,
-    .rs_dictionary_storage(dictionary)$duplicate()
-  )
-}

@@ -19,8 +19,8 @@ A character string containing the formatted instance.
 }
 \description{
 Formats an RObjC instance using its generator's \verb{$classname}
-and summarizes public and private members.　The instance's \verb{$print()}
-　method remains a separate, brief　description method.
+and summarizes public and private members. The instance's \verb{$print()}
+method remains a separate, brief description method.
 }
 \examples{
 obj <- RSString$new("hello")

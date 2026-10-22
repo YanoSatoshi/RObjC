@@ -9,57 +9,38 @@ method names that an adopting object class is expected to provide. Declare a
 new protocol with \code{\link[=RSProtocolClass]{RSProtocolClass()}}, then pass that generator in the
 \code{protocols} argument of \code{\link[=RSObjectClass]{RSObjectClass()}} or another class factory.
 
-Protocols are represented by class generators, rather than by instances
-created with \verb{$new()}. An object's \link{RSObject} \verb{$conformsTo()} method checks
+Protocols are represented by class generators and cannot be instantiated
+with \verb{$new()}. An object's \link{RSObject} \verb{$conformsTo()} method checks
 the protocol relationships recorded at class declaration time. Declaring
-conformance does not itself implement or validate the required methods.
+conformance does not itself implement or validate the declared methods.
+The adopting class must provide the methods needed by each operation it uses.
 }
 \section{Implementation details}{
 
-The root generator has no parent protocol and declares no required methods.
+The root generator has no parent protocol and declares no methods.
 Its identity metadata is initialized in \code{primary_class_setup.r}. Protocols
 made with \code{\link[=RSProtocolClass]{RSProtocolClass()}} inherit from this generator and record their
 directly declared contract, parent protocols, and version in class metadata.
-The root's \code{initialize()} assigns R class attributes to an instance; it is
-part of the runtime and should not be overridden by protocol declarations.
+The root generator's \verb{$new} binding is \code{NULL} and locked. R6 adds a fresh
+\verb{$new} binding to each derived generator; \code{\link[=RSProtocolClass]{RSProtocolClass()}} disables it
+for declared protocols.
 }
 
 \examples{
 Printable <- RSProtocolClass(
   "Printable",
   contract_methods = "description",
-  version = "0.0.2 alpha"
+  version = "0.0.4 alpha"
 )
 robjc_isProtocol(Printable)
 PrintableObject <- RSObjectClass(
   "PrintableObject",
   protocols = list(Printable),
-  version = "0.0.2 alpha"
+  version = "0.0.4 alpha"
 )
 PrintableObject$new()$conformsTo(Printable)
 
 }
 \seealso{
 \code{\link[=RSProtocolClass]{RSProtocolClass()}}, \code{\link[=RSObjectClass]{RSObjectClass()}}, \code{\link[=robjc_isProtocol]{robjc_isProtocol()}}, \link{RSObject}
-}
-\section{Methods}{
-\subsection{Public methods}{
-\itemize{
-\item \href{#method-RSProtocol-new}{\code{RSProtocol$new()}}
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSProtocol-new"></a>}}
-\if{latex}{\out{\hypertarget{method-RSProtocol-new}{}}}
-\subsection{Method \code{new()}}{
-Assigns R class attributes when a protocol instance is
-created. Protocol declarations normally use generators directly.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSProtocol$new()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-The initialized instance, invisibly.
-}
-}
 }

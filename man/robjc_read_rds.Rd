@@ -9,7 +9,8 @@ robjc_read_rds(file, class_map = NULL, refhook = NULL)
 \arguments{
 \item{file}{Path to the \code{.rds} file to read.}
 
-\item{class_map}{Optional \code{RSDictionary} of custom classID → class mappings.}
+\item{class_map}{Optional \code{RSDictionary} or \code{RSMutableDictionary} mapping
+\link{RSString} class IDs to matching \link{RSWrappedClass} objects for custom classes.}
 
 \item{refhook}{Optional function passed to \code{base::readRDS()}.}
 }

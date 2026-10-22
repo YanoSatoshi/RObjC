@@ -5,12 +5,15 @@
 \title{RSCopying: Protocol for Object Copying}
 \description{
 \code{RSCopying} is a protocol that defines a contract for objects that can produce a
-copy of themselves. Conforming objects must implement the method \code{copy()}.
+copy of themselves. Adoption is a declaration and does not check methods.
+Because \code{copy()} is this protocol's only declared method, it is effectively
+required when copying is used. \link{RSObject} supplies a default \code{copy()} that
+returns \code{self}; mutable classes should override it when a separate copy is needed.
 
 This protocol typically applies to immutable objects or value types that support
 shallow or type-converting copy semantics.
 }
-\section{Required Method}{
+\section{Declared Method (Required for Copying)}{
 
 \itemize{
 \item \code{copy()} — Returns a copy of the object. May return an immutable copy if the object is mutable.
@@ -31,5 +34,5 @@ MyClass <- RSObjectClass("MyClass", super_class = RSObject,
 
 }
 \section{Super class}{
-\code{\link[robjc:RSProtocol]{robjc::RSProtocol}} -> \code{RSCopying}
+\code{\link[robjc:RSProtocol]{RSProtocol}} -> \code{RSCopying}
 }

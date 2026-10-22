@@ -38,125 +38,154 @@ obj$asFactor()    # reconstructs original factor
 RSNAFactor
 }
 \section{Super classes}{
-\code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{\link[robjc:RSScalar]{robjc::RSScalar}} -> \code{\link[robjc:RSString]{robjc::RSString}} -> \code{RSFactor}
+\code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSScalar]{RSScalar}} -> \code{\link[robjc:RSString]{RSString}} -> \code{RSFactor}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-RSFactor-new}{\code{RSFactor$new()}}
-\item \href{#method-RSFactor-asFactor}{\code{RSFactor$asFactor()}}
-\item \href{#method-RSFactor-levels}{\code{RSFactor$levels()}}
-\item \href{#method-RSFactor-ordered}{\code{RSFactor$ordered()}}
-\item \href{#method-RSFactor-compare}{\code{RSFactor$compare()}}
+  \itemize{
+    \item \href{#method-RSFactor-initialize}{\code{RSFactor$new()}}
+    \item \href{#method-RSFactor-asFactor}{\code{RSFactor$asFactor()}}
+    \item \href{#method-RSFactor-nativeValue}{\code{RSFactor$nativeValue()}}
+    \item \href{#method-RSFactor-levels}{\code{RSFactor$levels()}}
+    \item \href{#method-RSFactor-ordered}{\code{RSFactor$ordered()}}
+    \item \href{#method-RSFactor-compare}{\code{RSFactor$compare()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="copy"><a href='../../robjc/html/RSObject.html#method-RSObject-copy'><code>robjc::RSObject$copy()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="description"><a href='../../robjc/html/RSScalar.html#method-RSScalar-description'><code>robjc::RSScalar$description()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="hash"><a href='../../robjc/html/RSScalar.html#method-RSScalar-hash'><code>robjc::RSScalar$hash()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="isEqual"><a href='../../robjc/html/RSScalar.html#method-RSScalar-isEqual'><code>robjc::RSScalar$isEqual()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="value"><a href='../../robjc/html/RSScalar.html#method-RSScalar-value'><code>robjc::RSScalar$value()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>RSObject$class()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>RSObject$conformsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="copy"><a href='../../robjc/html/RSObject.html#method-RSObject-copy'><code>RSObject$copy()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>RSObject$debugDescription()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>RSObject$inheritClassesAsList()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>RSObject$isKindOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>RSObject$print()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="description"><a href='../../robjc/html/RSScalar.html#method-RSScalar-description'><code>RSScalar$description()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="hash"><a href='../../robjc/html/RSScalar.html#method-RSScalar-hash'><code>RSScalar$hash()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="isEqual"><a href='../../robjc/html/RSScalar.html#method-RSScalar-isEqual'><code>RSScalar$isEqual()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="nativeCompare"><a href='../../robjc/html/RSScalar.html#method-RSScalar-nativeCompare'><code>RSScalar$nativeCompare()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="value"><a href='../../robjc/html/RSScalar.html#method-RSScalar-value'><code>RSScalar$value()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSFactor-new"></a>}}
-\if{latex}{\out{\hypertarget{method-RSFactor-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes an \code{RSFactor} object by wrapping a scalar R factor value.
+\if{html}{\out{<a id="method-RSFactor-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-RSFactor-initialize}{}}}
+\subsection{\code{RSFactor$new()}}{
+  Initializes an \code{RSFactor} object by wrapping a scalar R factor value.
 The actual value is stored as a character string (via \code{as.character()}),
 and the factor’s levels and ordered flag are separately preserved.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSFactor$new(val)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSFactor$new(val)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{val}}{A scalar with the standard \code{factor} or \code{ordered}/\code{factor}
+class, without an S3 subclass.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An initialized \code{RSFactor} instance (invisible).
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{val}}{A scalar factor value.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-An initialized \code{RSFactor} instance (invisible).
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSFactor-asFactor"></a>}}
 \if{latex}{\out{\hypertarget{method-RSFactor-asFactor}{}}}
-\subsection{Method \code{asFactor()}}{
-Reconstructs and returns the original R factor from the internal character value,
+\subsection{\code{RSFactor$asFactor()}}{
+  Reconstructs and returns the original R factor from the internal character value,
 using the preserved levels and ordering flag.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSFactor$asFactor()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSFactor$asFactor()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A scalar \code{factor} object with its original levels and ordering.
+  }
 }
 
-\subsection{Returns}{
-A scalar \code{factor} object with its original levels and ordering.
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSFactor-nativeValue"></a>}}
+\if{latex}{\out{\hypertarget{method-RSFactor-nativeValue}{}}}
+\subsection{\code{RSFactor$nativeValue()}}{
+  Return the original factor as a native R value.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSFactor$nativeValue()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A scalar factor preserving levels and ordering.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSFactor-levels"></a>}}
 \if{latex}{\out{\hypertarget{method-RSFactor-levels}{}}}
-\subsection{Method \code{levels()}}{
-Returns the vector of levels associated with the original factor.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSFactor$levels()}\if{html}{\out{</div>}}
+\subsection{\code{RSFactor$levels()}}{
+  Returns the vector of levels associated with the original factor.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSFactor$levels()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A character vector of levels, or \code{NULL} if unavailable.
+  }
 }
 
-\subsection{Returns}{
-A character vector of levels, or \code{NULL} if unavailable.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSFactor-ordered"></a>}}
 \if{latex}{\out{\hypertarget{method-RSFactor-ordered}{}}}
-\subsection{Method \code{ordered()}}{
-Indicates whether the original factor was ordered.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSFactor$ordered()}\if{html}{\out{</div>}}
+\subsection{\code{RSFactor$ordered()}}{
+  Indicates whether the original factor was ordered.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSFactor$ordered()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} if the factor was ordered; otherwise \code{FALSE}.
+  }
 }
 
-\subsection{Returns}{
-\code{TRUE} if the factor was ordered; otherwise \code{FALSE}.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSFactor-compare"></a>}}
 \if{latex}{\out{\hypertarget{method-RSFactor-compare}{}}}
-\subsection{Method \code{compare()}}{
-Compares two \code{RSFactor} objects based on the numeric representation of their levels.
-Preserves ordered semantics and supports comparison even in the presence of \code{NA}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSFactor$compare(other, na.last = TRUE)}\if{html}{\out{</div>}}
+\subsection{\code{RSFactor$compare()}}{
+  Compare factors with matching levels using base R's sorting order.
+This applies to both ordered and unordered factors. Strings have no
+shared three-way sort order here. Levels must match even when either
+value is missing; missing values then follow \code{na.last}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSFactor$compare(other, na.last = TRUE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{A comparable \code{RSFactor} instance.}
+      \item{\code{na.last}}{If \code{TRUE}, \code{NA} values are treated as greater than any
+non-NA. Coerced with \code{as.logical()}; the result must be one nonmissing
+value.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{-1L}, \code{0L}, or \code{1L}, indicating whether this object is less than,
+equal to, or greater than \code{other}.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{other}}{Another \code{RSFactor} instance to compare with.}
-
-\item{\code{na.last}}{Logical. If \code{TRUE}, \code{NA} values are treated as greater than any non-NA.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
--1, 0, or 1, indicating whether this object is less than, equal to, or greater than \code{other}.
-}
-}
 }

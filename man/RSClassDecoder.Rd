@@ -14,155 +14,167 @@ This class conforms to the \code{RSDecoderProtocol}, and is typically invoked by
 \link{RSClassEncoder}, \link{RSClassReference}, \link{RSDecoderProtocol}
 }
 \section{Super classes}{
-\code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{\link[robjc:RSModule]{robjc::RSModule}} -> \code{RSClassDecoder}
+\code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSModule]{RSModule}} -> \code{RSClassDecoder}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{class_store}}{A dictionary containing class ID to instance mappings
-(\link{RSClassReference} entries), or \code{NULL} before data is loaded.}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{class_store}}{A dictionary mapping \link{RSString} class IDs to
+\link{RSInstanceMap} objects, or \code{NULL} before data is loaded.}
 
-\item{\code{unresolved}}{A character vector of classIDs that could not be resolved during decoding.}
-}
-\if{html}{\out{</div>}}
+    \item{\code{unresolved}}{A character vector of classIDs that could not be resolved during decoding.}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-RSClassDecoder-new}{\code{RSClassDecoder$new()}}
-\item \href{#method-RSClassDecoder-loadEncodedData}{\code{RSClassDecoder$loadEncodedData()}}
-\item \href{#method-RSClassDecoder-encodedClasses}{\code{RSClassDecoder$encodedClasses()}}
-\item \href{#method-RSClassDecoder-encodedClassIDs}{\code{RSClassDecoder$encodedClassIDs()}}
-\item \href{#method-RSClassDecoder-resolveClassesWithDictionary}{\code{RSClassDecoder$resolveClassesWithDictionary()}}
-\item \href{#method-RSClassDecoder-unpackTo}{\code{RSClassDecoder$unpackTo()}}
+  \itemize{
+    \item \href{#method-RSClassDecoder-initialize}{\code{RSClassDecoder$new()}}
+    \item \href{#method-RSClassDecoder-loadEncodedData}{\code{RSClassDecoder$loadEncodedData()}}
+    \item \href{#method-RSClassDecoder-encodedClasses}{\code{RSClassDecoder$encodedClasses()}}
+    \item \href{#method-RSClassDecoder-encodedClassIDs}{\code{RSClassDecoder$encodedClassIDs()}}
+    \item \href{#method-RSClassDecoder-resolveClassesWithDictionary}{\code{RSClassDecoder$resolveClassesWithDictionary()}}
+    \item \href{#method-RSClassDecoder-unpackTo}{\code{RSClassDecoder$unpackTo()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="copy"><a href='../../robjc/html/RSObject.html#method-RSObject-copy'><code>robjc::RSObject$copy()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="description"><a href='../../robjc/html/RSObject.html#method-RSObject-description'><code>robjc::RSObject$description()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="hash"><a href='../../robjc/html/RSObject.html#method-RSObject-hash'><code>robjc::RSObject$hash()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isEqual"><a href='../../robjc/html/RSObject.html#method-RSObject-isEqual'><code>robjc::RSObject$isEqual()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>robjc::RSObject$objectsForEncoding()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>RSObject$class()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>RSObject$conformsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="copy"><a href='../../robjc/html/RSObject.html#method-RSObject-copy'><code>RSObject$copy()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>RSObject$debugDescription()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="description"><a href='../../robjc/html/RSObject.html#method-RSObject-description'><code>RSObject$description()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="hash"><a href='../../robjc/html/RSObject.html#method-RSObject-hash'><code>RSObject$hash()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>RSObject$inheritClassesAsList()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isEqual"><a href='../../robjc/html/RSObject.html#method-RSObject-isEqual'><code>RSObject$isEqual()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>RSObject$isKindOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>RSObject$print()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSClassDecoder-new"></a>}}
-\if{latex}{\out{\hypertarget{method-RSClassDecoder-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes the decoder with no encoded class store and an empty list of
+\if{html}{\out{<a id="method-RSClassDecoder-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-RSClassDecoder-initialize}{}}}
+\subsection{\code{RSClassDecoder$new()}}{
+  Initializes the decoder with no encoded class store and an empty list of
 unresolved class IDs. The factory calls this method when creating \verb{$instance}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSClassDecoder$new()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSClassDecoder$new()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The decoder instance, invisibly.
+  }
 }
 
-\subsection{Returns}{
-The decoder instance, invisibly.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSClassDecoder-loadEncodedData"></a>}}
 \if{latex}{\out{\hypertarget{method-RSClassDecoder-loadEncodedData}{}}}
-\subsection{Method \code{loadEncodedData()}}{
-Load encoded class map (from encoder) into internal state
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSClassDecoder$loadEncodedData(encoded_data)}\if{html}{\out{</div>}}
+\subsection{\code{RSClassDecoder$loadEncodedData()}}{
+  Load encoded class map (from encoder) into internal state
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSClassDecoder$loadEncodedData(encoded_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{encoded_data}}{A dictionary produced by RSClassEncoder$lockInstance()}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{encoded_data}}{A dictionary produced by RSClassEncoder$lockInstance()}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSClassDecoder-encodedClasses"></a>}}
 \if{latex}{\out{\hypertarget{method-RSClassDecoder-encodedClasses}{}}}
-\subsection{Method \code{encodedClasses()}}{
-Return all encoded class mappings as key-value pairs.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSClassDecoder$encodedClasses()}\if{html}{\out{</div>}}
+\subsection{\code{RSClassDecoder$encodedClasses()}}{
+  Return all encoded class mappings as key-value pairs.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSClassDecoder$encodedClasses()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of \code{RSKeyValuePair} objects whose values are
+\code{RSInstanceMap} objects.
+  }
 }
 
-\subsection{Returns}{
-A list of \code{RSKeyValuePair} objects whose values are
-\code{RSInstanceMap} objects.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSClassDecoder-encodedClassIDs"></a>}}
 \if{latex}{\out{\hypertarget{method-RSClassDecoder-encodedClassIDs}{}}}
-\subsection{Method \code{encodedClassIDs()}}{
-Return list of classIDs from all stored RSClassReference entries.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSClassDecoder$encodedClassIDs()}\if{html}{\out{</div>}}
+\subsection{\code{RSClassDecoder$encodedClassIDs()}}{
+  Return list of classIDs from all stored RSClassReference entries.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSClassDecoder$encodedClassIDs()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of classIDs
+  }
 }
 
-\subsection{Returns}{
-A list of classIDs
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSClassDecoder-resolveClassesWithDictionary"></a>}}
 \if{latex}{\out{\hypertarget{method-RSClassDecoder-resolveClassesWithDictionary}{}}}
-\subsection{Method \code{resolveClassesWithDictionary()}}{
-Resolves saved classIDs in the encoded data using a provided mapping of classID strings
-to runtime R6Class objects. If a classID cannot be resolved, it is added to the \code{unresolved} field.
+\subsection{\code{RSClassDecoder$resolveClassesWithDictionary()}}{
+  Resolves saved classIDs using a dictionary that maps \link{RSString} class IDs
+to \link{RSWrappedClass} objects. If a classID cannot be resolved, it is added to the \code{unresolved} field.
 
 For each resolved class, \code{resolveClassWith()} is called on all encoded instances to
 update their internal class pointer (\code{private$.__isa}).
 
-If any classes remain unresolved, the decoder will stop and raise an error with classID details.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSClassDecoder$resolveClassesWithDictionary(class_map)}\if{html}{\out{</div>}}
+Class entries without instances record ancestry only and do not need a
+runtime class mapping. If any class with instances remains unresolved,
+the decoder stops with the missing class IDs.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSClassDecoder$resolveClassesWithDictionary(class_map)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{class_map}}{An \code{RSDictionary} or \code{RSMutableDictionary} mapping
+\link{RSString} class IDs (e.g., "MyClass_1.0") to matching \link{RSWrappedClass} objects.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The decoder object (invisible).
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{class_map}}{An \code{RSDictionary} that maps classID strings (e.g., "MyClass_1.0") to R6Class objects.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The decoder object (invisible).
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSClassDecoder-unpackTo"></a>}}
 \if{latex}{\out{\hypertarget{method-RSClassDecoder-unpackTo}{}}}
-\subsection{Method \code{unpackTo()}}{
-Copies all decoded objects into the specified environment using their \code{objectID()} as variable names.
+\subsection{\code{RSClassDecoder$unpackTo()}}{
+  Copies all decoded objects into the specified environment using their \code{objectID()} as variable names.
 This method is used to populate the global environment or a sandboxed scope after decoding.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSClassDecoder$unpackTo(envir = .GlobalEnv)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSClassDecoder$unpackTo(envir = .GlobalEnv)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{envir}}{The environment into which objects should be unpacked. Default is \code{.GlobalEnv}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The decoder object (invisible).
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{envir}}{The environment into which objects should be unpacked. Default is \code{.GlobalEnv}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The decoder object (invisible).
-}
-}
 }

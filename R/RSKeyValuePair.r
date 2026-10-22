@@ -3,7 +3,8 @@
 #'
 #' @description
 #' `RSKeyValuePair` is a concrete class representing a key-value pair used in dictionary-like containers
-#' within the `robjc` object system. The key and value must both be instances of `RSObject`.
+#' within the `robjc` object system. Keys and values may be RObjC objects,
+#' class generators, or protocol generators.
 #'
 #' The class provides read-only accessors for the key and value. Equality and hashing are based
 #' solely on the key, which allows consistent behavior in hashed containers such as dictionaries or sets.
@@ -16,10 +17,10 @@
 #' - `value()`: Returns the value object.
 #'
 #' @section Methods:
-#' - `setKey(key)`: Replaces the key if the value is `RSNull`. Used during internal construction in mutable dictionaries.
+#' - `setKey(key)`: Replaces the key if the value is `RSNull`.
 #' - `isEqual(other)`: Compares equality based on the key only.
 #' - `hash()`: Computes a hash value derived from the key.
-#' - `objectsForEncoding()`: Returns both key and value as a list for serialization.
+#' - `objectsForEncoding()`: Returns the key and any RObjC instance value for encoding.
 #'
 #' @return A concrete instance of `RSKeyValuePair`.
 #'
@@ -27,7 +28,7 @@
 #'
 RSKeyValuePair <- RSObjectClass(
   "RSKeyValuePair",
-  version = "0.0.2 alpha",
+  version = "0.0.4 alpha",
   super_class = RSObject,
   private     = list(
     .key    = NULL,
@@ -36,15 +37,18 @@ RSKeyValuePair <- RSObjectClass(
   public = list(
 
     #' @description
-    #' Constructs a new key-value pair object. Both key and value must inherit from `RSObject`.
+    #' Constructs a new key-value pair with a supported key and value.
     #'
-    #' @param key An `RSObject` to be used as the key.
-    #' @param value An `RSObject` to be associated as the value.
+    #' @param key An RObjC object, class generator, or protocol generator.
+    #' @param value An RObjC object, class generator, or protocol generator.
     #' @return A new `RSKeyValuePair` instance.
     initialize = function(key, value) {
       stopifnot(
-        "Key is not kind of RSObject."    = robjc_isRobjcObject(key),
-        "Value is not kind of RSObject."  = robjc_isRobjcObject(value)
+        "Key must be an RObjC object, class, or protocol." =
+          robjc_isRobjcObject(key) || robjc_isMetaClass(key),
+        "Value must be an RObjC object, class, or protocol." =
+          robjc_isRobjcObject(value) || robjc_isClass(value) ||
+          robjc_isProtocol(value)
       )
       super$initialize()
       private$.key <- key
@@ -57,27 +61,24 @@ RSKeyValuePair <- RSObjectClass(
 
     #' @description
     #' Returns the key object associated with this pair.
-    #' @return An `RSObject` representing the key.
+    #' @return The RObjC object, class generator, or protocol generator key.
     key = function() private$.key,
 
 
 
     #' @description
     #' Replaces the key object in this key-value pair.
-    #' This operation is only allowed when the value is \code{RSNull}, which signals that the pair is in a reusable placeholder state.
+    #' This operation is only allowed when the value is \code{RSNull}, which signals that
+    #' the pair is in a reusable placeholder state.
     #'
-    #' This method is primarily intended for internal use in dictionary containers.
-    #' Dictionaries often reuse a single \code{RSKeyValuePair} instance with an \code{RSNull} value
-    #' to perform temporary lookups without allocating a new object each time.
-    #'
-    #' @param key An \code{RSObject} to be used as the new key.
+    #' @param key An RObjC object, class generator, or protocol generator.
     #'
     #' @note
     #' The key can only be replaced if the value is \code{RSNull}. Attempting to change the key
     #' when the value is bound to a non-null object will result in an error.
     #'
     #' @examples
-    #' # Safe usage for dictionary lookups
+    #' # A pair with an RSNull value permits replacing its key.
     #' pair <- robjc:::RSKeyValuePair$new(RSNull$null, RSNull$null)
     #' pair$setKey(RSString_withValue("some_key"))
     #'
@@ -87,6 +88,8 @@ RSKeyValuePair <- RSObjectClass(
     #' pair$setKey(RSString$new("b"))         # Error: not allowed when value is non-null
     #' }
     setKey = function(key) {
+      if (!robjc_isRobjcObject(key) && !robjc_isMetaClass(key))
+        stop("Key must be an RObjC object, class, or protocol.", call. = FALSE)
       if (!identical(private$.value, RSNull$null)) {
         stop("Key replacing available only when value is RSNull. RSKeyValuePair")
       }
@@ -98,7 +101,7 @@ RSKeyValuePair <- RSObjectClass(
 
     #' @description
     #' Returns the value object associated with this pair.
-    #' @return An `RSObject` representing the value.
+    #' @return The stored RObjC object, class generator, or protocol generator.
     value = function() private$.value,
 
 
@@ -109,9 +112,10 @@ RSKeyValuePair <- RSObjectClass(
     #' Only the key is considered for equality; the value is ignored.
     #'
     #' @param other Another `RSKeyValuePair` instance.
-    #' @return `TRUE` if the keys are equal, otherwise `FALSE`.
+    #' @return `TRUE` if the keys are equal; `FALSE` for other inputs.
     isEqual = function(other) {
-      if (!other$isMemberOf(self$class())) return(FALSE)
+      if (!robjc_isRobjcObject(other) || !other$isMemberOf(self$class()))
+        return(FALSE)
       isTRUE(private$.key$isEqual(other$key()))
     },
 
@@ -120,20 +124,20 @@ RSKeyValuePair <- RSObjectClass(
     #' @description
     #' Computes the hash code based on the key only.
     #' This allows the pair to behave correctly in hash-based containers.
+    #' The final result passes through [normalize_hash()].
     #'
-    #' @return An integer hash value derived from the key.
-    hash = function() {
-      private$.key$hash()
-    },
+    #' @return One non-missing integer hash value derived from the key.
+    hash = function() normalize_hash(private$.key$hash()),
 
 
 
     #' @description
-    #' Returns encoding objects, key and value
+    #' Returns RObjC instance keys and values for encoding. Class and protocol
+    #' generators are serialized as R values and are not traversed as child objects.
     #'
-    #' @return List from key and value
+    #' @return A list of the RObjC instance key and value, when present.
     objectsForEncoding = function() {
-      list(private$.key, private$.value)
+      Filter(robjc_isRobjcObject, list(private$.key, private$.value))
     }
   )
 )

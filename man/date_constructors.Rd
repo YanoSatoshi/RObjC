@@ -11,11 +11,12 @@ RSDate_today()
 RSDate_withDate(val)
 }
 \arguments{
-\item{val}{A \code{Date} scalar, including a missing date.}
+\item{val}{A scalar with the standard \code{Date} class, including \code{NA} and \code{NaN}.}
 }
 \value{
 An \link{RSDate} or \link{RSNADate} instance.
 }
 \description{
-Construct a date wrapper. A missing date produces \link{RSNADate}.
+Construct a date wrapper. \code{NA} produces \link{RSNADate}, while
+\code{NaN} remains an \link{RSDate} value.
 }

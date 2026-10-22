@@ -30,26 +30,28 @@
 #' @export
 RSFactor <- RSScalarClass(
   "RSFactor",
-  version = "0.0.2 alpha",
+  version     = "0.0.4 alpha",
   super_class = RSString,
-  is_na_class = FALSE,
-  public = list(
-
-
+  na_value    = factor(NA_character_),
+  na_singleton = FALSE,
+  public      = list(
 
     #' @description
     #' Initializes an `RSFactor` object by wrapping a scalar R factor value.
     #' The actual value is stored as a character string (via `as.character()`),
     #' and the factor’s levels and ordered flag are separately preserved.
     #'
-    #' @param val A scalar factor value.
+    #' @param val A scalar with the standard `factor` or `ordered`/`factor`
+    #'   class, without an S3 subclass.
     #' @return An initialized `RSFactor` instance (invisible).
     initialize = function(val) {
-      if (!is.factor(val)) stop("RSFactor can only wrap factor values.")
+      standard_class <- identical(class(val), "factor") ||
+        identical(class(val), c("ordered", "factor"))
+      if (!standard_class || length(val) != 1L || !is.null(dim(val)))
+        stop("`val` must be a factor scalar.", call. = FALSE)
+      if (is.na(val) && !isTRUE(self$class()$isNAClass))
+        stop("Use `RSNAFactor` for NA", call. = FALSE)
       super$initialize(as.character(val))
-      if (is.na(val) && self$isMemberOf(RSFactor)) {
-        stop("Use RSNAFactor$new() for NA factor.")
-      }
       private$.levels  <- levels(val)
       private$.ordered <- is.ordered(val)
       invisible(self)
@@ -69,6 +71,12 @@ RSFactor <- RSScalarClass(
         ordered = private$.ordered
       )
     },
+
+
+
+    #' @description Return the original factor as a native R value.
+    #' @return A scalar factor preserving levels and ordering.
+    nativeValue = function() self$asFactor(),
 
 
 
@@ -94,25 +102,30 @@ RSFactor <- RSScalarClass(
 
 
     #' @description
-    #' Compares two `RSFactor` objects based on the numeric representation of their levels.
-    #' Preserves ordered semantics and supports comparison even in the presence of `NA`.
+    #' Compare factors with matching levels using base R's sorting order.
+    #' This applies to both ordered and unordered factors. Strings have no
+    #' shared three-way sort order here. Levels must match even when either
+    #' value is missing; missing values then follow `na.last`.
     #'
-    #' @param other Another `RSFactor` instance to compare with.
-    #' @param na.last Logical. If `TRUE`, `NA` values are treated as greater than any non-NA.
-    #' @return -1, 0, or 1, indicating whether this object is less than, equal to, or greater than `other`.
+    #' @param other A comparable `RSFactor` instance.
+    #' @param na.last If `TRUE`, `NA` values are treated as greater than any
+    #'   non-NA. Coerced with `as.logical()`; the result must be one nonmissing
+    #'   value.
+    #' @return `-1L`, `0L`, or `1L`, indicating whether this object is less than,
+    #'   equal to, or greater than `other`.
     compare = function(other, na.last = TRUE) {
-      if (!private$.comparable(other)) {
-        stop(sprintf(
-          "Abort trying to compare %s and %s",
-          self$class()$classname, other$class()$classname
-        ))
-      }
-      na_val <- if (na.last) .Machine$double.xmax else .Machine$double.xmin
-      val1 <- as.numeric(self$asFactor())
-      val2 <- as.numeric(other$asFactor())
-      val1 <- if (is.na(val1)) na_val else val1
-      val2 <- if (is.na(val2)) na_val else val2
-      return(sign(val1 - val2))
+      na.last <- tryCatch(as.logical(na.last), error = function(e) NA)
+      if (!is.logical(na.last) || length(na.last) != 1L || is.na(na.last))
+        stop("`na.last` must be TRUE or FALSE.", call. = FALSE)
+      if (!private$.comparable(other))
+        stop("Scalar classes are not comparable.", call. = FALSE)
+      if (!other$isKindOf(RSFactor))
+        stop("Factor and string values have no shared ordering.", call. = FALSE)
+      if (!identical(self$levels(), other$levels()))
+        stop("Factor level sets differ.", call. = FALSE)
+      if (isTRUE(is.na(self$value())) || isTRUE(is.na(other$value())))
+        return(super$compare(other, na.last = na.last))
+      super$compare(other, na.last = na.last)
     }
   ),
   private = list(
@@ -122,41 +135,12 @@ RSFactor <- RSScalarClass(
 )
 
 
-#' @title RSNAFactor: Wrapper for NA Factor Scalar
-#'
-#' @description
-#' `RSNAFactor` is a subclass of `RSFactor` used to represent `NA` factor values in a
-#' structured object-oriented manner. This allows `NA` to behave consistently with other
-#' `RSScalar`-derived objects in comparison, hashing, and set operations.
-#'
-#' The instance has no levels and is not ordered.
-#'
-#' @note
-#' Normally, this class is constructed internally via `RSFactor_withFactor()`.
-#'
-#' @examples
-#' na_f <- RSFactor_withFactor(factor(NA_character_))
-#' na_f$ordered()  # FALSE
-#' na_f$levels()   # NULL
-#'
-#' @export
-RSNAFactor <- RSScalarClass(
-  "RSNAFactor",
-  version = "0.0.2 alpha",
-  super_class = RSFactor,
-  is_na_class = TRUE,
-  public = list(
 
-    #' @description
-    #' Initializes an `RSNAFactor` object representing a missing (`NA`) factor value.
-    #' Internally sets the value to `NA`, with `NULL` levels and `ordered = FALSE`.
-    #'
-    #' @return An initialized `RSNAFactor` instance (invisible).
-    initialize = function() {
-      super$initialize(factor(NA_character_))
-      private$.levels <- NULL
-      private$.ordered <- FALSE
-      invisible(self)
-    }
-  )
-)
+#' @title RSNAFactor
+#' @description Factor NA companion for RSFactor. Generated by [RSScalarClass()] when
+#'   `RSFactor` is declared. `RSFactor_withFactor()` creates an instance that
+#'   retains the input's levels and ordering. `RSFactor$na` is the factory's
+#'   default instance, with no input-specific metadata.
+#' @return The NA class generator.
+#' @export
+RSNAFactor <- RSFactor$na$class()

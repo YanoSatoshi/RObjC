@@ -35,13 +35,16 @@ RSMutableDictionary_withObjectsAndKeys(objectsAndKeys)
 RSMutableDictionary_withDictionary(dictionary)
 }
 \arguments{
-\item{object}{An RObjC value.}
+\item{object}{An RObjC object, class generator, protocol generator, or \code{NULL}.}
 
-\item{key}{An RObjC key conforming to \code{RSCopying}.}
+\item{key}{An RObjC object key conforming to \code{RSCopying}, a class or protocol
+generator, or \code{NULL}.}
 
-\item{objects}{A list of RObjC values.}
+\item{objects}{A list of RObjC objects, class generators, protocol generators,
+or \code{NULL} values.}
 
-\item{keys}{A list of RObjC keys conforming to \code{RSCopying}.}
+\item{keys}{A list of RObjC keys conforming to \code{RSCopying}, class or protocol
+generators, or \code{NULL} keys.}
 
 \item{objectsAndKeys}{An even-length list alternating value, key, value, key.}
 
@@ -52,6 +55,8 @@ A dictionary of the type named by the function, except that copying
 an immutable dictionary may return that same instance.
 }
 \description{
-Construct dictionaries from RObjC keys and values or an existing
-dictionary. Keys must conform to \code{RSCopying} because insertion copies them.
+Construct dictionaries from RObjC object or generator keys and
+supported values, or an existing dictionary. RObjC object keys must conform
+to \code{RSCopying} because insertion copies them; class and protocol generator
+keys are retained by identity. \code{NULL} keys and values are stored as \link{RSNull}.
 }

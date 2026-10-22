@@ -4,13 +4,14 @@
 \alias{RSMutableSet}
 \title{RSMutableSet: Native-Backed Mutable Set}
 \description{
-\code{RSMutableSet} is a mutable, unordered collection of unique \code{RSObject}
-instances. Storage is delegated to the internal \link{RSConcreteSet} adapter,
+\code{RSMutableSet} is a mutable, unordered collection of unique RObjC objects,
+class generators, and protocol generators. Storage is delegated to the internal \link{RSConcreteSet} adapter,
 which uses each member's \code{hash()} and \code{isEqual()} methods.
 
 As with Foundation sets, inserted objects are retained rather than copied.
 Consequently, a member's \code{hash()} and equality-relevant state must not change
-while it belongs to a set. R \code{NULL} is represented by \link{RSNull}.
+while it belongs to a set. \code{hash()} is checked before native insertion and
+must return one nonmissing integer. R \code{NULL} is represented by \link{RSNull}.
 
 Set operations return new immutable \link{RSSet} objects and leave both operands
 unchanged.
@@ -26,375 +27,419 @@ unchanged.
 }
 
 \section{Super class}{
-\code{\link[robjc:RSObject]{robjc::RSObject}} -> \code{RSMutableSet}
+\code{\link[robjc:RSObject]{RSObject}} -> \code{RSMutableSet}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-RSMutableSet-new}{\code{RSMutableSet$new()}}
-\item \href{#method-RSMutableSet-addObject}{\code{RSMutableSet$addObject()}}
-\item \href{#method-RSMutableSet-count}{\code{RSMutableSet$count()}}
-\item \href{#method-RSMutableSet-member}{\code{RSMutableSet$member()}}
-\item \href{#method-RSMutableSet-containsObject}{\code{RSMutableSet$containsObject()}}
-\item \href{#method-RSMutableSet-anyObject}{\code{RSMutableSet$anyObject()}}
-\item \href{#method-RSMutableSet-allObjectsAsList}{\code{RSMutableSet$allObjectsAsList()}}
-\item \href{#method-RSMutableSet-asList}{\code{RSMutableSet$asList()}}
-\item \href{#method-RSMutableSet-allObjects}{\code{RSMutableSet$allObjects()}}
-\item \href{#method-RSMutableSet-removeObject}{\code{RSMutableSet$removeObject()}}
-\item \href{#method-RSMutableSet-removeAllObjects}{\code{RSMutableSet$removeAllObjects()}}
-\item \href{#method-RSMutableSet-hash}{\code{RSMutableSet$hash()}}
-\item \href{#method-RSMutableSet-isEqual}{\code{RSMutableSet$isEqual()}}
-\item \href{#method-RSMutableSet-objectsForEncoding}{\code{RSMutableSet$objectsForEncoding()}}
-\item \href{#method-RSMutableSet-prepareForSerialization}{\code{RSMutableSet$prepareForSerialization()}}
-\item \href{#method-RSMutableSet-uniteSet}{\code{RSMutableSet$uniteSet()}}
-\item \href{#method-RSMutableSet-intersectSet}{\code{RSMutableSet$intersectSet()}}
-\item \href{#method-RSMutableSet-subtractSet}{\code{RSMutableSet$subtractSet()}}
-\item \href{#method-RSMutableSet-copy}{\code{RSMutableSet$copy()}}
-\item \href{#method-RSMutableSet-mutableCopy}{\code{RSMutableSet$mutableCopy()}}
+  \itemize{
+    \item \href{#method-RSMutableSet-initialize}{\code{RSMutableSet$new()}}
+    \item \href{#method-RSMutableSet-addObject}{\code{RSMutableSet$addObject()}}
+    \item \href{#method-RSMutableSet-count}{\code{RSMutableSet$count()}}
+    \item \href{#method-RSMutableSet-member}{\code{RSMutableSet$member()}}
+    \item \href{#method-RSMutableSet-containsObject}{\code{RSMutableSet$containsObject()}}
+    \item \href{#method-RSMutableSet-anyObject}{\code{RSMutableSet$anyObject()}}
+    \item \href{#method-RSMutableSet-allObjectsAsList}{\code{RSMutableSet$allObjectsAsList()}}
+    \item \href{#method-RSMutableSet-asList}{\code{RSMutableSet$asList()}}
+    \item \href{#method-RSMutableSet-allObjects}{\code{RSMutableSet$allObjects()}}
+    \item \href{#method-RSMutableSet-removeObject}{\code{RSMutableSet$removeObject()}}
+    \item \href{#method-RSMutableSet-removeAllObjects}{\code{RSMutableSet$removeAllObjects()}}
+    \item \href{#method-RSMutableSet-hash}{\code{RSMutableSet$hash()}}
+    \item \href{#method-RSMutableSet-isEqual}{\code{RSMutableSet$isEqual()}}
+    \item \href{#method-RSMutableSet-objectsForEncoding}{\code{RSMutableSet$objectsForEncoding()}}
+    \item \href{#method-RSMutableSet-prepareForSerialization}{\code{RSMutableSet$prepareForSerialization()}}
+    \item \href{#method-RSMutableSet-uniteSet}{\code{RSMutableSet$uniteSet()}}
+    \item \href{#method-RSMutableSet-intersectSet}{\code{RSMutableSet$intersectSet()}}
+    \item \href{#method-RSMutableSet-subtractSet}{\code{RSMutableSet$subtractSet()}}
+    \item \href{#method-RSMutableSet-copy}{\code{RSMutableSet$copy()}}
+    \item \href{#method-RSMutableSet-mutableCopy}{\code{RSMutableSet$mutableCopy()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>robjc::RSObject$class()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="classVersion"><a href='../../robjc/html/RSObject.html#method-RSObject-classVersion'><code>robjc::RSObject$classVersion()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>robjc::RSObject$conformsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>robjc::RSObject$debugDescription()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="description"><a href='../../robjc/html/RSObject.html#method-RSObject-description'><code>robjc::RSObject$description()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>robjc::RSObject$inheritClassesAsList()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>robjc::RSObject$isKindOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>robjc::RSObject$isMemberOf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>robjc::RSObject$objectID()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>robjc::RSObject$print()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>robjc::RSObject$resolveClassWith()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>robjc::RSObject$respondsTo()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>robjc::RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="class"><a href='../../robjc/html/RSObject.html#method-RSObject-class'><code>RSObject$class()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="conformsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-conformsTo'><code>RSObject$conformsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="debugDescription"><a href='../../robjc/html/RSObject.html#method-RSObject-debugDescription'><code>RSObject$debugDescription()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="description"><a href='../../robjc/html/RSObject.html#method-RSObject-description'><code>RSObject$description()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="inheritClassesAsList"><a href='../../robjc/html/RSObject.html#method-RSObject-inheritClassesAsList'><code>RSObject$inheritClassesAsList()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>RSObject$isKindOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>RSObject$print()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableSet-new"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableSet-new}{}}}
-\subsection{Method \code{new()}}{
-Constructs a mutable set retaining the supplied objects.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$new(objects = list())}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-RSMutableSet-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableSet-initialize}{}}}
+\subsection{\code{RSMutableSet$new()}}{
+  Constructs a mutable set retaining the supplied objects.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$new(objects = list())}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{objects}}{An optional list or RObjC collection of RObjC objects,
+class generators, or protocol generators. \code{NULL}
+elements are represented by \link{RSNull}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \code{RSMutableSet} instance.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{objects}}{An optional list or RObjC collection of members. \code{NULL}
-elements are represented by \link{RSNull}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \code{RSMutableSet} instance.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-addObject"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-addObject}{}}}
-\subsection{Method \code{addObject()}}{
-Adds an object if no equal member is present.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$addObject(object)}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$addObject()}}{
+  Adds an object if no equal member is present.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$addObject(object)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{object}}{An RObjC object, class generator, or protocol generator
+with a valid integer \code{hash()}, or \code{NULL} to add \link{RSNull}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{object}}{An \code{RSObject}, or \code{NULL} to add \link{RSNull}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{self}, invisibly.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-count"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-count}{}}}
-\subsection{Method \code{count()}}{
-Returns the number of members.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$count()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$count()}}{
+  Returns the number of members.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$count()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A non-negative numeric scalar.
+  }
 }
 
-\subsection{Returns}{
-A non-negative numeric scalar.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-member"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-member}{}}}
-\subsection{Method \code{member()}}{
-Returns the stored member equal to \code{object}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$member(object)}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$member()}}{
+  Returns the stored member equal to \code{object}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$member(object)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{object}}{An RObjC object, class generator, protocol generator, or
+\code{NULL} to look up \link{RSNull}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The stored member, or \code{NULL} when absent.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{object}}{An \code{RSObject}, or \code{NULL} to look up \link{RSNull}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The stored member, or \code{NULL} when absent.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-containsObject"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-containsObject}{}}}
-\subsection{Method \code{containsObject()}}{
-Tests whether an equal member is present.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$containsObject(object)}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$containsObject()}}{
+  Tests whether an equal member is present.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$containsObject(object)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{object}}{An RObjC object, class generator, protocol generator, or
+\code{NULL} to look up \link{RSNull}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A logical scalar.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{object}}{An \code{RSObject}, or \code{NULL} to look up \link{RSNull}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A logical scalar.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-anyObject"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-anyObject}{}}}
-\subsection{Method \code{anyObject()}}{
-Returns an arbitrary stored member.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$anyObject()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$anyObject()}}{
+  Returns an arbitrary stored member.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$anyObject()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A stored member, or \code{NULL} when the set is empty. No ordering is
+implied and the selected member may change after mutation.
+  }
 }
 
-\subsection{Returns}{
-A stored member, or \code{NULL} when the set is empty. No ordering is
-implied and the selected member may change after mutation.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-allObjectsAsList"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-allObjectsAsList}{}}}
-\subsection{Method \code{allObjectsAsList()}}{
-Returns all members as a list.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$allObjectsAsList()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$allObjectsAsList()}}{
+  Returns all members as a list.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$allObjectsAsList()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list in unspecified order.
+  }
 }
 
-\subsection{Returns}{
-A list in unspecified order.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-asList"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-asList}{}}}
-\subsection{Method \code{asList()}}{
-Returns all members as a list.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$asList()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$asList()}}{
+  Returns all members as a list.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$asList()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list in unspecified order.
+  }
 }
 
-\subsection{Returns}{
-A list in unspecified order.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-allObjects"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-allObjects}{}}}
-\subsection{Method \code{allObjects()}}{
-Returns all members as an \link{RSArray}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$allObjects()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$allObjects()}}{
+  Returns all members as an \link{RSArray}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$allObjects()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An \code{RSArray} in unspecified order.
+  }
 }
 
-\subsection{Returns}{
-An \code{RSArray} in unspecified order.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-removeObject"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-removeObject}{}}}
-\subsection{Method \code{removeObject()}}{
-Removes the member equal to \code{object}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$removeObject(object)}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$removeObject()}}{
+  Removes the member equal to \code{object}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$removeObject(object)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{object}}{An RObjC object, class generator, protocol generator, or
+\code{NULL} to remove \link{RSNull}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} if a member was removed; otherwise \code{FALSE}.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{object}}{An \code{RSObject}, or \code{NULL} to remove \link{RSNull}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{TRUE} if a member was removed; otherwise \code{FALSE}.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-removeAllObjects"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-removeAllObjects}{}}}
-\subsection{Method \code{removeAllObjects()}}{
-Removes every member.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$removeAllObjects()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$removeAllObjects()}}{
+  Removes every member.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$removeAllObjects()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
 }
 
-\subsection{Returns}{
-\code{self}, invisibly.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-hash"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-hash}{}}}
-\subsection{Method \code{hash()}}{
-Computes an order-independent aggregate member hash.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$hash()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$hash()}}{
+  Computes an order-independent aggregate member hash.
+The final result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$hash()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    One non-missing integer hash value.
+  }
 }
 
-\subsection{Returns}{
-An integer hash value.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-isEqual"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-isEqual}{}}}
-\subsection{Method \code{isEqual()}}{
-Compares two sets by membership.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$isEqual(other)}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$isEqual()}}{
+  Compares two sets by membership.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$isEqual(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another set.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} when both sets contain equal members.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{other}}{Another set.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{TRUE} when both sets contain equal members.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-objectsForEncoding"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-objectsForEncoding}{}}}
-\subsection{Method \code{objectsForEncoding()}}{
-Returns the members required for encoding.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$objectsForEncoding()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$objectsForEncoding()}}{
+  Returns the RObjC instance members required for encoding.
+Class and protocol generators are serialized as R values.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$objectsForEncoding()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of RObjC instance members.
+  }
 }
 
-\subsection{Returns}{
-A list of member objects.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-prepareForSerialization"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-prepareForSerialization}{}}}
-\subsection{Method \code{prepareForSerialization()}}{
-Captures native storage for R serialization.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$prepareForSerialization()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$prepareForSerialization()}}{
+  Captures native storage for R serialization.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$prepareForSerialization()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
 }
 
-\subsection{Returns}{
-\code{self}, invisibly.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-uniteSet"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-uniteSet}{}}}
-\subsection{Method \code{uniteSet()}}{
-Returns the union with \code{other} without changing either set.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$uniteSet(other)}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$uniteSet()}}{
+  Returns the union with \code{other} without changing either set.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$uniteSet(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another mutable or immutable set.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \link{RSSet}.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{other}}{Another mutable or immutable set.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \link{RSSet}.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-intersectSet"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-intersectSet}{}}}
-\subsection{Method \code{intersectSet()}}{
-Returns the intersection with \code{other} without changing either set.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$intersectSet(other)}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$intersectSet()}}{
+  Returns the intersection with \code{other} without changing either set.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$intersectSet(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another mutable or immutable set.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \link{RSSet}.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{other}}{Another mutable or immutable set.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \link{RSSet}.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-subtractSet"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-subtractSet}{}}}
-\subsection{Method \code{subtractSet()}}{
-Returns the members not present in \code{other}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$subtractSet(other)}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$subtractSet()}}{
+  Returns the members not present in \code{other}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$subtractSet(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another mutable or immutable set.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \link{RSSet}.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{other}}{Another mutable or immutable set.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \link{RSSet}.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-copy"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-copy}{}}}
-\subsection{Method \code{copy()}}{
-Returns an immutable shallow copy.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$copy()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$copy()}}{
+  Returns an immutable shallow copy.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$copy()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \link{RSSet} with independent native storage.
+  }
 }
 
-\subsection{Returns}{
-A new \link{RSSet} with independent native storage.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-mutableCopy"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-mutableCopy}{}}}
-\subsection{Method \code{mutableCopy()}}{
-Returns an independent mutable shallow copy.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSMutableSet$mutableCopy()}\if{html}{\out{</div>}}
+\subsection{\code{RSMutableSet$mutableCopy()}}{
+  Returns an independent mutable shallow copy.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$mutableCopy()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \code{RSMutableSet}.
+  }
 }
 
-\subsection{Returns}{
-A new \code{RSMutableSet}.
-}
-}
 }

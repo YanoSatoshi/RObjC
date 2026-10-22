@@ -43,5 +43,5 @@ The resulting RDS file contains a list with two elements:
 }
 }
 \seealso{
-\code{\link[=robjc_read_rds]{robjc_read_rds()}}, \code{\link[base:readRDS]{base::saveRDS()}}
+\code{\link[=robjc_read_rds]{robjc_read_rds()}}, \code{\link[base:saveRDS]{base::saveRDS()}}
 }

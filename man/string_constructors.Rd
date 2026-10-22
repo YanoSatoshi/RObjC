@@ -17,8 +17,8 @@ RSString_withString(string)
 RSFactor_withFactor(val)
 }
 \arguments{
-\item{val}{A character or factor scalar for \code{RSString_withValue}; a factor scalar
-for \code{RSFactor_withFactor}.}
+\item{val}{An unclassed character or standard factor scalar for
+\code{RSString_withValue}; a standard factor scalar for \code{RSFactor_withFactor}.}
 
 \item{string}{A character scalar or an \code{RSString} instance.}
 }
@@ -27,5 +27,6 @@ The corresponding scalar wrapper.
 }
 \description{
 Construct string and factor wrappers. Missing values produce
-the corresponding \verb{RSNA*} class.
+the corresponding \verb{RSNA*} class. \code{RSFactor_withFactor()} creates a new
+\code{RSNAFactor} for each missing input, preserving its levels and ordering.
 }

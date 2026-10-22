@@ -11,7 +11,7 @@ isa <- list2env(
     super     = NULL,
     protocols = list(),
     slot      = NULL,
-    version   = "0.0.2 alpha"
+    version   = "0.0.4 alpha"
   ),
   envir = new.env(parent = emptyenv(), hash = FALSE)
 )
@@ -29,7 +29,7 @@ isa <- list2env(
     super     = NULL,
     protocols = list(),
     slot      = character(0),
-    version   = "0.0.2 alpha"
+    version   = "0.0.4 alpha"
   ),
   envir = new.env(parent = emptyenv(), hash = FALSE)
 )
@@ -49,7 +49,7 @@ isa <- list2env(
     super     = RSProtocol,
     protocols = list(),
     slot      = c("copy"),
-    version   = "0.0.2 alpha"
+    version   = "0.0.4 alpha"
   ),
   envir = new.env(parent = emptyenv(), hash = FALSE)
 )
@@ -67,6 +67,7 @@ RSObject$robjc_isa$protocols <- list(RSCopying)
 lockEnvironment(RSObject$robjc_isa, bindings = TRUE)
 lockBinding("robjc_isa", RSObject)
 class(RSObject) <- c(ROBJC_CLASS, R6GENERATOR)
+robjc_install_meta_value_methods(RSObject)
 
 # -----------------------------
 # RSProtocol Lock
@@ -75,6 +76,7 @@ lockEnvironment(RSProtocol$robjc_isa, bindings = TRUE)
 lockBinding("robjc_isa",        RSProtocol)
 lockBinding("contract_methods", RSProtocol)
 class(RSProtocol) <- c(ROBJC_CLASS, R6GENERATOR)
+robjc_install_meta_value_methods(RSProtocol)
 
 # -----------------------------
 # RSCopying lock
@@ -83,3 +85,4 @@ lockEnvironment(RSCopying$robjc_isa, bindings = TRUE)
 lockBinding("robjc_isa",        RSCopying)
 lockBinding("contract_methods", RSCopying)
 class(RSCopying) <- c(ROBJC_CLASS, R6GENERATOR)
+robjc_install_meta_value_methods(RSCopying)

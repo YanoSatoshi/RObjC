@@ -1,0 +1,126 @@
+---
+title: "Declaring classes with the RObjC factories"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Declaring classes with the RObjC factories}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Class factory API
+
+RObjC uses four `RS*Class()` functions to declare R6-based classes and
+protocols. Each returns a generator. Use `$new()` to instantiate object and
+scalar classes; the singleton factories also create a shared instance during
+declaration. A protocol generator describes requirements for classes.
+
+| Factory | Declares | Shared instance |
+|:--|:--|:--|
+| `RSObjectClass()` | An ordinary object class | None |
+| `RSProtocolClass()` | A protocol and its required method names | None |
+| `RSSingletonClass()` | An object class with one prebuilt instance | `Class$instance` |
+| `RSScalarClass()` | A scalar class and a generated NA subclass | `Class$na` |
+
+## Common arguments and class identity
+
+Object, singleton, and scalar factories accept `class_name`, `super_class`,
+`protocols`, `public`, `private`, `active`, `parent_env`, and `version`.
+`public`, `private`, and `active` supply R6 members; `protocols` is a list of
+protocol generators. `RSProtocolClass()` instead takes `protocol_name`,
+`super_protocols`, and `contract_methods`, plus `parent_env` and `version`.
+The default `version` is `"1.0.0"`; a version must not contain `_`.
+Normally, `parent_env` can be left at its default.
+
+The factories attach `robjc_isa` metadata to the generator. Instances report
+their generator through `$class()`. Class identity uses the generator rather
+than only its name, so two separately declared classes with the same name are
+not interchangeable. Use a non-singleton RObjC generator as `super_class`;
+`RSScalarClass()` specifically requires `RSScalar` or a subclass.
+
+## An ordinary object class
+
+`RSObjectClass()` defaults to `RSObject` as its superclass. Declare methods in
+`public` and create instances with `$new()`:
+
+```{r}
+library(robjc)
+
+Widget <- RSObjectClass(
+  "VignetteWidget",
+  public = list(label = function() "widget")
+)
+widget <- Widget$new()
+stopifnot(identical(widget$label(), "widget"))
+stopifnot(identical(widget$class(), Widget))
+```
+
+## A protocol
+
+`RSProtocolClass()` records required method names, not implementations.
+`super_protocols` can inherit requirements from other protocols. Pass the
+protocol generator in a class's `protocols` list, then implement its methods.
+Protocol generators cannot create instances with `$new()`:
+
+```{r}
+Labeled <- RSProtocolClass(
+  "VignetteLabeled",
+  contract_methods = "label"
+)
+stopifnot(is.null(Labeled$new))
+LabeledWidget <- RSObjectClass(
+  "VignetteLabeledWidget",
+  protocols = list(Labeled),
+  public = list(label = function() "labeled widget")
+)
+stopifnot(LabeledWidget$new()$conformsTo(Labeled))
+```
+
+## A shared singleton
+
+`RSSingletonClass()` calls `$new()` while declaring the class. Therefore its
+initializer must work without arguments. The shared object is available as
+both `Class$instance` and `Class$robjc_isa$slot`:
+
+```{r}
+Registry <- RSSingletonClass("VignetteRegistry")
+stopifnot(identical(Registry$instance, Registry$robjc_isa$slot))
+stopifnot(identical(Registry$instance$class(), Registry))
+```
+
+`$new()` remains callable; use `$instance` when the shared object is required.
+`RSNull` is declared with `RSSingletonClass()` and exposes its shared object as
+`RSNull$null`.
+
+## A scalar class and its NA companion
+
+`RSScalarClass()` requires a length-one missing `na_value` appropriate for the
+new scalar type. It declares a regular class and an NA subclass, then creates
+the NA subclass's shared instance. An `initialize(val)` method must accept
+`na_value` during that construction and call `super$initialize(val)` first.
+The regular class rejects direct construction with an NA; use `Class$na` for
+missing values.
+
+```{r}
+Count <- RSScalarClass(
+  "VignetteCount",
+  na_value = NA_integer_,
+  public = list(initialize = function(val) {
+    super$initialize(val)
+    if (!is.integer(val)) stop("Expected an integer scalar.")
+    invisible(self)
+  })
+)
+stopifnot(identical(Count$new(2L)$value(), 2L))
+stopifnot(identical(Count$na$value(), NA_integer_))
+stopifnot(identical(Count$na, Count$robjc_isa$slot))
+stopifnot(identical(Count$na$class()$classname, "VignetteCountNA"))
+```
+
+Names starting with `RS` produce an `RSNA...` companion; other names receive
+an `NA` suffix. The factory sets `isNAClass` before initializing the companion,
+so type-specific initialization can distinguish it from regular instances.
+By default, the generated NA class disables `$new()`; use `Class$na` for its
+shared instance. With `na_singleton = FALSE`, the NA class remains directly
+constructible so each missing value can retain its own metadata.
+For choosing a constructor and distinguishing `NULL` from typed NA, see
+`vignette("robjc_scalar_values", package = "robjc")`.

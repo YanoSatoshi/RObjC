@@ -1,9 +1,10 @@
 #' @include RSArray.r
 #' @title RSArray and RSMutableArray Convenience Constructors
-#' @description Construct ordered collections from RObjC objects or an existing
-#'   array. The `withObjects` input is an R list of objects.
-#' @param object An RObjC object.
-#' @param objects A list of RObjC objects.
+#' @description Construct ordered collections from RObjC objects, class or
+#'   protocol generators, or an existing array. The `withObjects` input is an R list;
+#'   its names are discarded because array elements are addressed by position.
+#' @param object An RObjC object, class generator, or protocol generator.
+#' @param objects A list of RObjC objects, class generators, or protocol generators.
 #' @param array An `RSArray` or `RSMutableArray` instance.
 #' @param capacity A non-negative whole number. Capacity reservation is not
 #'   implemented for the current R list storage.
@@ -13,8 +14,14 @@
 NULL
 
 .rs_api_array_objects <- function(objects) {
-  if (!is.list(objects) || !all(vapply(objects, robjc_isRobjcObject, logical(1))))
-    stop("`objects` must be a list of RObjC objects.", call. = FALSE)
+  if (!is.list(objects) || !all(vapply(
+    objects,
+    function(object) robjc_isRobjcObject(object) ||
+      robjc_isClass(object) || robjc_isProtocol(object),
+    logical(1)
+  )))
+    stop("`objects` must be a list of RObjC objects, classes, or protocols.",
+         call. = FALSE)
   objects
 }
 

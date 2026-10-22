@@ -29,7 +29,9 @@ robjc_save_image(
 \description{
 Saves all objects in the given environment along with robjc metadata.
 Equivalent to \code{save.image()} but compatible with robjc framework.
+The name \code{.__rs_encoded_data__} is reserved for this metadata; an environment
+containing a variable with that name cannot be saved by this function.
 }
 \seealso{
-\code{\link[=robjc_save]{robjc_save()}}, \code{\link[base:save]{base::save.image()}}
+\code{\link[=robjc_save]{robjc_save()}}, \code{\link[base:save.image]{base::save.image()}}
 }

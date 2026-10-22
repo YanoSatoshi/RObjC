@@ -6,13 +6,14 @@
 #' @title RSMutableSet: Native-Backed Mutable Set
 #'
 #' @description
-#' `RSMutableSet` is a mutable, unordered collection of unique `RSObject`
-#' instances. Storage is delegated to the internal [RSConcreteSet] adapter,
+#' `RSMutableSet` is a mutable, unordered collection of unique RObjC objects,
+#' class generators, and protocol generators. Storage is delegated to the internal [RSConcreteSet] adapter,
 #' which uses each member's `hash()` and `isEqual()` methods.
 #'
 #' As with Foundation sets, inserted objects are retained rather than copied.
 #' Consequently, a member's `hash()` and equality-relevant state must not change
-#' while it belongs to a set. R `NULL` is represented by [RSNull].
+#' while it belongs to a set. `hash()` is checked before native insertion and
+#' must return one nonmissing integer. R `NULL` is represented by [RSNull].
 #'
 #' Set operations return new immutable [RSSet] objects and leave both operands
 #' unchanged.
@@ -26,7 +27,7 @@
 #' @export
 RSMutableSet <- RSObjectClass(
   "RSMutableSet",
-  version = "0.0.2 alpha",
+  version = "0.0.4 alpha",
   super_class = RSObject,
   protocols   = list(RSCopying, RSMutableCopying),
   private = list(
@@ -34,28 +35,34 @@ RSMutableSet <- RSObjectClass(
 
     .wrapNull = function(object) {
       if (is.null(object)) return(RSNull$null)
-      if (robjc_isRobjcObject(object)) return(object)
+      if (robjc_isRobjcObject(object) || robjc_isMetaClass(object)) return(object)
       stop(sprintf("Unsupported object type: %s", class(object)[1]))
     },
 
     .storeObject = function(item) {
-      private$.storage$add(private$.wrapNull(item))
+      item <- private$.wrapNull(item)
+      hash <- item$hash()
+      if (!is.integer(hash) || length(hash) != 1L || is.na(hash))
+        stop("Member hash() must return one non-missing integer.", call. = FALSE)
+      private$.storage$add(item)
       invisible(self)
     }
   ),
   public = list(
     #' @description Constructs a mutable set retaining the supplied objects.
-    #' @param objects An optional list or RObjC collection of members. `NULL`
+    #' @param objects An optional list or RObjC collection of RObjC objects,
+    #'   class generators, or protocol generators. `NULL`
     #'   elements are represented by [RSNull].
     #' @return A new `RSMutableSet` instance.
     initialize = function(objects = list()) {
-      objects <- cast_rs_storage_to_list(objects)
+      objects <- cast_collections_to_list(objects)
       valid <- vapply(
         objects,
-        function(object) is.null(object) || robjc_isRobjcObject(object),
+        function(object) is.null(object) || robjc_isRobjcObject(object) ||
+          robjc_isMetaClass(object),
         logical(1)
       )
-      if (!all(valid)) stop("All elements must inherit from RSObject.")
+      if (!all(valid)) stop("All elements must be RObjC objects, classes, protocols, or NULL.")
 
       super$initialize()
       private$.storage <- RSConcreteSet$new()
@@ -64,7 +71,8 @@ RSMutableSet <- RSObjectClass(
     },
 
     #' @description Adds an object if no equal member is present.
-    #' @param object An `RSObject`, or `NULL` to add [RSNull].
+    #' @param object An RObjC object, class generator, or protocol generator
+    #'   with a valid integer `hash()`, or `NULL` to add [RSNull].
     #' @return `self`, invisibly.
     addObject = function(object) private$.storeObject(object),
 
@@ -73,14 +81,16 @@ RSMutableSet <- RSObjectClass(
     count = function() private$.storage$count(),
 
     #' @description Returns the stored member equal to `object`.
-    #' @param object An `RSObject`, or `NULL` to look up [RSNull].
+    #' @param object An RObjC object, class generator, protocol generator, or
+    #'   `NULL` to look up [RSNull].
     #' @return The stored member, or `NULL` when absent.
     member = function(object) {
       private$.storage$member(private$.wrapNull(object))
     },
 
     #' @description Tests whether an equal member is present.
-    #' @param object An `RSObject`, or `NULL` to look up [RSNull].
+    #' @param object An RObjC object, class generator, protocol generator, or
+    #'   `NULL` to look up [RSNull].
     #' @return A logical scalar.
     containsObject = function(object) {
       private$.storage$contains(private$.wrapNull(object))
@@ -104,7 +114,8 @@ RSMutableSet <- RSObjectClass(
     allObjects = function() RSArray$new(self$allObjectsAsList()),
 
     #' @description Removes the member equal to `object`.
-    #' @param object An `RSObject`, or `NULL` to remove [RSNull].
+    #' @param object An RObjC object, class generator, protocol generator, or
+    #'   `NULL` to remove [RSNull].
     #' @return `TRUE` if a member was removed; otherwise `FALSE`.
     removeObject = function(object) {
       private$.storage$remove(private$.wrapNull(object))
@@ -118,8 +129,9 @@ RSMutableSet <- RSObjectClass(
     },
 
     #' @description Computes an order-independent aggregate member hash.
-    #' @return An integer hash value.
-    hash = function() private$.storage$contentHash(),
+    #' The final result passes through [normalize_hash()].
+    #' @return One non-missing integer hash value.
+    hash = function() normalize_hash(private$.storage$contentHash()),
 
     #' @description Compares two sets by membership.
     #' @param other Another set.
@@ -130,15 +142,17 @@ RSMutableSet <- RSObjectClass(
           self$count() != other$count()) {
         return(FALSE)
       }
-      for (item in self$allObjectsAsList()) {
-        if (!other$containsObject(item)) return(FALSE)
-      }
-      TRUE
+      all(vapply(
+        self$allObjectsAsList(),
+        function(item) isTRUE(other$containsObject(item)),
+        logical(1)
+      ))
     },
 
-    #' @description Returns the members required for encoding.
-    #' @return A list of member objects.
-    objectsForEncoding = function() self$allObjectsAsList(),
+    #' @description Returns the RObjC instance members required for encoding.
+    #'   Class and protocol generators are serialized as R values.
+    #' @return A list of RObjC instance members.
+    objectsForEncoding = function() Filter(robjc_isRobjcObject, self$allObjectsAsList()),
 
     #' @description Captures native storage for R serialization.
     #' @return `self`, invisibly.
@@ -179,11 +193,21 @@ RSMutableSet <- RSObjectClass(
 
     #' @description Returns an immutable shallow copy.
     #' @return A new [RSSet] with independent native storage.
-    copy = function() RSSet$setWithSet(self),
+    copy = function() {
+      .rs_set_with_storage(
+        RSSet,
+        .rs_set_storage(self)$duplicate()
+      )
+    },
 
     #' @description Returns an independent mutable shallow copy.
     #' @return A new `RSMutableSet`.
-    mutableCopy = function() RSMutableSet$setWithSet(self)
+    mutableCopy = function() {
+      .rs_set_with_storage(
+        RSMutableSet,
+        .rs_set_storage(self)$duplicate()
+      )
+    }
   )
 )
 
@@ -205,12 +229,4 @@ RSMutableSet <- RSObjectClass(
   result <- generator$new()
   result$.__enclos_env__$private$.storage <- storage
   result
-}
-
-# Creates a mutable set with independent native storage.
-RSMutableSet$setWithSet <- function(set) {
-  .rs_set_with_storage(
-    RSMutableSet,
-    .rs_set_storage(set)$duplicate()
-  )
 }

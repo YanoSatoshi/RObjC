@@ -28,37 +28,49 @@
 get_pointer_hex <- function(some_obj, obj_name = NULL) {
   if (is.null(obj_name)) {
     obj_name <- tryCatch(
-      deparse(substitute(some_obj)), error = function(e) "unknown"
+      deparse(substitute(some_obj)),
+      error = function(e) "unknown"
     )
   }
   get_label <- function() {
-    tryCatch({
-      if (robjc_isRobjcObject(some_obj)) {
-        some_obj$class()$classname
-      } else if (robjc_isMetaClass(some_obj)) {
-        some_obj$classname
-      } else if (is.function(some_obj)) {
-        paste0("function ", obj_name)
-      } else {
-        class(some_obj)[1]
-      }
-    }, error = function(e) paste("unknown object (", obj_name, ")"))
+    tryCatch(
+      {
+        if (robjc_isRobjcObject(some_obj))
+          some_obj$class()$classname
+        else if (robjc_isMetaClass(some_obj))
+          some_obj$classname
+        else if (is.function(some_obj))
+          paste0("function ", obj_name)
+        else
+          class(some_obj)[1]
+      },
+      error = function(e) paste0("unknown object (", obj_name, ")")
+    )
   }
-  env <- tryCatch(environment(some_obj$print), error = function(e) NULL)
+  env <- tryCatch(
+    environment(some_obj$print),
+    error = function(e) NULL
+  )
   if (is.null(env)) {
     label <- get_label()
-    stop(sprintf("Pointer could not be resolved: object = [%s]", label))
+    stop(
+      sprintf("Pointer could not be resolved: object = [%s]", label),
+      call. = FALSE
+    )
   }
-  addr <- capture.output(print(env))[1]
+  addr <- utils::capture.output(print(env))[1]
   hex_match <- sub("^<environment: (0x[0-9a-f]+)>$", "\\1", addr)
   if (is.na(hex_match) || !nzchar(hex_match)) {
     label <- tryCatch({
-      cls_name <- get_label()
-      env_str <- addr
-      paste0(cls_name, " @ ", env_str)
-    }, error = function(e) "unknown")
+        cls_name <- get_label()
+        env_str <- addr
+        paste0(cls_name, " @ ", env_str)
+      },
+      error = function(e) "unknown"
+    )
     stop(
-      sprintf("Internal pointer (.ptr) could not be extracted for %s.", label)
+      sprintf("Internal pointer (.ptr) could not be extracted for %s.", label),
+      call. = FALSE
     )
   }
   return(hex_match)
@@ -68,6 +80,15 @@ get_pointer_hex <- function(some_obj, obj_name = NULL) {
 
 
 
-
-
-
+#' @title Normalize a Hash Code
+#' @description Replace a missing hash code with `0L`. Call this on the
+#'   final result of a custom `hash()` method so it never returns R's
+#'   `NA_integer_` bit pattern. Equal objects must still produce equal hashes.
+#' @param hash_code One integer hash code, possibly `NA_integer_`.
+#' @return `0L` for a missing hash code; otherwise `hash_code` unchanged.
+#' @examples
+#' normalize_hash(NA_integer_)
+#' normalize_hash(42L)
+#' @seealso [RSObject]
+#' @export
+normalize_hash <- function(hash_code) if (is.na(hash_code)) 0L else hash_code

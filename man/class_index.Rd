@@ -23,6 +23,8 @@ Built-in RObjC class and protocol generators, grouped by use. See the
 \item \link{RSNull} represents \code{NULL}.
 \item \link{RSBoolean} and \link{RSNABoolean} represent logical values.
 \item \link{RSNumber} and \link{RSNANumber} represent numeric values.
+\item \link{RSComplex} and \link{RSNAComplex} represent complex values.
+\item \link{RSRaw} represents raw bytes.
 \item \link{RSString} and \link{RSNAString} represent character values.
 \item \link{RSFactor} and \link{RSNAFactor} represent factors.
 \item \link{RSDate} and \link{RSNADate} represent dates.
@@ -34,6 +36,7 @@ Built-in RObjC class and protocol generators, grouped by use. See the
 
 \itemize{
 \item \link{RSArray} and \link{RSMutableArray} are ordered containers.
+\item \link{RSVector} and \link{RSMutableVector} wrap atomic vectors.
 \item \link{RSSet} and \link{RSMutableSet} store unique objects.
 \item \link{RSDictionary} and \link{RSMutableDictionary} store key-value pairs.
 \item \link{RSDataFrame} and \link{RSMutableDataFrame} wrap data frames.
@@ -44,6 +47,7 @@ Built-in RObjC class and protocol generators, grouped by use. See the
 
 \itemize{
 \item \link{RSProtocol} is the root protocol generator.
+\item \link{RSComparable} declares three-way ordering for comparable instances.
 \item \link{RSCopying} and \link{RSMutableCopying} define copying contracts.
 \item \link{RSEncoding}, \link{RSEncoderProtocol}, and \link{RSDecoderProtocol} define
 structural encoding and decoding contracts.
@@ -62,7 +66,6 @@ structural encoding and decoding contracts.
 
 \itemize{
 \item \link{RSHashOperator} provides shared hashing and set operations.
-\item \link{RSSorter} provides sorting operations.
 }
 }
 

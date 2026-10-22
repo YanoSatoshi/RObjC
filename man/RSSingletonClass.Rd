@@ -10,25 +10,23 @@ RSSingletonClass(
   protocols = list(),
   public = list(),
   private = NULL,
-  active = NULL,
   parent_env = parent.frame(),
   version = "1.0.0"
 )
 }
 \arguments{
-\item{class_name}{One character string naming the class.}
+\item{class_name}{One nonempty, nonmissing character string naming the class.}
 
 \item{super_class}{An RObjC object class generator to inherit from. Defaults
 to \link{RSObject}.}
 
 \item{protocols}{A list of protocol class generators adopted by the class.}
 
-\item{public, private, active}{R6 public members, private members, and active
-bindings passed to \code{\link[R6:R6Class]{R6::R6Class()}}.}
+\item{public, private}{R6 public and private members passed to \code{\link[R6:R6Class]{R6::R6Class()}}.}
 
 \item{parent_env}{Parent environment for the generated R6 methods.}
 
-\item{version}{Class version. It must not contain \verb{_}.}
+\item{version}{One non-empty, non-missing class version without \verb{_}.}
 }
 \value{
 The singleton class generator, invisibly.
@@ -51,7 +49,7 @@ then locks the instance binding and class metadata.
 
 \examples{
 ExampleSingleton <- RSSingletonClass("ExampleSingleton",
-  version = "0.0.2 alpha")
+  version = "0.0.4 alpha")
 ExampleSingleton$instance$class()$classname
 
 }

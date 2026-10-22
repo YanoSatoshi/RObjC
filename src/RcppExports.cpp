@@ -122,6 +122,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// dictionary_entries
+Rcpp::List dictionary_entries(SEXP xp);
+RcppExport SEXP _robjc_dictionary_entries(SEXP xpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type xp(xpSEXP);
+    rcpp_result_gen = Rcpp::wrap(dictionary_entries(xp));
+    return rcpp_result_gen;
+END_RCPP
+}
 // set_create
 SEXP set_create();
 RcppExport SEXP _robjc_set_create() {
@@ -279,6 +290,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_robjc_dictionary_clear", (DL_FUNC) &_robjc_dictionary_clear, 1},
     {"_robjc_dictionary_keys", (DL_FUNC) &_robjc_dictionary_keys, 1},
     {"_robjc_dictionary_values", (DL_FUNC) &_robjc_dictionary_values, 1},
+    {"_robjc_dictionary_entries", (DL_FUNC) &_robjc_dictionary_entries, 1},
     {"_robjc_set_create", (DL_FUNC) &_robjc_set_create, 0},
     {"_robjc_set_clone", (DL_FUNC) &_robjc_set_clone, 1},
     {"_robjc_set_add", (DL_FUNC) &_robjc_set_add, 2},

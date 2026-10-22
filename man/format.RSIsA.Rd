@@ -29,5 +29,5 @@ print(RSString$robjc_isa)
 #   protocols: list()
 #   slot: NULL
 #   super: <RSScalar>
-#   version: 0.0.2 alpha
+#   version: 0.0.4 alpha
 }

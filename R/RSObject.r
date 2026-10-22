@@ -19,19 +19,21 @@
 #' - `respondsTo(method)` – Returns `TRUE` if the object implements the specified method.
 #' - `description()` – Returns a concise string representation of the object.
 #' - `debugDescription()` – Returns a detailed string including all public fields and their structure.
-#' - `print()` – Outputs the result of `description()` to the console.
 #' - `isMemberOf(cls)` – Checks if the object is a direct instance of the given class.
 #' - `isKindOf(cls)` – Checks if the object inherits from the given class (directly or indirectly).
 #' - `isEqual(other)` – Returns `TRUE` if the reference is identical to `other`.
-#' - `hash()` – Computes a numeric hash based on the memory address of the object.
-#' - `classVersion()` – Returns the class object version such as "1.0.0"
-#' - `objectID()` - Returns the pointer of instance.
+#' - `hash()` – Computes an integer hash from the object's environment address.
+#' - `objectID()` – Returns a pointer-like identity based on the environment
+#'   address of the instance's `print` method.
 #'
 #' @section Internal Fields:
 #' - `.__isa` – Cached class object.
 #'
 #' @section Notes:
-#' - The hash method extracts a portion of the object's environment pointer as a unique key.
+#' - The hash method uses part of the object's environment address to produce
+#'   an integer hash. Different objects can have the same hash.
+#' - `hash()` applies [normalize_hash()] to its final integer, mapping R's
+#'   `NA_integer_` bit pattern to `0L`. Custom `hash()` methods should do the same.
 #' - Class identity is preserved via explicit references, not via string-based comparisons.
 #'
 #' @examples
@@ -71,7 +73,8 @@ RSObject <- R6::R6Class(
     superClass = function() self$class()$robjc_isa$super,
 
 
-    #' @description Checks if object conforms to a given protocol.
+    #' @description Checks whether the object's class declared adoption of a
+    #'   protocol. This does not verify method implementations.
     #' @param protocol A protocol class generator.
     #' @return TRUE if conforms, FALSE otherwise.
     conformsTo = function(protocol) {
@@ -89,17 +92,15 @@ RSObject <- R6::R6Class(
 
 
     #' @description
-    #' Checks if object responds to a method.
-    #' @param method A character string for the method name.
-    #' @return TRUE if the method exists and is callable.
+    #' Checks if the object exposes a public method.
+    #' @param method One non-empty, non-missing character string naming the method.
+    #' @return TRUE if the method is publicly callable.
     respondsTo = function(method) {
-      in_public <-
-        exists(method, where = self, inherits = TRUE) &&
-        is.function(self[[method]])
-      in_private <-
-        exists(method, where = private, inherits = TRUE) &&
-        is.function(private[[method]])
-      in_public || in_private
+      if (!is.character(method) || length(method) != 1L ||
+          is.na(method) || !nzchar(method)) {
+        stop("`method` must be one non-empty character string.", call. = FALSE)
+      }
+      exists(method, where = self, inherits = TRUE) && is.function(self[[method]])
     },
 
 
@@ -123,23 +124,13 @@ RSObject <- R6::R6Class(
       field_values <- vapply(fields,
         function(f){
           value <- tryCatch(self[[f]], error = function(e){"<error>"})
-          val_str <- capture.output(str(value, max.level = 1))
+          val_str <- utils::capture.output(str(value, max.level = 1))
           paste(val_str, collapse = " ")
         },
         character(1)
       )
       fields_info <- paste(fields, ": ", field_values, collapse =", ")
       paste0(descript, "{", fields_info, "}")
-    },
-
-
-
-    #' @description
-    #' Prints the object description.
-    #' @return Invisible self.
-    print = function() {
-      cat(self$description(), "\n")
-      invisible(self)
     },
 
 
@@ -172,13 +163,15 @@ RSObject <- R6::R6Class(
     #' Compares object identity with another.
     #' @param other Another object to compare.
     #' @return TRUE if they are the same reference.
-    isEqual = function(other) identical(self, other),
+    isEqual = function(other) isTRUE(identical(self, other)),
 
 
 
     #' @description
-    #' Returns a hash of the object based on memory pointer.
-    #' @return Integer hash value.
+    #' Returns an integer hash derived from the environment address of this
+    #' instance's `print` method. The result passes through [normalize_hash()],
+    #' so the `NA_integer_` bit pattern maps to `0L`.
+    #' @return One non-missing integer hash value.
     hash = function() {
       hex_str <- get_pointer_hex(self)
       padded <- sprintf("%016s", tolower(sub("^0x", "", hex_str)))
@@ -186,19 +179,17 @@ RSObject <- R6::R6Class(
       unit4 <- substr(padded, 13, 16)
       u3 <- strtoi(unit3, base = 16L)
       u4 <- strtoi(unit4, base = 16L)
-      return(bitwOr(bitwShiftL(u3, 16L), u4))
+      hash_code <- bitwOr(bitwShiftL(u3, 16L), u4)
+      normalize_hash(hash_code)
     },
 
 
 
     #' @description
-    #' Returns the version string of the class associated with this instance.
-    classVersion = function() self$class()$robjc_isa$version,
-
-
-
-    #' @description
-    #' Returns the pointer of instance.
+    #' Returns the hexadecimal address of the environment enclosing this
+    #' instance's `print` method. Within the current R session, the address
+    #' string serves as a pointer-like identity, akin to a C pointer.
+    #' @return A hexadecimal address string.
     objectID = function() get_pointer_hex(self),
 
 
@@ -244,19 +235,24 @@ RSObject <- R6::R6Class(
 
     ##### RSEncoding ####
     #' @description
-    #' Returns a list of additional objects to be encoded alongside this instance.
+    #' Returns a flat list of direct child objects to be encoded alongside this instance.
     #'
     #' This method is part of the `RSEncoding` protocol. It is used by the encoder to
     #' determine which instances should be recursively encoded. You should override
     #' this method in your custom subclasses to return all objects that this instance
     #' owns or manages directly.
     #'
-    #' Only return instances of `RSObject` subclasses—atomic values or scalar fields should
-    #' not be included here. Inherited class metadata and class relationships are handled
-    #' automatically and do not need to be manually returned.
+    #' Return only instances of `RSObject` subclasses. Native R atomic values such as
+    #' `numeric` and `character` are saved by R and do not belong in this list.
+    #' Wrapped scalars such as `RSNumber` and `RSString` are RObjC objects and do belong
+    #' here when held as children. Omit `NULL`, nested lists, class generators, and `self`;
+    #' the encoder registers the current instance before calling this method.
+    #' Inherited class metadata and class relationships are handled automatically.
     #'
     #' When overriding this method, always call `super$objectsForEncoding()` to collect
     #' objects from parent classes, and combine them with your own declared fields.
+    #' Each returned child is registered recursively. A custom class needs a matching
+    #' `class_map` entry when saved data is decoded.
     #'
     #' @return A list of objects to be encoded recursively (defaults to an empty list).
     #'
@@ -292,7 +288,8 @@ RSObject <- R6::R6Class(
 
 
     #' @description
-    #' Replace class object for decoding (use on load).
+    #' Replace class object for decoding (use on load), then update the
+    #' instance's S3 class names to match the resolved class hierarchy.
     #' 
     #' @param new_cls Class to replace.
     #' 
@@ -302,6 +299,11 @@ RSObject <- R6::R6Class(
         "Class version check." = can_resolve_class(self$class(), new_cls)
       )
       private$.__isa <- new_cls$robjc_isa
+      class(self) <- vapply(
+        robjc_inheritChain(private$.__isa),
+        function(klass) klass$classname,
+        character(1)
+      )
       invisible(self)
     }
   ),

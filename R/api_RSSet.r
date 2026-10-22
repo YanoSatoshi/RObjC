@@ -1,8 +1,11 @@
 #' @include RSSet.r
 #' @title RSSet and RSMutableSet Convenience Constructors
-#' @description Construct sets from RObjC objects, an array, or an existing set.
-#' @param object An RObjC object.
-#' @param objects A list of RObjC objects.
+#' @description Construct sets from RObjC objects, class or protocol generators,
+#'   an array, or an existing set.
+#'   `NULL` elements are stored as [RSNull].
+#' @param object An RObjC object, class generator, protocol generator, or `NULL`.
+#' @param objects A list of RObjC objects, class generators, protocol generators,
+#'   or `NULL` elements.
 #' @param array An `RSArray` or `RSMutableArray` instance.
 #' @param set An `RSSet` or `RSMutableSet` instance.
 #' @return A set of the type named by the function, except that copying an
@@ -11,8 +14,13 @@
 NULL
 
 .rs_api_set_objects <- function(objects) {
-  if (!is.list(objects) || !all(vapply(objects, robjc_isRobjcObject, logical(1))))
-    stop("`objects` must be a list of RObjC objects.", call. = FALSE)
+  if (!is.list(objects) || !all(vapply(
+    objects,
+    function(object) is.null(object) || robjc_isRobjcObject(object) ||
+      robjc_isMetaClass(object),
+    logical(1)
+  )))
+    stop("`objects` must be a list of RObjC objects, classes, protocols, or NULL.", call. = FALSE)
   objects
 }
 

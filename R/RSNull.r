@@ -7,18 +7,20 @@
 #' It provides a uniform object-based null placeholder, similar to `NSNull` in Objective-C,
 #' and is designed to be used where scalar-wrapping behavior is required even for `NULL`.
 #'
-#' [RSScalarClass()] creates the shared instance when `RSNull` is declared.
+#' [RSSingletonClass()] creates the shared instance when `RSNull` is declared.
 #' Access it through `RSNull$null` (an alias of `RSNull$instance`).
 #'
 #' @section Methods:
 #' - `value()` – Always returns `NULL`
 #' - `hash()` – Always returns `0L`
-#' - `isEqual(other)` – Returns TRUE if `other` is of the same class
-#' - `lockVariables()` – Prevents structural modification
+#' - `isEqual(other)` – Returns TRUE only for the same instance
+#' - `compare(other)` – Returns `0L` for the same instance; other objects are incomparable
+#' - `nativeCompare(other)` – Uses the same singleton comparison rule
+#' - `description()` – Returns a printable description of the null singleton
 #' 
 #' @section Usage:
-#' Use `RSNull$null` to retrieve the shared instance. The current factory does
-#' not disable `$new()`, so constructing another instance is possible.
+#' Use `RSNull$null` to retrieve the shared instance. Direct calls to `$new()`
+#' after the shared instance has been created raise an error.
 #'
 #' @note
 #' The `RSNull$instance` and `RSNull$null` bindings are locked after creation.
@@ -29,13 +31,11 @@
 #' x$isEqual(RSNull$null)  # TRUE
 #'
 #' @export
-RSNull <- RSScalarClass(
+RSNull <- RSSingletonClass(
   "RSNull",
-  version = "0.0.2 alpha",
   super_class = RSScalar,
-  is_na_class = NA,
-  singleton = TRUE,
-  public = list(
+  version     = "0.0.4 alpha",
+  public      = list(
     #' @description
     #' Initializes an `RSNull` instance. The factory invokes it to create the
     #' shared instance; use `RSNull$null` to retrieve that instance.
@@ -44,6 +44,11 @@ RSNull <- RSScalarClass(
     #'
     #' @return The initialized `RSNull` instance (invisible).
     initialize = function() {
+      if (!is.null(self$class()$instance)) {
+        class_name <- self$class()$classname
+        stop(sprintf("Use `%s$null`. Do not call `%s$new()`.",
+                     class_name, class_name), call. = FALSE)
+      }
       super$initialize(0L)
       private$.val <- NULL
       invisible(self)
@@ -51,25 +56,58 @@ RSNull <- RSScalarClass(
 
 
 
+    #' @description Compare the singleton with itself.
+    #' @param other An object to compare with.
+    #' @param na.last Whether missing values sort last. Coerced to one
+    #'   nonmissing logical value, for consistency with `RSScalar$compare()`.
+    #' @return `0L` for the shared `RSNull` instance. Other objects are
+    #'   incomparable and cause an error.
+    compare = function(other, na.last = TRUE) {
+      na.last <- tryCatch(as.logical(na.last), error = function(e) NA)
+      if (!is.logical(na.last) || length(na.last) != 1L || is.na(na.last))
+        stop("`na.last` must be TRUE or FALSE.", call. = FALSE)
+      if (!identical(self, other))
+        stop("Null objects are not comparable.", call. = FALSE)
+      0L
+    },
+
+
+
+    #' @description Compare the null singleton using the same rule as `compare()`.
+    #' @param other An object to compare with.
+    #' @param na.last Whether missing values sort last.
+    #' @return `0L` for the shared `RSNull` instance; otherwise an error.
+    nativeCompare = function(other, na.last = TRUE) {
+      self$compare(other, na.last = na.last)
+    },
+
+
+
+    #' @description Return a one-line description of the null singleton.
+    #' @return A character scalar containing the class name, pointer, and `NULL`.
+    description = function() {
+      sprintf("<%s %s> NULL", self$class()$classname, get_pointer_hex(self))
+    },
+
+
+
     #' @description
-    #' Determines whether another object is also an instance of the `RSNull` class.
-    #' This method checks for membership in the same class rather than strict identity.
+    #' Determines whether another object is identical to self: `RSNull` singleton.
     #'
     #' @param other Another object to compare against.
     #' @return `TRUE` if `other` is also an `RSNull` instance; otherwise `FALSE`.
-    isEqual = function(other) {
-      self$isMemberOf(other$class())
-    },
+    isEqual = function(other) identical(self, other),
 
 
 
     #' @description
     #' Returns a fixed integer hash value (`0L`) for all `RSNull` instances.
     #' Since `RSNull` is a singleton and always represents the same conceptual null value,
-    #' a constant hash ensures consistent behavior in hashed collections.
+    #' a constant hash ensures consistent behavior in hashed collections. The
+    #' final `0L` also passes through [normalize_hash()].
     #'
     #' @return Integer scalar `0L`.
-    hash  = function() 0L,
+    hash    = function() normalize_hash(0L),
 
 
 
@@ -77,19 +115,10 @@ RSNull <- RSScalarClass(
     #' Returns the internal null value (`NULL`) wrapped by the `RSNull` instance.
     #'
     #' @return `NULL`.
-    value = function() NULL,
-
-
-    #' @description
-    #' Locks all current public bindings in the `RSNull` instance, making them read-only.
-    #' This prevents accidental mutation of the singleton after creation.
-    #'
-    #' @return Called for side effect. Returns `NULL` (invisible).
-    lockVariables = function() {
-      for (name in ls(self, all.names = TRUE)) lockBinding(name, self)
-      lockEnvironment(as.environment(self), bindings = TRUE)
-    }
+    value = function() NULL
   )
 )
 RSNull$null <- RSNull$instance
+RSNull$is_na_class <- NA
 lockBinding("null", RSNull)
+lockBinding("is_na_class", RSNull)

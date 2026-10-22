@@ -1,178 +1,206 @@
-#' @include api_setup.r
-#' @title RSScalar: Abstract Scalar Wrapper Base Class
+#' @include RSComparable.r
+#' @title Scalar Base Class for the Paired-Class API
 #'
 #' @description
-#' `RSScalar` is the abstract base class for scalar wrappers in the RS framework,
-#' designed to emulate Objective-C's value object philosophy.
-#' It provides standard scalar behavior such as comparison, equality, hashing, and internal value access,
-#' and acts as a foundation for types like `RSNumber`, `RSString`, `RSDate`, etc.
+#' `RSScalar` is an abstract base class that provides comparison, equality,
+#' hashing, and value access for
+#' scalar wrappers created by [RSScalarClass()]. It validates a scalar before
+#' storing it in private `.val`. Generated NA subclasses receive `na_value`
+#' through their initializer.
 #'
-#' Declare subclasses with [RSScalarClass()], which sets and locks the class-level
-#' `isNAClass` flag. It distinguishes regular values from NA-wrapper variants
-#' (e.g., `RSNumber` and `RSNANumber`).
-#' The constructor enforces length-1 scalar input and prohibits NA unless allowed by the subclass.
+#' @details
+#' A regular subclass may define `initialize(val)` to validate its value type
+#' and call `super$initialize(val)`. The factory supplies `na_value` when it
+#' constructs the NA subclass's shared instance. Type-specific validation must
+#' allow that missing value when `self$class()$isNAClass` is `TRUE`.
+#' Singleton NA companions reject direct construction; use the corresponding
+#' class's `$na` instance. A non-singleton NA companion accepts only an `NA`
+#' value when constructed directly. `NaN` remains a regular scalar value.
 #'
-#' @section Public Methods:
-#' - `initialize(val)` – Validates and stores a scalar value.
-#' - `compare(other, na.last = TRUE)` – Compares this scalar with another.
-#' - `isEqual(other)` – Returns TRUE if both values are equal.
-#' - `hash()` – Returns a numeric hash for the scalar value.
-#' - `value()` – Returns the raw wrapped value.
-#' - `description()` – Human-readable description string.
-#'
-#' @section Usage:
-#' Use \code{RSScalar_withValue(val)} as a convenience constructor.
-#' It automatically routes to the appropriate RS*** subclass based on the type of \code{val}.
-#'
-#' @note
-#' Subclasses must call `super$initialize(val)` after setting their own fields.
-#' A companion `RSNA*` class should be provided for representing NA values safely.
-#'
-#' @examples
-#' num <- RSNumber_withValue(42)
-#' str <- RSString_withValue("hello")
-#' num$compare(RSNumber_withValue(100))  # returns -1
+#' @return The `RSScalar` class generator.
 #'
 #' @export
 RSScalar <- RSObjectClass(
   "RSScalar",
-  version = "0.0.2 alpha",
+  version     = "0.0.4 alpha",
   super_class = RSObject,
-  public = list(
+  protocols   = list(RSComparable),
+  public      = list(
 
-    #' @description
-    #' Initializes an `RSScalar` instance by validating and storing a single scalar value.
-    #' This constructor enforces that the input value has a length of exactly 1, and
-    #' verifies whether NA values are allowed based on the class's `isNAClass` flag.
-    #'
-    #' For inheriting classes (e.g., `RSNumber`, `RSString`), set `is_na_class`
-    #' when calling [RSScalarClass()]. Use `FALSE` for regular scalar classes and
-    #' `TRUE` for their NA counterparts. If a class does not allow NA values
-    #' but receives one, the constructor will raise an informative error suggesting the
-    #' appropriate NA class.
-    #'
-    #' Inheriting classes should override this method to add type-specific input validation,
-    #' while still calling `super$initialize(val)` for scalar enforcement.
-    #' 
-    #' @param val Wrapping value
+    #' @description Validate and store one scalar value. NA companion classes
+    #'   accept only `NA`, not `NaN` or a nonmissing value.
+    #' @param val An atomic scalar or a scalar `POSIXlt` value. `NA` is accepted
+    #'   only in a generated NA subclass; `NaN` remains a regular scalar value.
+    #'   Values with a `dim` attribute are rejected.
+    #' @return The initialized instance, invisibly.
     initialize = function(val) {
+      if (self$isMemberOf(RSScalar))
+        stop(
+          "RSScalar is abstract and cannot be instantiated directly.",
+          call. = FALSE
+        )
       super$initialize()
-      ## CHECK LENGTH ARG.
-      ## IF NOT 1, THEN
-      if (length(val) != 1L)
-        stop(
-          sprintf("%s can only accept length 1L vector.", self$class()$classname)
-        )
-      called_as_scalar_or_na <-
-        self$isMemberOf(RSScalar) || !is.null(self$class()$isNAClass)
-      if (!called_as_scalar_or_na)
-        stop(
-          sprintf("%s$initialize() is not implemented", self$class()$classname)
-        )
-      # IN INHERITING, CLASS DO AS FOLLOWS
-      #   SomeClass <- RSScalarClass("SomeClass", is_na_class = FALSE, ...)
-      #   RSNASomeClass <- RSScalarClass("RSNASomeClass", is_na_class = TRUE, ...)
-      #   # additonary option
-      #   SomeClass$***With <- function(val) {
-      #     if (is.na(val)) return(RSNA***$new())
-      #     return(RS***$new(val))
-      #   }
-      if (is.na(val) && !self$class()$isNAClass)
-        stop(
-          sprintf("use %s for NA.", sub("RS", "RSNA", self$class()$classname))
-        )
-      ## SET VAL
-      private$.val <- val
-      cls <- self$class()
-      if (is.null(cls$.hash_operator)) cls$.hash_operator <- RSHashOperator$instance
-      invisible(self)
-      ## IN INHERITING CLASS, DO AS FOLLOWS
-      # initialize = functin(val) {
-      #   if (!inherits(val, 'some R class name')) stop("val must be of class some_class_name") 
-      #   super$initialize(val)  
-      #   invisible(self)  
-      # }
-      ## END
-    },
-
-    #' @description
-    #' Compares the scalar value with another RSScalar-derived object.
-    #' Returns -1, 0, or 1 depending on comparison order.
-    #' @param other Another RSScalar object.
-    #' @param na.last Logical; whether NA should be treated as highest or lowest.
-    #' @return Integer: -1 if less than, 0 if equal, 1 if greater than.
-    compare = function(other, na.last = TRUE) {
-      if (!private$.comparable(other)) {
-        stop(sprintf(
-          "Abort trying to compare %s and %s",
-          self$class()$classname, other$class()$classname
-        ))
+      if ((!is.atomic(val) && !inherits(val, "POSIXlt")) ||
+          length(val) != 1L || !is.null(dim(val)))
+        stop("`val` must be a scalar.", call. = FALSE)
+      if (isTRUE(self$class()$isNAClass) &&
+          !(isTRUE(is.na(val)) && !isTRUE(is.nan(val)))) {
+        stop("NA companion classes require an NA value.", call. = FALSE)
       }
-      na_val <- if (na.last) .Machine$double.xmax else .Machine$double.xmin
-      # if do xtfrm(NULL), it returns NA
-      vec  <- xtfrm(c(self$value(), other$value()))
-      val1 <- if (is.na(vec[1])) na_val else vec[1]
-      val2 <- if (is.na(vec[2])) na_val else vec[2]
-      return(sign(val1 - val2))
+      #! DO NOT REMOVE
+      #  RSScalarClass creates the NA companion with isNAClass = TRUE, so its
+      #  initializer must accept NA. This branch is still needed when a caller
+      #  passes NA to the regular class's $new();
+      if (isTRUE(is.na(val)) &&
+          !isTRUE(is.nan(val)) &&
+          !isTRUE(self$class()$isNAClass) &&
+          !identical(self$class(), RSFactor)) {
+        na_slot <- self$class()$robjc_isa$slot
+        if (robjc_isRobjcObject(na_slot)) {
+          na_class <- na_slot$class()$classname
+          stop(
+            sprintf(
+              "Use %s (via %s$na) for a missing value.",
+              na_class, self$class()$classname
+            ),
+            call. = FALSE
+          )
+        }
+        stop("This scalar class has no NA companion.", call. = FALSE)
+      }
+      private$.val <- val
+      invisible(self)
     },
 
-    #' @description
-    #' Returns a concise textual representation of the scalar object.
-    #' The output includes the class name, a hexadecimal pointer string identifying the instance,
-    #' and the scalar value it wraps. This is primarily used for debugging or printing
-    #' informative summaries of scalar objects.
+
+
+    #' @description Compare this scalar with another scalar in the same class
+    #'   family using base R's sorting order. Missing values (including `NaN`)
+    #'   are tied and placed according to `na.last`.
+    #' @param other Another `RSScalar` instance in the same class family.
+    #' @param na.last Whether a missing value sorts after nonmissing values.
+    #'   Coerced with `as.logical()`; the result must be one nonmissing value.
+    #' @return `-1L`, `0L`, or `1L`.
+    compare = function(other, na.last = TRUE) {
+      na.last <- tryCatch(as.logical(na.last), error = function(e) NA)
+      if (!is.logical(na.last) || length(na.last) != 1L || is.na(na.last))
+        stop("`na.last` must be TRUE or FALSE.", call. = FALSE)
+      if (!private$.comparable(other))
+        stop("Scalar classes are not comparable.", call. = FALSE)
+      self_na <- isTRUE(is.na(self$value()))
+      other_na <- isTRUE(is.na(other$value()))
+      if (self_na && other_na) return(0L)
+      if (self_na) return(if (na.last) 1L else -1L)
+      if (other_na) return(if (na.last) -1L else 1L)
+      values <- xtfrm(c(self$nativeValue(), other$nativeValue()))
+      if (values[[1L]] < values[[2L]]) return(-1L)
+      if (values[[1L]] > values[[2L]]) return(1L)
+      0L
+    },
+
+
+
+    #' @description Give a concise description of the wrapped value.
+    #' @return A character scalar.
     description = function() {
       sprintf(
         "<%s %s> %s",
-        self$class()$classname, get_pointer_hex(self),
-        as.character(private$.val)
+        self$class()$classname,
+        get_pointer_hex(self), as.character(private$.val)
       )
     },
 
-    #' @description
-    #' Checks whether two scalar objects are equal.
-    #' @param other Another RSScalar object.
-    #' @return TRUE if values are considered equal; otherwise FALSE.
-    isEqual = function(other) self$compare(other) == 0L,
 
-    #' @description
-    #' Returns a numeric hash of the wrapped scalar value.
-    #' @return An integer suitable for use in hashing-based structures (e.g., sets, dictionaries).
-    hash = function() self$class()$.hash_operator$hashForScalar(private$.val),
 
-    #' @description
-    #' Returns the underlying R scalar value stored in the object.
-    #' @return A scalar value (numeric, character, logical, etc.).
+    #' @description Check key equality for compatible scalars. `NA` equals `NA`
+    #'   and `NaN` equals an identical `NaN` value so they can be used as keys.
+    #' @param other An object to compare.
+    #' @return `TRUE` when the values compare equal; `FALSE` for incompatible objects.
+    isEqual = function(other) {
+      if (!private$.comparable(other))
+        return(FALSE)
+      self_nan  <- isTRUE(is.nan(self$value()))
+      other_nan <- isTRUE(is.nan(other$value()))
+      if (self_nan || other_nan)
+        return(self_nan && other_nan && identical(self$value(), other$value()))
+      self_na   <- isTRUE(is.na(self$value()))
+      other_na  <- isTRUE(is.na(other$value()))
+      if (self_na || other_na)
+        return(isTRUE(self_na && other_na))
+      isTRUE(self$value() == other$value())
+    },
+
+
+
+    #' @description Return the original native R value. This can differ from
+    #'   `value()`, which returns the scalar's object-level value.
+    #' @return The native R scalar.
+    nativeValue = function() self$value(),
+
+
+
+    #' @description Compare native R values with base R's equality and ordering
+    #'   rules. Unlike `compare()`, this permits different scalar classes when
+    #'   base R can compare their values. Missing values (including `NaN`) are
+    #'   tied and placed according to `na.last`.
+    #' @param other Another `RSScalar` instance.
+    #' @param na.last Whether a missing value sorts after nonmissing values.
+    #'   Coerced with `as.logical()`; the result must be one nonmissing value.
+    #' @return `-1L`, `0L`, or `1L`. An error is raised when base R has no
+    #'   ordering for unequal values.
+    nativeCompare = function(other, na.last = TRUE) {
+      na.last <- tryCatch(as.logical(na.last), error = function(e) NA)
+      if (!is.logical(na.last) || length(na.last) != 1L || is.na(na.last))
+        stop("`na.last` must be TRUE or FALSE.", call. = FALSE)
+      if (!robjc_isRobjcObject(other) || !other$isKindOf(RSScalar))
+        stop("`other` must be an RSScalar object.", call. = FALSE)
+      left <- self$nativeValue()
+      right <- other$nativeValue()
+      if (is.null(left) || is.null(right))
+        stop("Null objects are not comparable.", call. = FALSE)
+      left_na <- isTRUE(is.na(left))
+      right_na <- isTRUE(is.na(right))
+      if (left_na && right_na) return(0L)
+      if (left_na) return(if (na.last) 1L else -1L)
+      if (right_na) return(if (na.last) -1L else 1L)
+      if (isTRUE(left == right)) return(0L)
+      less <- left < right
+      if (isTRUE(less)) return(-1L)
+      if (length(less) != 1L || is.na(less))
+        stop("Native values have no ordering.", call. = FALSE)
+      greater <- left > right
+      if (isTRUE(greater)) return(1L)
+      stop("Native values have no ordering.", call. = FALSE)
+    },
+
+
+
+    #' @description Hash the wrapped scalar. `NA` and `NaN` hash to `0L`.
+    #' The result passes through [normalize_hash()].
+    #' @return One non-missing integer hash code.
+    hash = function() {
+      hash_code <- if (isTRUE(is.na(private$.val))) 0L else
+        RSHashOperator$instance$hashForScalar(private$.val)
+      normalize_hash(hash_code)
+    },
+
+
+
+    #' @description Return the stored R scalar.
+    #' @return The wrapped value.
     value = function() private$.val
   ),
-
   private = list(
-    # @field .val
-    # (Private) Stores the underlying scalar value.
-    # Assigned during initialization; accessed via `value()`.
     .val = NULL,
-
-    # @description
-    # (Private) Determines if this object and another scalar are comparable,
-    # considering both class and NA-type alignment.
-    # - If one is an NA wrapper and the other is not, uses inheritance checks.
-    # - If both are of the same type (either NA or non-NA), uses strict `isMemberOf`.
-    # @param other An RSScalar-derived object.
-    # @return TRUE if comparable; otherwise FALSE.
     .comparable = function(other) {
-      if (xor(self$class()$isNAClass, other$class()$isNAClass)) {
-        # self or other is kind of NAClass
-        if (length(class(self)) < length(class(other))) {
-          return(other$isKindOf(self$class()))
-        } else {
-          return(self$isKindOf(other$class()))
-        }
-      } else {
-        # both self and other are NAClasses or Not-NAClasses
-        return(self$isMemberOf(other$class()))
-      }
+      robjc_isRobjcObject(other) && other$isKindOf(RSScalar) &&
+        (self$isKindOf(other$class()) || other$isKindOf(self$class()))
     }
   )
 )
-RSScalar$isNAClass = NULL
+
+
+
+# The base class itself is neither a regular wrapper nor an NA companion.
+RSScalar$isNAClass <- NULL
 lockBinding("isNAClass", RSScalar)

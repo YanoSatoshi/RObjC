@@ -29,6 +29,7 @@ wrappers.
 \item \code{remove(key)} removes a key and reports whether it existed.
 \item \code{clear()} removes every entry.
 \item \code{keys()} and \code{values()} return the stored objects as lists.
+\item \code{entries()} returns corresponding key-value pairs as two-element lists.
 \item \code{count()} returns the number of entries.
 \item \code{contentHash()} returns an order-independent aggregate hash of the keys.
 \item \code{prepareForSerialization()} captures a temporary R snapshot used only to
@@ -39,210 +40,249 @@ rebuild the native table after deserialization.
 \keyword{internal}
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-RSConcreteDictionary-new}{\code{RSConcreteDictionary$new()}}
-\item \href{#method-RSConcreteDictionary-duplicate}{\code{RSConcreteDictionary$duplicate()}}
-\item \href{#method-RSConcreteDictionary-set}{\code{RSConcreteDictionary$set()}}
-\item \href{#method-RSConcreteDictionary-get}{\code{RSConcreteDictionary$get()}}
-\item \href{#method-RSConcreteDictionary-contains}{\code{RSConcreteDictionary$contains()}}
-\item \href{#method-RSConcreteDictionary-remove}{\code{RSConcreteDictionary$remove()}}
-\item \href{#method-RSConcreteDictionary-clear}{\code{RSConcreteDictionary$clear()}}
-\item \href{#method-RSConcreteDictionary-keys}{\code{RSConcreteDictionary$keys()}}
-\item \href{#method-RSConcreteDictionary-values}{\code{RSConcreteDictionary$values()}}
-\item \href{#method-RSConcreteDictionary-count}{\code{RSConcreteDictionary$count()}}
-\item \href{#method-RSConcreteDictionary-contentHash}{\code{RSConcreteDictionary$contentHash()}}
-\item \href{#method-RSConcreteDictionary-prepareForSerialization}{\code{RSConcreteDictionary$prepareForSerialization()}}
-}
+  \itemize{
+    \item \href{#method-RSConcreteDictionary-initialize}{\code{RSConcreteDictionary$new()}}
+    \item \href{#method-RSConcreteDictionary-duplicate}{\code{RSConcreteDictionary$duplicate()}}
+    \item \href{#method-RSConcreteDictionary-set}{\code{RSConcreteDictionary$set()}}
+    \item \href{#method-RSConcreteDictionary-get}{\code{RSConcreteDictionary$get()}}
+    \item \href{#method-RSConcreteDictionary-contains}{\code{RSConcreteDictionary$contains()}}
+    \item \href{#method-RSConcreteDictionary-remove}{\code{RSConcreteDictionary$remove()}}
+    \item \href{#method-RSConcreteDictionary-clear}{\code{RSConcreteDictionary$clear()}}
+    \item \href{#method-RSConcreteDictionary-keys}{\code{RSConcreteDictionary$keys()}}
+    \item \href{#method-RSConcreteDictionary-values}{\code{RSConcreteDictionary$values()}}
+    \item \href{#method-RSConcreteDictionary-entries}{\code{RSConcreteDictionary$entries()}}
+    \item \href{#method-RSConcreteDictionary-count}{\code{RSConcreteDictionary$count()}}
+    \item \href{#method-RSConcreteDictionary-contentHash}{\code{RSConcreteDictionary$contentHash()}}
+    \item \href{#method-RSConcreteDictionary-prepareForSerialization}{\code{RSConcreteDictionary$prepareForSerialization()}}
+  }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSConcreteDictionary-new"></a>}}
-\if{latex}{\out{\hypertarget{method-RSConcreteDictionary-new}{}}}
-\subsection{Method \code{new()}}{
-Creates empty native storage or adopts an internal pointer.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteDictionary$new(.native_ptr = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-RSConcreteDictionary-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-RSConcreteDictionary-initialize}{}}}
+\subsection{\code{RSConcreteDictionary$new()}}{
+  Creates empty native storage or adopts an internal pointer.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteDictionary$new(.native_ptr = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{.native_ptr}}{Internal external pointer returned by the native
+dictionary bridge. Package code should normally leave this as \code{NULL}.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{.native_ptr}}{Internal external pointer returned by the native
-dictionary bridge. Package code should normally leave this as \code{NULL}.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteDictionary-duplicate"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteDictionary-duplicate}{}}}
-\subsection{Method \code{duplicate()}}{
-Creates an independent shallow copy of the storage.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteDictionary$duplicate()}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteDictionary$duplicate()}}{
+  Creates an independent shallow copy of the storage.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteDictionary$duplicate()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \code{RSConcreteDictionary} instance.
+  }
 }
 
-\subsection{Returns}{
-A new \code{RSConcreteDictionary} instance.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteDictionary-set"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteDictionary-set}{}}}
-\subsection{Method \code{set()}}{
-Inserts or replaces a value for a key.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteDictionary$set(key, value)}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteDictionary$set()}}{
+  Inserts or replaces a value for a key.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteDictionary$set(key, value)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{key}}{Hashable RObjC object or Class/Protocol generator key.}
+      \item{\code{value}}{Object to store.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{key}}{Hashable RObjC key.}
-
-\item{\code{value}}{Object to store.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{self}, invisibly.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteDictionary-get"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteDictionary-get}{}}}
-\subsection{Method \code{get()}}{
-Returns the value associated with a key.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteDictionary$get(key)}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteDictionary$get()}}{
+  Returns the value associated with a key.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteDictionary$get(key)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{key}}{Hashable RObjC object or Class/Protocol generator key.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The stored value, or \code{NULL} when the key is absent.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{key}}{Hashable RObjC key.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The stored value, or \code{NULL} when the key is absent.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteDictionary-contains"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteDictionary-contains}{}}}
-\subsection{Method \code{contains()}}{
-Tests whether the storage contains a key.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteDictionary$contains(key)}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteDictionary$contains()}}{
+  Tests whether the storage contains a key.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteDictionary$contains(key)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{key}}{Hashable RObjC object or Class/Protocol generator key.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A logical scalar.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{key}}{Hashable RObjC key.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A logical scalar.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteDictionary-remove"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteDictionary-remove}{}}}
-\subsection{Method \code{remove()}}{
-Removes the entry associated with a key.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteDictionary$remove(key)}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteDictionary$remove()}}{
+  Removes the entry associated with a key.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteDictionary$remove(key)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{key}}{Hashable RObjC object or Class/Protocol generator key.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} if an entry was removed; otherwise \code{FALSE}.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{key}}{Hashable RObjC key.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\code{TRUE} if an entry was removed; otherwise \code{FALSE}.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteDictionary-clear"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteDictionary-clear}{}}}
-\subsection{Method \code{clear()}}{
-Removes every entry.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteDictionary$clear()}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteDictionary$clear()}}{
+  Removes every entry.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteDictionary$clear()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
 }
 
-\subsection{Returns}{
-\code{self}, invisibly.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteDictionary-keys"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteDictionary-keys}{}}}
-\subsection{Method \code{keys()}}{
-Returns all stored keys.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteDictionary$keys()}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteDictionary$keys()}}{
+  Returns all stored keys.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteDictionary$keys()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of keys in unspecified order.
+  }
 }
 
-\subsection{Returns}{
-A list of keys in unspecified order.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteDictionary-values"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteDictionary-values}{}}}
-\subsection{Method \code{values()}}{
-Returns all stored values.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteDictionary$values()}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteDictionary$values()}}{
+  Returns all stored values.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteDictionary$values()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of values corresponding to \code{keys()} when unmodified.
+  }
 }
 
-\subsection{Returns}{
-A list of values corresponding to \code{keys()} when unmodified.
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSConcreteDictionary-entries"></a>}}
+\if{latex}{\out{\hypertarget{method-RSConcreteDictionary-entries}{}}}
+\subsection{\code{RSConcreteDictionary$entries()}}{
+  Returns corresponding stored keys and values together.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteDictionary$entries()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of two-element lists, each containing a key and its value.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteDictionary-count"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteDictionary-count}{}}}
-\subsection{Method \code{count()}}{
-Returns the number of entries.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteDictionary$count()}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteDictionary$count()}}{
+  Returns the number of entries.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteDictionary$count()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A non-negative numeric scalar.
+  }
 }
 
-\subsection{Returns}{
-A non-negative numeric scalar.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteDictionary-contentHash"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteDictionary-contentHash}{}}}
-\subsection{Method \code{contentHash()}}{
-Computes an order-independent aggregate hash of the keys.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteDictionary$contentHash()}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteDictionary$contentHash()}}{
+  Computes an order-independent aggregate hash of the keys.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteDictionary$contentHash()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An integer hash value.
+  }
 }
 
-\subsection{Returns}{
-An integer hash value.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSConcreteDictionary-prepareForSerialization"></a>}}
 \if{latex}{\out{\hypertarget{method-RSConcreteDictionary-prepareForSerialization}{}}}
-\subsection{Method \code{prepareForSerialization()}}{
-Captures data needed to rebuild storage after serialization.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSConcreteDictionary$prepareForSerialization()}\if{html}{\out{</div>}}
+\subsection{\code{RSConcreteDictionary$prepareForSerialization()}}{
+  Captures data needed to rebuild storage after serialization.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSConcreteDictionary$prepareForSerialization()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
 }
 
-\subsection{Returns}{
-\code{self}, invisibly.
-}
-}
 }

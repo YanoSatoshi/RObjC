@@ -35,9 +35,10 @@ RSMutableSet_withArray(array)
 RSMutableSet_withSet(set)
 }
 \arguments{
-\item{object}{An RObjC object.}
+\item{object}{An RObjC object, class generator, protocol generator, or \code{NULL}.}
 
-\item{objects}{A list of RObjC objects.}
+\item{objects}{A list of RObjC objects, class generators, protocol generators,
+or \code{NULL} elements.}
 
 \item{array}{An \code{RSArray} or \code{RSMutableArray} instance.}
 
@@ -48,5 +49,7 @@ A set of the type named by the function, except that copying an
 immutable set may return that same instance.
 }
 \description{
-Construct sets from RObjC objects, an array, or an existing set.
+Construct sets from RObjC objects, class or protocol generators,
+an array, or an existing set.
+\code{NULL} elements are stored as \link{RSNull}.
 }
