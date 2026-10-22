@@ -10,7 +10,7 @@
 #' @export
 RSComplex <- RSScalarClass(
   "RSComplex",
-  version = "0.0.3 alpha",
+  version = "0.0.4 alpha",
   super_class = RSScalar,
   na_value = NA_complex_,
   public = list(

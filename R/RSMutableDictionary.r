@@ -32,7 +32,7 @@
 #' @export
 RSMutableDictionary <- RSObjectClass(
   "RSMutableDictionary",
-  version = "0.0.3 alpha",
+  version = "0.0.4 alpha",
   super_class = RSObject,
   protocols   = list(RSMutableCopying, RSCopying),
   private = list(
@@ -300,8 +300,9 @@ RSMutableDictionary <- RSObjectClass(
     },
 
     #' @description Computes an order-independent hash from the dictionary keys.
-    #' @return An integer hash value.
-    hash = function() private$.storage$contentHash(),
+    #' The final result passes through [normalize_hash()].
+    #' @return One non-missing integer hash value.
+    hash = function() normalize_hash(private$.storage$contentHash()),
 
     #' @description Compares two dictionaries by keys and values.
     #' @param other Another dictionary.

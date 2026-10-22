@@ -75,3 +75,20 @@ get_pointer_hex <- function(some_obj, obj_name = NULL) {
   }
   return(hex_match)
 }
+
+
+
+
+
+#' @title Normalize a Hash Code
+#' @description Replace a missing hash code with `0L`. Call this on the
+#'   final result of a custom `hash()` method so it never returns R's
+#'   `NA_integer_` bit pattern. Equal objects must still produce equal hashes.
+#' @param hash_code One integer hash code, possibly `NA_integer_`.
+#' @return `0L` for a missing hash code; otherwise `hash_code` unchanged.
+#' @examples
+#' normalize_hash(NA_integer_)
+#' normalize_hash(42L)
+#' @seealso [RSObject]
+#' @export
+normalize_hash <- function(hash_code) if (is.na(hash_code)) 0L else hash_code

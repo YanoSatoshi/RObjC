@@ -141,7 +141,8 @@ Rejects a missing hash returned by any object.
 \subsection{\code{RSHashOperator$hashFromObjects()}}{
   Computes a single aggregate hash value by XOR-ing the hashes of a list of objects.
 A missing component hash is rejected before aggregation.
-If the XOR result is R's \code{NA_integer_} bit pattern, returns \code{0L}.
+The result passes through \code{\link[=normalize_hash]{normalize_hash()}}, mapping R's
+\code{NA_integer_} bit pattern to \code{0L}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSHashOperator$hashFromObjects(objects)}

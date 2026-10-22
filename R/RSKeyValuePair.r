@@ -28,7 +28,7 @@
 #'
 RSKeyValuePair <- RSObjectClass(
   "RSKeyValuePair",
-  version = "0.0.3 alpha",
+  version = "0.0.4 alpha",
   super_class = RSObject,
   private     = list(
     .key    = NULL,
@@ -124,9 +124,10 @@ RSKeyValuePair <- RSObjectClass(
     #' @description
     #' Computes the hash code based on the key only.
     #' This allows the pair to behave correctly in hash-based containers.
+    #' The final result passes through [normalize_hash()].
     #'
-    #' @return An integer hash value derived from the key.
-    hash = function() private$.key$hash(),
+    #' @return One non-missing integer hash value derived from the key.
+    hash = function() normalize_hash(private$.key$hash()),
 
 
 

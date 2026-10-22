@@ -406,13 +406,14 @@ element references.
 \subsection{\code{RSMutableArray$hash()}}{
   Computes an aggregate hash for the array by combining the hash values of all contained elements.
 This supports dictionary keys; array ordering uses element comparisons.
+The final result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableArray$hash()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    An integer hash value.
+    One non-missing integer hash value.
   }
 }
 

@@ -21,6 +21,9 @@ Dictionary lookup uses a key's `hash()` and `isEqual()` methods. A different
 return R `NULL`; a stored `NULL` returns the `RSNull$null` object, so
 `containsKey()` can distinguish the two cases.
 
+A custom key class should return `normalize_hash(computed_hash)` from its
+`hash()` method so the final value cannot be `NA_integer_`.
+
 ```{r}
 library(robjc)
 

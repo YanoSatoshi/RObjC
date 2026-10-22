@@ -74,7 +74,10 @@ stopifnot(first$conformsTo(RSCopying))
 The base `isEqual()` compares object references: two objects with the same
 fields are still distinct. The base `hash()` derives an integer from the
 object's pointer, so subclasses that define value equality should also define
-a compatible value hash. `objectID()` returns a pointer string.
+a compatible value hash. A custom `hash()` must return one non-missing integer:
+pass its final computed value to `normalize_hash()` before returning it. This
+maps the `NA_integer_` bit pattern to `0L`; equal objects must still have the
+same hash. `objectID()` returns a pointer string.
 
 `description()` gives a compact class-and-pointer label; `print()` outputs that
 label, while `debugDescription()` includes public fields. The default `copy()`

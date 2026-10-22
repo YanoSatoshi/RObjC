@@ -27,7 +27,7 @@
 #' @export
 RSMutableSet <- RSObjectClass(
   "RSMutableSet",
-  version = "0.0.3 alpha",
+  version = "0.0.4 alpha",
   super_class = RSObject,
   protocols   = list(RSCopying, RSMutableCopying),
   private = list(
@@ -129,8 +129,9 @@ RSMutableSet <- RSObjectClass(
     },
 
     #' @description Computes an order-independent aggregate member hash.
-    #' @return An integer hash value.
-    hash = function() private$.storage$contentHash(),
+    #' The final result passes through [normalize_hash()].
+    #' @return One non-missing integer hash value.
+    hash = function() normalize_hash(private$.storage$contentHash()),
 
     #' @description Compares two sets by membership.
     #' @param other Another set.

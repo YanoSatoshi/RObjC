@@ -53,7 +53,7 @@ test_that("instances inherit protocol conformance from parent classes", {
 })
 
 test_that("RSSingletonClass creates and locks its shared instance", {
-  Shared <- RSSingletonClass("SharedWidget", version = "0.0.3 alpha")
+  Shared <- RSSingletonClass("SharedWidget", version = "0.0.4 alpha")
 
   expect_identical(Shared$instance$class(), Shared)
   expect_identical(Shared$instance, Shared$robjc_isa$slot)

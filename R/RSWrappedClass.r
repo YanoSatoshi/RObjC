@@ -45,7 +45,7 @@
 #' @export
 RSWrappedClass <- RSObjectClass(
   "RSWrappedClass",
-  version = "0.0.3 alpha",
+  version = "0.0.4 alpha",
   super_class = RSObject,
   public = list(
 
@@ -113,9 +113,9 @@ RSWrappedClass <- RSObjectClass(
 
 
 
-    #' @description Hash the class identifier.
-    #' @return The class ID's integer hash.
-    hash = function() self$classID()$hash(),
+    #' @description Hash the class identifier and normalize the result.
+    #' @return One non-missing integer hash.
+    hash = function() normalize_hash(self$classID()$hash()),
 
 
 

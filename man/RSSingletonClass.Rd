@@ -49,7 +49,7 @@ then locks the instance binding and class metadata.
 
 \examples{
 ExampleSingleton <- RSSingletonClass("ExampleSingleton",
-  version = "0.0.3 alpha")
+  version = "0.0.4 alpha")
 ExampleSingleton$instance$class()$classname
 
 }

@@ -52,8 +52,8 @@ address of the instance's \code{print} method.
 \itemize{
 \item The hash method uses part of the object's environment address to produce
 an integer hash. Different objects can have the same hash.
-\item If the address bits would produce R's \code{NA_integer_} bit pattern, \code{hash()}
-returns \code{0L} so every object has a non-missing integer hash.
+\item \code{hash()} applies \code{\link[=normalize_hash]{normalize_hash()}} to its final integer, mapping R's
+\code{NA_integer_} bit pattern to \code{0L}. Custom \code{hash()} methods should do the same.
 \item Class identity is preserved via explicit references, not via string-based comparisons.
 }
 }
@@ -332,7 +332,8 @@ protocol. This does not verify method implementations.
 \if{latex}{\out{\hypertarget{method-RSObject-hash}{}}}
 \subsection{\code{RSObject$hash()}}{
   Returns an integer hash derived from the environment address of this
-instance's \code{print} method. The \code{NA_integer_} bit pattern maps to \code{0L}.
+instance's \code{print} method. The result passes through \code{\link[=normalize_hash]{normalize_hash()}},
+so the \code{NA_integer_} bit pattern maps to \code{0L}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSObject$hash()}

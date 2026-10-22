@@ -512,13 +512,14 @@ RObjC object key and retaining a generator key by identity.
 \if{latex}{\out{\hypertarget{method-RSMutableDictionary-hash}{}}}
 \subsection{\code{RSMutableDictionary$hash()}}{
   Computes an order-independent hash from the dictionary keys.
+The final result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableDictionary$hash()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    An integer hash value.
+    One non-missing integer hash value.
   }
 }
 

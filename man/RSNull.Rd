@@ -180,7 +180,8 @@ incomparable and cause an error.
 \subsection{\code{RSNull$hash()}}{
   Returns a fixed integer hash value (\code{0L}) for all \code{RSNull} instances.
 Since \code{RSNull} is a singleton and always represents the same conceptual null value,
-a constant hash ensures consistent behavior in hashed collections.
+a constant hash ensures consistent behavior in hashed collections. The
+final \code{0L} also passes through \code{\link[=normalize_hash]{normalize_hash()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSNull$hash()}

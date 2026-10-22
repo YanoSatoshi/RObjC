@@ -153,7 +153,8 @@ RSMutableDataFrame <- RSObjectClass(
 
 #' @description
 #' Computes a hash based on the contents of the key columns and metadata such as row count and column names.
-#' @return Integer hash value.
+#' The final result passes through [normalize_hash()].
+#' @return One non-missing integer hash value.
     hash = function() {
       #! validation check V-030
       #todo 選択列を文字列連結する現 hash は、identical() による等価性と key_columns の意味を決めてから再設計する。
@@ -167,7 +168,7 @@ RSMutableDataFrame <- RSObjectClass(
       hash_basis <- paste(
         c(colnames(df), nrow(df), key_strings), collapse = "::"
       )
-      RSHashOperator$instance$computeHashCodeWithString(hash_basis)
+      normalize_hash(RSHashOperator$instance$computeHashCodeWithString(hash_basis))
     },
 
 

@@ -26,7 +26,7 @@
 #' Instances acquire that identity during [RSObject] initialization.
 #'
 #' @examples
-#' ExampleObject <- RSObjectClass("ExampleObject", version = "0.0.3 alpha")
+#' ExampleObject <- RSObjectClass("ExampleObject", version = "0.0.4 alpha")
 #' ExampleObject$new()$class()$classname
 #'
 #' @export

@@ -208,14 +208,14 @@ from the class name and version.
 \if{html}{\out{<a id="method-RSWrappedClass-hash"></a>}}
 \if{latex}{\out{\hypertarget{method-RSWrappedClass-hash}{}}}
 \subsection{\code{RSWrappedClass$hash()}}{
-  Hash the class identifier.
+  Hash the class identifier and normalize the result.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSWrappedClass$hash()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    The class ID's integer hash.
+    One non-missing integer hash.
   }
 }
 

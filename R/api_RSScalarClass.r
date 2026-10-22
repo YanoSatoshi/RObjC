@@ -133,7 +133,7 @@ rsscalar_make_na_class <- function(
   na_value,
   parent_env,
   protocols = list(),
-  version   = "0.0.3 alpha",
+  version   = "0.0.4 alpha",
   na_singleton = TRUE
 ) {
   r6generator <- do.call(

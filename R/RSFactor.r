@@ -30,7 +30,7 @@
 #' @export
 RSFactor <- RSScalarClass(
   "RSFactor",
-  version     = "0.0.3 alpha",
+  version     = "0.0.4 alpha",
   super_class = RSString,
   na_value    = factor(NA_character_),
   na_singleton = FALSE,

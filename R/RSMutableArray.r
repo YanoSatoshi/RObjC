@@ -38,7 +38,7 @@
 #' @export
 RSMutableArray <- RSObjectClass(
   "RSMutableArray",
-  version = "0.0.3 alpha",
+  version = "0.0.4 alpha",
   super_class = RSObject,
   protocols   = list(RSMutableCopying, RSCopying, RSComparable),
   private = list(
@@ -279,10 +279,11 @@ RSMutableArray <- RSObjectClass(
     #' @description
     #' Computes an aggregate hash for the array by combining the hash values of all contained elements.
     #' This supports dictionary keys; array ordering uses element comparisons.
+    #' The final result passes through [normalize_hash()].
     #'
-    #' @return An integer hash value.
+    #' @return One non-missing integer hash value.
     hash = function() {
-      self$hashOperator()$hashFromObjects(private$.storage)
+      normalize_hash(self$hashOperator()$hashFromObjects(private$.storage))
     },
 
 

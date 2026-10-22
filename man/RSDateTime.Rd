@@ -96,14 +96,14 @@ without an S3 subclass.}
 \subsection{\code{RSDateTime$hash()}}{
   Hashes the numeric Unix timestamp, including fractional seconds.
 This remains defined for dates outside the 32-bit integer range.
-Missing timestamps hash to \code{0L}.
+Missing timestamps hash to \code{0L}; the result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSDateTime$hash()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    An integer hash value.
+    One non-missing integer hash value.
   }
 }
 

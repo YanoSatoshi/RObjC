@@ -9,7 +9,7 @@
 #' @export
 RSMutableVector <- RSObjectClass(
   "RSMutableVector",
-  version     = "0.0.3 alpha",
+  version     = "0.0.4 alpha",
   super_class = RSObject,
   protocols   = list(RSMutableCopying, RSCopying, RSComparable),
   public      = list(
@@ -176,13 +176,14 @@ RSMutableVector <- RSObjectClass(
     #' @description
     #' Computes an aggregate hash by combining the hash values of all elements.
     #' This is used for fast comparison and dictionary key support.
-    #' If the XOR result is R's `NA_integer_` bit pattern, returns `0L`.
+    #' The result passes through [normalize_hash()], mapping R's
+    #' `NA_integer_` bit pattern to `0L`.
     #'
     #' @return One non-missing integer hash value.
     hash = function() {
       hashes <- self$hashesOfValues()
       hash_code <- Reduce(bitwXor, hashes, init = 0L)
-      if (is.na(hash_code)) 0L else hash_code
+      normalize_hash(hash_code)
     },
 
 

@@ -282,13 +282,14 @@ implied and the selected member may change after mutation.
 \if{latex}{\out{\hypertarget{method-RSMutableSet-hash}{}}}
 \subsection{\code{RSMutableSet$hash()}}{
   Computes an order-independent aggregate member hash.
+The final result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableSet$hash()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    An integer hash value.
+    One non-missing integer hash value.
   }
 }
 

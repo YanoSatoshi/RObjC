@@ -32,8 +32,8 @@
 #' @section Notes:
 #' - The hash method uses part of the object's environment address to produce
 #'   an integer hash. Different objects can have the same hash.
-#' - If the address bits would produce R's `NA_integer_` bit pattern, `hash()`
-#'   returns `0L` so every object has a non-missing integer hash.
+#' - `hash()` applies [normalize_hash()] to its final integer, mapping R's
+#'   `NA_integer_` bit pattern to `0L`. Custom `hash()` methods should do the same.
 #' - Class identity is preserved via explicit references, not via string-based comparisons.
 #'
 #' @examples
@@ -169,7 +169,8 @@ RSObject <- R6::R6Class(
 
     #' @description
     #' Returns an integer hash derived from the environment address of this
-    #' instance's `print` method. The `NA_integer_` bit pattern maps to `0L`.
+    #' instance's `print` method. The result passes through [normalize_hash()],
+    #' so the `NA_integer_` bit pattern maps to `0L`.
     #' @return One non-missing integer hash value.
     hash = function() {
       hex_str <- get_pointer_hex(self)
@@ -179,7 +180,7 @@ RSObject <- R6::R6Class(
       u3 <- strtoi(unit3, base = 16L)
       u4 <- strtoi(unit4, base = 16L)
       hash_code <- bitwOr(bitwShiftL(u3, 16L), u4)
-      if (is.na(hash_code)) 0L else hash_code
+      normalize_hash(hash_code)
     },
 
 

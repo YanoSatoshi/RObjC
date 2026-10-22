@@ -193,13 +193,14 @@ ordering for unequal values.
 \if{latex}{\out{\hypertarget{method-RSScalar-hash}{}}}
 \subsection{\code{RSScalar$hash()}}{
   Hash the wrapped scalar. \code{NA} and \code{NaN} hash to \code{0L}.
+The result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSScalar$hash()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    An integer hash code.
+    One non-missing integer hash code.
   }
 }
 

@@ -34,7 +34,7 @@
 RSNull <- RSSingletonClass(
   "RSNull",
   super_class = RSScalar,
-  version     = "0.0.3 alpha",
+  version     = "0.0.4 alpha",
   public      = list(
     #' @description
     #' Initializes an `RSNull` instance. The factory invokes it to create the
@@ -103,10 +103,11 @@ RSNull <- RSSingletonClass(
     #' @description
     #' Returns a fixed integer hash value (`0L`) for all `RSNull` instances.
     #' Since `RSNull` is a singleton and always represents the same conceptual null value,
-    #' a constant hash ensures consistent behavior in hashed collections.
+    #' a constant hash ensures consistent behavior in hashed collections. The
+    #' final `0L` also passes through [normalize_hash()].
     #'
     #' @return Integer scalar `0L`.
-    hash    = function() 0L,
+    hash    = function() normalize_hash(0L),
 
 
 

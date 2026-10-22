@@ -36,7 +36,7 @@ test_that("wrapped classes use class ID for equality and hash", {
   expect_true(first$isEqual(same))
   expect_identical(first$hash(), same$hash())
   expect_false(first$isEqual(different))
-  expect_false(first$isEqual("RSString_0.0.3 alpha"))
+  expect_false(first$isEqual("RSString_0.0.4 alpha"))
 
   first_class <- RSObjectClass("AuditSameID", version = "1.0")
   second_class <- RSObjectClass("AuditSameID", version = "1.0")

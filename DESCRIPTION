@@ -1,6 +1,6 @@
 Package: robjc
 Title: Objective-C Inspired OOP Framework for R using 'R6'
-Version: 0.0.3
+Version: 0.0.4
 Authors@R: 
     person("Satoshi", "Yano", , "yanosatoshi@gmail.com", role = c("aut", "cre"))
 Description: Provides a lightweight object-oriented programming framework in R,

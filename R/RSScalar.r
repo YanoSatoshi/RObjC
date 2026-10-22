@@ -22,7 +22,7 @@
 #' @export
 RSScalar <- RSObjectClass(
   "RSScalar",
-  version     = "0.0.3 alpha",
+  version     = "0.0.4 alpha",
   super_class = RSObject,
   protocols   = list(RSComparable),
   public      = list(
@@ -176,10 +176,12 @@ RSScalar <- RSObjectClass(
 
 
     #' @description Hash the wrapped scalar. `NA` and `NaN` hash to `0L`.
-    #' @return An integer hash code.
+    #' The result passes through [normalize_hash()].
+    #' @return One non-missing integer hash code.
     hash = function() {
-      if (isTRUE(is.na(private$.val))) return(0L)
-      RSHashOperator$instance$hashForScalar(private$.val)
+      hash_code <- if (isTRUE(is.na(private$.val))) 0L else
+        RSHashOperator$instance$hashForScalar(private$.val)
+      normalize_hash(hash_code)
     },
 
 

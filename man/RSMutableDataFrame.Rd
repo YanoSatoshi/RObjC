@@ -261,13 +261,14 @@ The comparison checks column names, row count, and full data equality including 
 \if{latex}{\out{\hypertarget{method-RSMutableDataFrame-hash}{}}}
 \subsection{\code{RSMutableDataFrame$hash()}}{
   Computes a hash based on the contents of the key columns and metadata such as row count and column names.
+The final result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableDataFrame$hash()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    Integer hash value.
+    One non-missing integer hash value.
   }
 }
 

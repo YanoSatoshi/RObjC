@@ -25,7 +25,7 @@
 #' @export
 RSDateTime <- RSScalarClass(
   "RSDateTime",
-  version     = "0.0.3 alpha",
+  version     = "0.0.4 alpha",
   super_class = RSScalar,
   na_value    = as.POSIXct(NA),
   public      = list(
@@ -58,12 +58,13 @@ RSDateTime <- RSScalarClass(
     #' @description
     #' Hashes the numeric Unix timestamp, including fractional seconds.
     #' This remains defined for dates outside the 32-bit integer range.
-    #' Missing timestamps hash to `0L`.
+    #' Missing timestamps hash to `0L`; the result passes through [normalize_hash()].
     #'
-    #' @return An integer hash value.
+    #' @return One non-missing integer hash value.
     hash = function() {
-      if (isTRUE(is.na(private$.val))) return(0L)
-      RSHashOperator$instance$hashForScalar(as.numeric(private$.val))
+      hash_code <- if (isTRUE(is.na(private$.val))) 0L else
+        RSHashOperator$instance$hashForScalar(as.numeric(private$.val))
+      normalize_hash(hash_code)
     }
   )
 )

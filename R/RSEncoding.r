@@ -22,7 +22,7 @@
 RSEncoding <- RSProtocolClass(
   "RSEncoding",
   contract_methods = c("objectsForEncoding", "resolveClassWith"),
-  version = "0.0.3 alpha"
+  version = "0.0.4 alpha"
 )
 
 
@@ -51,7 +51,7 @@ RSEncoding <- RSProtocolClass(
 RSEncoderProtocol <- RSProtocolClass(
   "RSEncoderProtocol",
   contract_methods = c("encodeObject", "lockInstance"),
-  version = "0.0.3 alpha"
+  version = "0.0.4 alpha"
 )
 
 
@@ -78,5 +78,5 @@ RSEncoderProtocol <- RSProtocolClass(
 RSDecoderProtocol <- RSProtocolClass(
   "RSDecoderProtocol",
   contract_methods = c("encodedClasses", "resolveClassesWithDictionary"),
-  version = "0.0.3 alpha"
+  version = "0.0.4 alpha"
 )

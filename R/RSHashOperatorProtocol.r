@@ -85,7 +85,8 @@
 #' `hashForScalar()` results as integers, while [RSMutableArray] documents
 #' `hashesOfEachObject()` as an integer vector and `hashFromObjects()` as one
 #' integer hash. When an array is stored as a dictionary key or set member,
-#' its `hash()` must return one nonmissing integer.
+#' its `hash()` must return one nonmissing integer. A custom `hash()` should
+#' return [normalize_hash()] applied to its final computed value.
 #' Modules implementing this protocol are used by scalar, array, set, and
 #' dictionary classes.
 #'
@@ -104,5 +105,5 @@ RSHashOperatorProtocol <- RSProtocolClass(
     "intersectionOfSets",
     "differenceOfSets"
   ),
-  version = "0.0.3 alpha"
+  version = "0.0.4 alpha"
 )

@@ -16,7 +16,7 @@
 #' @export
 RSVector <- RSObjectClass(
   "RSVector",
-  version = "0.0.3 alpha",
+  version = "0.0.4 alpha",
   super_class = RSMutableVector,
   protocols = list(RSCopying, RSMutableCopying),
   public = list(

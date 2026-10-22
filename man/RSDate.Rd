@@ -96,14 +96,14 @@ This method delegates scalar validation and storage to the superclass \code{RSSc
 \subsection{\code{RSDate$hash()}}{
   Computes an integer hash from the numeric day count of the internal \code{Date} value.
 This enables consistent use of \code{RSDate} objects in hashed containers such as sets or dictionaries.
-Missing dates hash to \code{0L}.
+Missing dates hash to \code{0L}; the result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSDate$hash()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    For \code{hash()}: An integer hash code.
+    For \code{hash()}: One non-missing integer hash code.
   }
 }
 

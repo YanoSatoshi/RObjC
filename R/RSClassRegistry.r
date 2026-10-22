@@ -29,7 +29,7 @@
 #' @keywords internal
 RSClassRegistry <- RSSingletonClass(
   "RSClassRegistry",
-  version = "0.0.3 alpha",
+  version = "0.0.4 alpha",
   super_class = RSObject,
   private = list(
     .class_dictionary = NULL

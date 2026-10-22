@@ -24,7 +24,8 @@ consumers impose additional requirements: \code{\link{RSMutableVector}} collects
 \code{hashForScalar()} results as integers, while \code{\link{RSMutableArray}} documents
 \code{hashesOfEachObject()} as an integer vector and \code{hashFromObjects()} as one
 integer hash. When an array is stored as a dictionary key or set member,
-its \code{hash()} must return one nonmissing integer.
+its \code{hash()} must return one nonmissing integer. A custom \code{hash()} should
+return \code{\link[=normalize_hash]{normalize_hash()}} applied to its final computed value.
 Modules implementing this protocol are used by scalar, array, set, and
 dictionary classes.
 }

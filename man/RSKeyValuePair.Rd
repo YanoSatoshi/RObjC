@@ -207,13 +207,14 @@ Only the key is considered for equality; the value is ignored.
 \subsection{\code{RSKeyValuePair$hash()}}{
   Computes the hash code based on the key only.
 This allows the pair to behave correctly in hash-based containers.
+The final result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSKeyValuePair$hash()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    An integer hash value derived from the key.
+    One non-missing integer hash value derived from the key.
   }
 }
 

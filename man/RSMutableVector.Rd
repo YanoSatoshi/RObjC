@@ -335,7 +335,8 @@ type and class.}
 \subsection{\code{RSMutableVector$hash()}}{
   Computes an aggregate hash by combining the hash values of all elements.
 This is used for fast comparison and dictionary key support.
-If the XOR result is R's \code{NA_integer_} bit pattern, returns \code{0L}.
+The result passes through \code{\link[=normalize_hash]{normalize_hash()}}, mapping R's
+\code{NA_integer_} bit pattern to \code{0L}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableVector$hash()}

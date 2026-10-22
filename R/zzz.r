@@ -7,5 +7,5 @@
 
 .onAttach <- function(libname, pkgname) {
   packageStartupMessage("robjc loaded - Objective-C inspired OOP system for R.")
-  packageStartupMessage("welcom to robjc - version 0.0.3 alpha")
+  packageStartupMessage("welcom to robjc - version 0.0.4 alpha")
 }

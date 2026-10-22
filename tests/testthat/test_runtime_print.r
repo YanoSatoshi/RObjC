@@ -2,7 +2,7 @@ test_that("RObjC generator printing uses generator names and hides ISA", {
   Widget <- RSObjectClass(
     "VisibleWidget",
     private = list(secret = 1L),
-    version = "0.0.3 alpha"
+    version = "0.0.4 alpha"
   )
 
   output <- format(Widget)

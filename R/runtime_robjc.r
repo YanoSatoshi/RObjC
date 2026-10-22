@@ -188,7 +188,7 @@ robjc_install_meta_value_methods <- function(generator) {
     upper <- strtoi(substr(hex, 1L, 4L), base = 16L)
     lower <- strtoi(substr(hex, 5L, 8L), base = 16L)
     hash_code <- bitwOr(bitwShiftL(upper, 16L), lower)
-    if (is.na(hash_code)) 0L else hash_code
+    normalize_hash(hash_code)
   }
   lockBinding("isEqual", generator)
   lockBinding("hash", generator)
@@ -216,7 +216,7 @@ robjc_make_isa <- function(
   super_class,
   protocols = list(),
   slot = NULL,
-  version = "0.0.3 alpha"
+  version = "0.0.4 alpha"
 ) {
   if (!is.list(protocols) || !all(vapply(protocols, robjc_isProtocol, logical(1))))
     stop("`protocols` must be a list of RObjC protocols.", call. = FALSE)
@@ -289,7 +289,7 @@ robjc_make_singleton_isa <- function(
   r6generator,
   super_class,
   protocols = list(),
-  version   = "0.0.3 alpha"
+  version   = "0.0.4 alpha"
 ) {
   if (!inherits(super_class$robjc_isa, ISA_OBJECT))
     stop(
