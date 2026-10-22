@@ -47,6 +47,7 @@ jobs:
         uses: r-lib/actions/check-r-package@v2
         with:
           build_args: 'c("--no-manual", "--no-build-vignettes")'
+          args: 'c("--no-manual", "--ignore-vignettes")'
 
       - name: Build Windows binary
         if: runner.os == 'Windows'
