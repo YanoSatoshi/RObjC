@@ -119,6 +119,7 @@ RSScalarClass <- function(
   klass$robjc_isa$slot <- na_klass$instance
   klass$na <- na_klass$instance
   robjc_freeze_isa(klass)
+  # .onLoad() restores these locks for package-defined scalar generators.
   lockBinding("isNAClass", na_klass)
   lockBinding("isNAClass", klass)
   lockBinding("na", klass)
@@ -156,6 +157,7 @@ rsscalar_make_na_class <- function(
   )
   r6generator$robjc_isa$slot <- r6generator$new(na_value)
   r6generator$instance <- r6generator$robjc_isa$slot
+  # .onLoad() restores this lock for package-defined NA companions.
   lockBinding("instance", r6generator)
   if (na_singleton) {
     r6generator$new <- function(...) {
@@ -164,6 +166,7 @@ rsscalar_make_na_class <- function(
         call. = FALSE
       )
     }
+    # .onLoad() restores this lock for package-defined singleton NA companions.
     lockBinding("new", r6generator)
   }
   class(r6generator) <- if (na_singleton)

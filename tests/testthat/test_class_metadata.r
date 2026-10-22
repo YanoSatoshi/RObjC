@@ -13,6 +13,20 @@ test_that("exported RObjC generators have class versions and identity records", 
   }
 })
 
+test_that("package-defined generators restore their binding locks", {
+  for (klass in list(RSObject, RSProtocol, RSString, RSNANumber, RSNull)) {
+    for (binding in c("robjc_isa", "isEqual", "hash"))
+      expect_true(bindingIsLocked(binding, klass))
+    for (binding in ls(klass$robjc_isa, all.names = TRUE))
+      expect_true(bindingIsLocked(binding, klass$robjc_isa))
+  }
+  expect_true(bindingIsLocked("new", RSProtocol))
+  expect_true(bindingIsLocked("new", RSNANumber))
+  expect_true(bindingIsLocked("instance", RSNANumber))
+  expect_true(bindingIsLocked("na", RSNumber))
+  expect_true(bindingIsLocked("null", RSNull))
+})
+
 test_that("RSObject respondsTo validates method names", {
   object <- RSObject$new()
   expect_true(object$respondsTo("hash"))

@@ -64,6 +64,7 @@ RSCopying$contract_methods      <- isa$slot
 # RSObjcet apply RSCopying, Lock
 # -----------------------------
 RSObject$robjc_isa$protocols <- list(RSCopying)
+# .onLoad() restores these locks after package lazy loading.
 lockEnvironment(RSObject$robjc_isa, bindings = TRUE)
 lockBinding("robjc_isa", RSObject)
 class(RSObject) <- c(ROBJC_CLASS, R6GENERATOR)
@@ -72,6 +73,7 @@ robjc_install_meta_value_methods(RSObject)
 # -----------------------------
 # RSProtocol Lock
 # -----------------------------
+# .onLoad() restores these locks after package lazy loading.
 lockEnvironment(RSProtocol$robjc_isa, bindings = TRUE)
 lockBinding("robjc_isa",        RSProtocol)
 lockBinding("contract_methods", RSProtocol)
@@ -81,6 +83,7 @@ robjc_install_meta_value_methods(RSProtocol)
 # -----------------------------
 # RSCopying lock
 # -----------------------------
+# .onLoad() restores these locks after package lazy loading.
 lockEnvironment(RSCopying$robjc_isa, bindings = TRUE)
 lockBinding("robjc_isa",        RSCopying)
 lockBinding("contract_methods", RSCopying)

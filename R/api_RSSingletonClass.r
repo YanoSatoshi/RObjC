@@ -68,6 +68,7 @@ RSSingletonClass <- function(
     version   = version
   )
   robjc_freeze_isa(klass)
+  # .onLoad() restores this lock for package-defined singleton generators.
   lockBinding("instance", klass)
   invisible(klass)
 }

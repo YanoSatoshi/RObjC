@@ -37,4 +37,5 @@ RSCopying <- R6::R6Class(
 )
 
 RSCopying$new <- NULL
+# .onLoad() restores this lock on the package-defined generator after lazy loading.
 lockBinding("new", RSCopying)

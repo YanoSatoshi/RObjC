@@ -51,4 +51,5 @@ RSProtocol <- R6::R6Class(
 )
 
 RSProtocol$new <- NULL
+# .onLoad() restores this lock on the package-defined generator after lazy loading.
 lockBinding("new", RSProtocol)

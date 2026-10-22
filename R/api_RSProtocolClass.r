@@ -81,6 +81,7 @@ RSProtocolClass <- function(
   )
   robjc_freeze_isa(klass)
   klass$new <- NULL
+  # .onLoad() restores this lock for package-defined protocols after lazy loading.
   lockBinding("new", klass)
   invisible(klass)
 }

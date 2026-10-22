@@ -120,5 +120,6 @@ RSNull <- RSSingletonClass(
 )
 RSNull$null <- RSNull$instance
 RSNull$is_na_class <- NA
+# .onLoad() restores these locks on the package-defined generator after lazy loading.
 lockBinding("null", RSNull)
 lockBinding("is_na_class", RSNull)

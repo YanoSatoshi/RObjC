@@ -35,4 +35,5 @@ RSRaw <- RSObjectClass(
 )
 
 RSRaw$isNAClass <- FALSE
+# .onLoad() restores this lock on the package-defined generator after lazy loading.
 lockBinding("isNAClass", RSRaw)

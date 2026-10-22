@@ -203,4 +203,5 @@ RSScalar <- RSObjectClass(
 
 # The base class itself is neither a regular wrapper nor an NA companion.
 RSScalar$isNAClass <- NULL
+# .onLoad() restores this lock on the package-defined generator after lazy loading.
 lockBinding("isNAClass", RSScalar)

@@ -190,6 +190,7 @@ robjc_install_meta_value_methods <- function(generator) {
     hash_code <- bitwOr(bitwShiftL(upper, 16L), lower)
     normalize_hash(hash_code)
   }
+  # .onLoad() restores these locks for package-defined generators.
   lockBinding("isEqual", generator)
   lockBinding("hash", generator)
   invisible(generator)
@@ -266,6 +267,7 @@ robjc_make_isa <- function(
 #' @noRd
 robjc_freeze_isa <- function(klass) {
   lockEnvironment(klass$robjc_isa, bindings = TRUE)
+  # .onLoad() restores these locks for package-defined generators and ISA records.
   lockBinding("robjc_isa", klass)
   invisible(klass)
 }
@@ -305,6 +307,7 @@ robjc_make_singleton_isa <- function(
   )
   r6generator$robjc_isa$slot <- r6generator$new()
   r6generator$instance <- r6generator$robjc_isa$slot
+  # .onLoad() restores this lock for package-defined singleton generators.
   lockBinding("instance", r6generator)
   class(r6generator) <- c(ROBJC_SINGLETON, ROBJC_CLASS, R6GENERATOR)
   invisible(r6generator$robjc_isa)
