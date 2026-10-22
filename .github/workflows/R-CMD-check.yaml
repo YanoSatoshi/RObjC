@@ -47,4 +47,17 @@ jobs:
         uses: r-lib/actions/check-r-package@v2
         with:
           build_args: 'c("--no-manual", "--no-build-vignettes")'
+
+      - name: Build Windows binary
+        if: runner.os == 'Windows'
+        shell: bash
+        run: R CMD INSTALL --build .
+
+      - name: Upload Windows binary
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: robjc-windows
+          path: "*.zip"
+          if-no-files-found: error
           args: 'c("--no-manual", "--ignore-vignettes")'
