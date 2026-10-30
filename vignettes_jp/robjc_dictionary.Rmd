@@ -29,7 +29,7 @@ stopifnot(!dictionary$containsKey(RSString_withValue("missing")))
 stopifnot(is.null(dictionary$objectForKey(RSString_withValue("missing"))))
 ```
 
-挿入時には `key$copy()` が呼ばれます。基底の `RSObject$copy()` は同じオブジェクトを返しますが、サブクラスでは独立したキーを返すこともできます。格納中はキーの等価性とハッシュを安定させる必要があります。これらが変化すると、存在する要素を検索できなくなる可能性があります。等しいキーのハッシュは一致する必要がありますが、ハッシュが一致するだけではキーは等しくありません。等価性の例は「RSObject」（`vignettes_jp/robjc_object.Rmd`）を参照してください。
+挿入時には `key$copy()` が呼ばれます。基底の `RSObject$copy()` は同じオブジェクトを返しますが、サブクラスでは独立したキーを返すこともできます。格納中はキーの等価性とハッシュを安定させる必要があります。これらが変化すると、存在する要素を検索できなくなる可能性があります。等しいキーのハッシュは一致する必要がありますが、ハッシュが一致するだけではキーは等しくありません。等価性の例は[RSObject](robjc_object.Rmd)を参照してください。
 
 ## `copy()` と `mutableCopy()`
 

@@ -16,7 +16,7 @@ list の中にある RObjC オブジェクトは再帰的に記録されます�
 
 ここではクラスをスクリプト内に定義するため、復元前にクラス対応表を登録します。拡張パッケージに配置する場合は
 `robjc_register_class()` を `.onLoad()` で呼べば、resolver は不要です。
-登録手順は `vignettes_jp/robjc_encoding_strategy.Rmd` を参照してください。
+登録手順は[keyed archive の仕組み](robjc_encoding_strategy.Rmd)を参照してください。
 
 ```{r}
 library(robjc)

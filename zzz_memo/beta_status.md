@@ -1,108 +1,56 @@
-# robjc Alpha Status Report
+# robjc beta status
 
-更新日: 2026-10-28
+更新日: 2026-10-30
 
-パッケージバージョン: `0.0.4`（alpha）
+対象ブランチ: `0.0.5_alpha`
 
-組み込みクラス定義のバージョン: 原則 `0.0.4 alpha`
-
-対象ブランチ: `main`
+パッケージバージョン: `0.1.0`（起動メッセージと組み込みクラスの表記は `0.1.0 beta`）
 
 ## 現在の位置づけ
 
-`robjc`は、Objective-C/Foundationのオブジェクトモデルに着想を得た、R6ベースのRパッケージである。`RSObject`を基底とするクラス階層、protocol、singleton、scalar、collection、クラス情報を扱うencoder/decoderを実装している。DictionaryとSetの格納部分にはRcpp経由のC++実装を使う。
+`robjc` は Objective-C/Foundation に着想を得た R6 ベースのオブジェクトシステム。クラスとプロトコル、singleton、型付き scalar、可変・不変 collection、keyed archive を提供する。数値計算の高速化ではなく、参照を共有するドメインオブジェクトの管理を主な用途とする。
 
-`DESCRIPTION`のパッケージバージョンは`0.0.4`、起動メッセージは`0.0.4 alpha`である。組み込みのクラスとprotocolのメタデータには原則として`0.0.4 alpha`を記録している。例外として、`RSMutableDataFrame`の明示的なバージョン指定は現在も`0.0.1 alpha`である。
+旧 alpha の `RSClassEncoder`、`RSClassDecoder`、`RSClassReference`、`RSInstanceMap`、`RSWrappedClass`、`RSClassRegistry` と `robjc_save*()` / `robjc_read_rds()` 系 API は現行設計から削除した。参照用の旧実装は `prototypes/` に置いている。旧形式との互換性は提供していない。
 
-## 0.0.4 alphaまでの主な変更
+## 0.1.0 beta の実装
 
-- Dictionary/Setの格納部分をR実装のhash tableからC++の`std::unordered_map`/`std::unordered_set`へ移行した。Rcpp bridgeを介して`RSConcreteDictionary`/`RSConcreteSet`がnative storageを操作する。hashと同値判定には従来のRオブジェクトの`hash()`/`isEqual()`を使う。
-- クラス定義は原則として`RSObjectClass()`、`RSSingletonClass()`、`RSScalarClass()`、`RSProtocolClass()`を利用する。各ファクトリーがR6 generatorを生成し、クラス情報とバージョンを設定する。
-- generatorの`robjc_isa`と`private_fields$.__isa`に同じクラス情報を設定し、定義後にメタデータを固定する。`RSObject$initialize()`はこの情報からインスタンスのRクラス属性を設定する。基底の`RSObject`、`RSProtocol`、`RSCopying`は`primary_class_setup.r`で直接設定する。
-- singletonファクトリーは定義時に`Class$new()`を呼び、生成したオブジェクトを`Class$instance`とクラス情報の`slot`へ保存する。`$instance`のbindingは固定されるが、`$new()`自体は引き続き呼べる。`RSModule`もこの方式に従う。
-- scalarファクトリーは`isNAClass`を設定して固定する。singleton scalarでは、最初のインスタンスを生成する前にこの値を設定する。`RSNull$null`はsingletonインスタンスへの別名である。
-- `RSConcreteDictionary`と`RSConcreteSet`は、現在は`class = TRUE`の内部R6クラスである。RObjCの公開クラス階層には属さず、native storageのadapterを務める。
-- roxygenの`@include`で読み込み順を指定し、パッケージヘルプからファクトリーAPI、クラス、runtimeの索引へ辿れるようにした。索引のソースは`R/robjc-factories.r`、`R/robjc-classes.r`、`R/robjc-runtime.r`、`R/robjc-package.R`である。
-- 独自の`hash()`を持つクラスは、最終的な整数を`robjc_normalize_hash()`へ渡す。Rの整数演算で`NA_integer_`になった場合は`0L`を返す。カスタム`hash()`向けの説明もヘルプとvignetteに追加した。
-- インストール後のlazy-loadでgeneratorと`robjc_isa`の個別bindingのロックが失われるため、`.onLoad()`でパッケージ定義済みgeneratorのロックを復元する。元の`lockBinding()`と`lockEnvironment()`も、ソース読み込み時と動的なクラス生成時のために残している。
+- `RSObjectClass()`、`RSProtocolClass()`、`RSSingletonClass()`、`RSScalarClass()` がクラスとプロトコルの定義入口。generator のクラス情報と必要な binding は固定し、インストール後に失われる binding lock を `.onLoad()` で復元する。
+- `$new()` は `robjc_allocate()` で確保したインスタンスの `initialize()` の結果を返す。`robjc_allocate()` は `initialize()` を呼ばず、復元処理で使用する。singleton の `$new()` は既存インスタンスを返す。
+- `RSScalar` 系列の通常クラスに `NA` を渡すと対応する共有 NA インスタンスを返す。`RSFactor$new(NA_factor)` は levels と ordered 属性を保持する新しい `RSNAFactor` を返す。`NaN` は通常の scalar として扱う。
+- Array、Vector、Set、Dictionary、DataFrame の可変・不変クラスを提供する。Dictionary と Set は Rcpp 経由で native table を使う。`hash()` と `isEqual()` に依存するため、格納中のキー・メンバーの関連状態は安定させる必要がある。
+- `RSCoding`、`RSEncoderProtocol`、`RSDecoderProtocol` に基づき、各対応クラスが `encodeWithCoder()` と `initWithCoder()` を実装する。`RSKeyedArchiver$new()$archive(root)` は通常の R list を返し、`saveRDS()` で保存できる。参照 ID はエンコード元オブジェクトのポインターを文字列として記録し、処理中は元オブジェクトを保持する。復元時にその ID をアドレスとして使用しない。list 内の RObjC 参照と共有参照を扱う。
+- `RSKeyedUnarchiver$new(archive)` はデータを読み込み、復元は `$decode()` まで行わない。`$showAllClasses()` は自動解決済みのクラスを既定で除いた tibble を返す。`$showAllClasses(remove_default = FALSE)` と `$dictionaryWithAllClasses()` で全クラスを見られる。必要な対応を `$setClasses()` に渡し、`$decode()` で復元する。`$unarchive()` は互換用の別名。
+- 組み込みクラスは `.onLoad()` で登録する。拡張パッケージも `.onLoad()` から `robjc_register_class()` / `robjc_register_protocol()` を呼べる。登録表には generator 自体を保持せず、package・固定 ID・namespace binding を記録する。スクリプト内のクラスは手動対応または resolver を使う。拡張パッケージの `.onLoad()` 登録から resolver なしで復元する統合テストがある。
 
-ファクトリーAPIの`version`引数の既定値は`1.0.0`のため、新しいユーザー定義クラスにパッケージのalphaバージョンが自動適用されるわけではない。
+## 文書
 
-## 実装の構成
+プロジェクト直下の `README.md` は英語・日本語を併記する。英語 vignette の `introduction.Rmd`、`robjc_encoding_strategy.Rmd`、`robjc_encoding_use_case.Rmd` は現行 API に合わせた。`robjc_keyed_coding.Rmd` はクラス登録と手動対応の例を含む。日本語版は `vignettes_jp/` にある。
 
-```text
-R/api_*Class.r              クラス・protocolの定義ファクトリー
-R/primary_class_setup.r     基底クラス・protocolの初期設定
-R/zzz.r                     パッケージ読み込み時のbindingロック復元
-R/RS*.r                     クラス・protocol・内部adapter
-R/robjc-*.r                 ヘルプの索引
-R/util_io.r                 保存・読み込み用wrapper
-R/RcppExports.R             Rcpp bridge
-src/RSNativeDictionary.cpp  native Dictionary
-src/RSNativeSet.cpp         native Set
-src/RSObjectHash.h/.cpp     Rオブジェクトのhash/equality
-src/RcppExports.cpp         native registration
-inst/testdata/              インストール後も参照するテスト用ファイル
-tests/testthat/             testthatテスト
-tools/build_html.R          静的HTMLヘルプの再生成
-html/                       プロジェクトから開ける静的HTMLヘルプ
+`man/*.Rd` と `NAMESPACE` は roxygen2 の生成物。`html/00Index.html` 以下のローカル HTML ヘルプは `tools/build_html.R` で再生成する。`html/` と `vignettes_jp/`、`zzz_memo/` は `.Rbuildignore` でパッケージのソース配布から除外している。
+
+## 検証結果
+
+- 2026-10-30: R.app の R 4.6.1 で `devtools::test()` が全件通過。`devtools::check(document = FALSE, args = c("--no-manual"))` は ERROR 0、WARNING 0、NOTE 2。NOTE は時刻検証不可と一時ディレクトリの `xcrun_db`。
+- 2026-10-30: プロジェクト直下の `robjc_0.1.0.tar.gz` に対する `R CMD check --as-cran` の記録は ERROR 0、WARNING 0、NOTE 1。NOTE は CRAN incoming feasibility の `New submission`。`robjc.Rcheck/00check.log` に記録がある。PDF・HTML マニュアル、testthat、vignette の確認は OK。
+
+## 残る確認事項
+
+1. archive 形式 `robjc-keyed-1` と class ID の長期互換性、異なるクラス版での移行手順を確定する。現時点で旧 alpha 形式との互換性はない。
+2. 循環参照、複雑な list、singleton、外部パッケージの更新やアンロードを含む復元経路を継続して検証する。
+3. Dictionary/Set の mutable key・member の契約、列挙順、hash/equality の性能を利用者向けに整理する。
+4. 公開前に README、英語・日本語 vignette、生成済み HTML ヘルプの整合性を再確認する。
+
+## 開発時の確認
+
+R.app の R を使用する。ソースを変更した場合の基本的な確認は次の通り。
+
+```sh
+/Library/Frameworks/R.framework/Versions/Current/Resources/bin/Rscript --vanilla -e 'roxygen2::roxygenise(); devtools::test()'
+/Library/Frameworks/R.framework/Versions/Current/Resources/bin/R CMD build .
+/Library/Frameworks/R.framework/Versions/Current/Resources/bin/R CMD check --as-cran robjc_0.1.0.tar.gz
 ```
 
-### オブジェクトモデル
-
-`RSObject`は`class()`、`superClass()`、`isMemberOf()`、`isKindOf()`、`respondsTo()`、`conformsTo()`などを提供する。クラスの同一性、親クラス、採用protocol、バージョンはgeneratorのクラス情報に保持される。`RSObject`の既定の`isEqual()`と`hash()`はidentityを基準とする。
-
-`RSProtocolClass()`は継承元protocolと必要メソッド名を記録する。protocol適合性はrobjcのruntime情報に基づく。静的なinterface検査ではない。
-
-公開のRObjCクラスを作るファクトリーはR6 generatorを`class = FALSE`、`cloneable = FALSE`で生成する。`RSObject$initialize()`がインスタンスのRクラス属性を設定するため、通常の`inherits()`による型判定も利用できる。内部adapterの`RSConcrete*`は別途`class = TRUE`を使う。
-
-### 値とcollection
-
-`RSScalar`とその具象クラスは、Rの長さ1の値、型別の`NA`、比較、値に基づくhash/equalityを扱う。`RSNull`はRの`NULL`と区別できる実在のオブジェクトであり、Dictionary/Setの公開wrapperは境界で`NULL`を`RSNull$null`へ変換する。
-
-`RSArray`/`RSMutableArray`、`RSDataFrame`/`RSMutableDataFrame`はR側の実装である。`RSDictionary`/`RSMutableDictionary`、`RSSet`/`RSMutableSet`は内部adapterを介してnative tableを使う。外部pointerはadapterのprivate fieldに保持する。
-
-Dictionaryはkeyを挿入時に`copy()`し、valueは参照を保持する。Setはmemberをcopyせず保持する。mutable collectionの`copy()`は独立したnative tableを持つimmutable objectを返し、`mutableCopy()`は独立したmutable objectを返す。格納されたobject自体は原則としてshallowに共有される。immutable collectionの`copy()`は`self`を返す。
-
-native tableは`hash()`と`isEqual()`をlookupに使う。同値のobjectは同じhashを返し、格納中はhash/equalityに影響する状態を変更しない、という契約が必要である。Dictionaryのkey/valueとSetのmemberの列挙順は未規定である。
-
-### 保存・復元
-
-`RSClassEncoder`は`objectsForEncoding()`を走査し、クラスIDとインスタンスの対応を記録する。再訪したobjectは識別して重複走査を避ける。`RSClassDecoder`はクラスIDを解決し、各インスタンスの`resolveClassWith()`を呼ぶ。保存APIは`robjc_save()`、`robjc_save_image()`、`robjc_save_rds()`などである。
-
-native adapterは保存前にRオブジェクトのsnapshotを用意し、読み込み後に無効になったexternal pointerからnative tableを再構築する仕組みを持つ。ただし、**保存・復元全体の仕様と完全なround tripは、このalphaで確定・検証した機能として扱わない**。現在の`resolveClassWith()`は主に`private$.__isa`を差し替える。保存済みR6オブジェクトのメソッドやfieldを現在のgeneratorから作り直す処理ではない。クラス定義の変更後に保存済みインスタンスを読み込む場合の意味、共有参照・循環参照を含む復元は再設計・追加検証が必要である。
-
-## 公開APIと文書
-
-現行`NAMESPACE`には103個の`export()`がある。主な公開面は、定義ファクトリー、`RSObject`と各種protocol、scalar・collectionクラス、保存・読み込みwrapper、および一部のruntime関数である。一般利用者向けの入口はパッケージヘルプと階層化した索引にまとめ、低レベルのruntime補助関数は内部文書として扱う。
-
-`NAMESPACE`、`man/*.Rd`、`R/RcppExports.R`、`src/RcppExports.cpp`は生成物である。Rの公開APIを変更したら`devtools::document()`、Rcppのexportを変更したら`Rcpp::compileAttributes()`で同期する。
-
-プロジェクト直下の`html/00Index.html`から、静的HTMLヘルプを開ける。R.appの`R CMD INSTALL --html`で作ったページを`tools/build_html.R`で配置し、同一パッケージ内のリンクとaliasをローカル閲覧用に調整している。`html/`は`.Rbuildignore`でパッケージのビルド対象から除外する。roxygenの説明や`man/*.Rd`を変更したら再生成が必要である。
-
-## 確認済みの状態
-
-2026-10-22にR.appのR 4.6.1で`R CMD build`と`R CMD check --no-manual`を実行し、`Status: OK`を確認した。インストール済みパッケージでのbindingロック復元を確認する回帰テストも含む。
-
-このcheckでは、`.Rbuildignore`によりencoder/decoder、instance map、保存・復元に関する6つのテストファイルをビルド対象から外している。したがって、`Status: OK`は保存・復元のテストを含めた全件成功を意味しない。2026-10-28には、静的HTML生成のためR.appから`R CMD INSTALL --html`を実行し、109ページの生成とローカルリンク切れ0件を確認した。HTML追加後の`R CMD check`は未実施である。
-
-## 未確定事項
-
-1. **保存・復元の設計:** R6の保存済みインスタンスを現在のクラス定義へどう移行するか、循環参照と共有参照をどう保持するかを決め、round tripを追加検証する。過去の保存データとの互換性は保証しない。
-2. **除外中のテスト:** `.Rbuildignore`から6つのテストファイルの除外を戻す前に、encoder/decoder、instance map、保存・復元の失敗を個別に調査する。除外を戻した状態でbuild/checkを再評価する。
-3. **native collectionの契約:** mutable key/member、列挙順、R methodを呼ぶhash/equalityの性能を利用者向けに明示し、必要に応じてbenchmarkを設ける。
-4. **APIと説明文書:** alpha期間中はconstructorやprotocolのinterfaceが変更され得る。encoding strategy vignetteも復元方式が固まった時点で同期する。
-
-## 開発時の確認手順
-
-```r
-devtools::load_all()
-devtools::test()
-```
-
-`devtools::test()`はビルドから除外中の6ファイルも実行するため、現時点では上記の`R CMD check`と同じ成功条件にはならない。roxygenを変更した場合は`devtools::document()`、Rcpp exportを変更した場合は`Rcpp::compileAttributes()`を先に実行する。リリース候補ではクリーンインストールと`R CMD check`も確認する。
-
-静的HTMLヘルプを更新する場合は、パッケージルートから次を実行する。このスクリプトは一時ライブラリへの`R CMD INSTALL --html`を使い、プロジェクトの`html/`を生成し直す。
+HTML ヘルプの再生成は次の通り。
 
 ```sh
 /Library/Frameworks/R.framework/Versions/Current/Resources/bin/Rscript --vanilla tools/build_html.R

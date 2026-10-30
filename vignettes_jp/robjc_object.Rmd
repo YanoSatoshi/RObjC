@@ -99,6 +99,6 @@ stopifnot(identical(dictionary$hash(), other_dictionary$hash()))
 stopifnot(!dictionary$isEqual(other_dictionary))
 ```
 
-Dictionary は挿入時にキーの `copy()` を呼びます。格納後も、キーの等価性とハッシュを決める状態は安定している必要があります。可変のキーを作る場合は適切なコピーを用意し、格納中に `hash()` や `isEqual()` が参照する値を変えないようにしてください。コピーとキー検索については「Dictionary のキーとコピー」（`vignettes_jp/robjc_dictionary.Rmd`）を参照してください。
+Dictionary は挿入時にキーの `copy()` を呼びます。格納後も、キーの等価性とハッシュを決める状態は安定している必要があります。可変のキーを作る場合は適切なコピーを用意し、格納中に `hash()` や `isEqual()` が参照する値を変えないようにしてください。コピーとキー検索については[Dictionary のキーとコピー](robjc_dictionary.Rmd)を参照してください。
 
-protocol の宣言と要件の継承は「RSProtocol」（`vignettes_jp/robjc_protocol.Rmd`）、クラスファクトリーの引数は「クラスファクトリー API」（`vignettes_jp/robjc_class_factories.Rmd`）を参照してください。
+protocol の宣言と要件の継承は[RSProtocol](robjc_protocol.Rmd)、クラスファクトリーの引数は[クラスファクトリー API](robjc_class_factories.Rmd)を参照してください。

@@ -30,7 +30,7 @@ stopifnot(identical(RSScalar_withValue(NA_integer_), RSNumber$na))
 stopifnot(identical(RSScalar_withValue(NULL), RSNull$null))
 ```
 
-コンストラクタの選択、型付き NA クラス、日時のタイムゾーンについては「scalar と欠損値」（`vignettes_jp/robjc_scalar_values.Rmd`）を参照してください。
+コンストラクタの選択、型付き NA クラス、日時のタイムゾーンについては[scalar と欠損値](robjc_scalar_values.Rmd)を参照してください。
 
 ## Vector：複数の R の値
 

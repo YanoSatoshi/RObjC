@@ -56,7 +56,7 @@ stopifnot(identical(
 ))
 ```
 
-Dictionary の要素の順序は未定義です。挿入時にキーの `copy()` が呼ばれ、格納中はキーのハッシュと等価性を安定させる必要があります。`NULL` の扱い、キー、コピーの詳細は「Dictionary のキーとコピー」（`vignettes_jp/robjc_dictionary.Rmd`）を参照してください。
+Dictionary の要素の順序は未定義です。挿入時にキーの `copy()` が呼ばれ、格納中はキーのハッシュと等価性を安定させる必要があります。`NULL` の扱い、キー、コピーの詳細は[Dictionary のキーとコピー](robjc_dictionary.Rmd)を参照してください。
 
 ## Set：重複のない要素
 

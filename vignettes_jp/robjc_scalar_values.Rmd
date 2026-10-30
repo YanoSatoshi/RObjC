@@ -73,4 +73,4 @@ stopifnot(utc$isEqual(tokyo))
 stopifnot(identical(utc$hash(), tokyo$hash()))
 ```
 
-新しい scalar クラスの宣言と `na_value` の選択については「クラスファクトリー API」（`vignettes_jp/robjc_class_factories.Rmd`）を参照してください。
+新しい scalar クラスの宣言と `na_value` の選択については[クラスファクトリー API](robjc_class_factories.Rmd)を参照してください。
