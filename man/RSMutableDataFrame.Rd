@@ -29,6 +29,8 @@ hashing and equality comparisons.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-RSMutableDataFrame-initialize}{\code{RSMutableDataFrame$new()}}
+    \item \href{#method-RSMutableDataFrame-encodeWithCoder}{\code{RSMutableDataFrame$encodeWithCoder()}}
+    \item \href{#method-RSMutableDataFrame-initWithCoder}{\code{RSMutableDataFrame$initWithCoder()}}
     \item \href{#method-RSMutableDataFrame-getData}{\code{RSMutableDataFrame$getData()}}
     \item \href{#method-RSMutableDataFrame-setData}{\code{RSMutableDataFrame$setData()}}
     \item \href{#method-RSMutableDataFrame-getColumn}{\code{RSMutableDataFrame$getColumn()}}
@@ -55,7 +57,6 @@ hashing and equality comparisons.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>RSObject$print()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
@@ -79,6 +80,52 @@ If \code{key_columns} is empty, all atomic columns are selected as keys.
       \item{\code{key_columns}}{Character vector of key column names.}
     }
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSMutableDataFrame-encodeWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-encodeWithCoder}{}}}
+\subsection{\code{RSMutableDataFrame$encodeWithCoder()}}{
+  Encodes the tibble and its chosen key columns. The tibble
+is a base R serialization value.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableDataFrame$encodeWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedArchiver} recording keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSMutableDataFrame-initWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-initWithCoder}{}}}
+\subsection{\code{RSMutableDataFrame$initWithCoder()}}{
+  Restores the tibble and key columns without calling
+\code{initialize()}. Also serves immutable \link{RSDataFrame} subclasses.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableDataFrame$initWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedUnarchiver} reading keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
   }
 }
 
@@ -261,7 +308,7 @@ The comparison checks column names, row count, and full data equality including 
 \if{latex}{\out{\hypertarget{method-RSMutableDataFrame-hash}{}}}
 \subsection{\code{RSMutableDataFrame$hash()}}{
   Computes a hash based on the contents of the key columns and metadata such as row count and column names.
-The final result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
+The final result passes through \code{\link[=robjc_normalize_hash]{robjc_normalize_hash()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableDataFrame$hash()}

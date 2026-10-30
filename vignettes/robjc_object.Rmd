@@ -17,8 +17,10 @@ lookup, descriptions, equality, and hashing.
 ## Define and initialize a subclass
 
 The class factory attaches identity metadata before instances are created.
-When overriding `initialize()`, call `super$initialize()` so the instance gets
-its R class attributes. Subclass state can live in R6 private fields.
+`$new()` allocates the instance and sets its R class attributes before calling
+`initialize()`. When overriding the initializer, call `super$initialize()` for
+base initialization and return `self`: `$new()` returns that method's result.
+Subclass state can live in R6 private fields.
 
 ```{r}
 library(robjc)
@@ -75,7 +77,7 @@ The base `isEqual()` compares object references: two objects with the same
 fields are still distinct. The base `hash()` derives an integer from the
 object's pointer, so subclasses that define value equality should also define
 a compatible value hash. A custom `hash()` must return one non-missing integer:
-pass its final computed value to `normalize_hash()` before returning it. This
+pass its final computed value to `robjc_normalize_hash()` before returning it. This
 maps the `NA_integer_` bit pattern to `0L`; equal objects must still have the
 same hash. `objectID()` returns a pointer string.
 

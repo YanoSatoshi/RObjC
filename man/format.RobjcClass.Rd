@@ -25,7 +25,7 @@ layout of R6's generator formatter.
 print(RSString)
 # <RSString> RObjC object generator
 #   Inherits from: <RSScalar>
-#   Version: 0.0.4 alpha
+#   Version: 0.1.0 beta
 #   Public:
 #     initialize: function (val)
 #   Parent env: <environment: namespace:robjc>

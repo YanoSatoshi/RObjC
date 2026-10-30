@@ -11,21 +11,21 @@ The \code{RSHashOperatorProtocol} protocol names hash operator methods.
 A class can declare adoption of this protocol without implementing every
 method; \code{conformsTo()} checks the declaration. An operator must implement
 the methods required by the operation that uses it. For example,
-\code{\link{RSMutableVector}} needs \code{hashForScalar()}, while \code{\link{RSMutableArray}} needs
+\link{RSMutableVector} needs \code{hashForScalar()}, while \link{RSMutableArray} needs
 \code{hashFromObjects()} and \code{hashesOfEachObject()}.
 
 The protocol declares these method names:
 }
 \note{
-All methods must be deterministic and consistent with the semantics of \code{hash()} and \code{isEqual()} on RS objects.
-Protocol conformance checks the adoption declaration, not method presence
-or return types. Concrete
-consumers impose additional requirements: \code{\link{RSMutableVector}} collects
-\code{hashForScalar()} results as integers, while \code{\link{RSMutableArray}} documents
+All methods must be deterministic and consistent with the semantics of
+\code{hash()} and \code{isEqual()} on RS objects. Protocol conformance
+checks the adoption declaration, not method presence or return types.
+Concrete consumers impose additional requirements: \link{RSMutableVector} collects
+\code{hashForScalar()} results as integers, while \link{RSMutableArray} documents
 \code{hashesOfEachObject()} as an integer vector and \code{hashFromObjects()} as one
 integer hash. When an array is stored as a dictionary key or set member,
 its \code{hash()} must return one nonmissing integer. A custom \code{hash()} should
-return \code{\link[=normalize_hash]{normalize_hash()}} applied to its final computed value.
+return \code{\link[=robjc_normalize_hash]{robjc_normalize_hash()}} applied to its final computed value.
 Modules implementing this protocol are used by scalar, array, set, and
 dictionary classes.
 }

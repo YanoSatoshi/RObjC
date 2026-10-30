@@ -34,14 +34,14 @@ protocol can inherit declarations from other protocols through
 \code{super_protocols}. Adopting a protocol is a declaration: conformance checks
 do not verify method implementations. A class must provide the methods
 needed by the operations it uses. Generators returned by this function
-cannot create instances with \code{$new()}.
+cannot create instances with \verb{$new()}.
 }
 \section{Implementation details}{
 
 The generator inherits from \code{RSProtocol}. Method names inherited from parent
 protocols are removed from its own contract, which is stored in
 \code{robjc_isa$slot}. Parent protocols and the version are also stored in
-\code{robjc_isa}; the metadata is locked after declaration. R6 adds a new \code{$new()}
+\code{robjc_isa}; the metadata is locked after declaration. R6 adds a new \verb{$new()}
 binding to every generated class, so this factory removes and locks it for
 each protocol generator.
 }

@@ -97,38 +97,12 @@ test_that("robjc_isRobjcObject rejects malformed R6-like environments", {
   expect_true(robjc_isRobjcObject(RSObject$new()))
 })
 
-test_that("resolveClassWith updates the S3 class hierarchy", {
-  Parent <- RSObjectClass("ResolutionParent")
-  Original <- RSObjectClass("ResolutionTarget", version = "1.0")
-  Replacement <- RSObjectClass("ResolutionTarget", super_class = Parent,
-                               version = "1.0")
-  object <- Original$new()
-
-  expect_false(inherits(object, "ResolutionParent"))
-  object$resolveClassWith(Replacement)
-  expect_identical(object$class(), Replacement)
-  expect_identical(class(object), c("ResolutionTarget", "ResolutionParent", "RSObject"))
-  expect_true(inherits(object, "ResolutionParent"))
-  expect_true(object$isKindOf(Parent))
-})
-
-test_that("standard class discovery includes indirect RSObject subclasses", {
-  classes <- get_standard_robjc_classes()
-  expect_true(all(c("RSMutableArray", "RSArray", "RSSet", "RSVector") %in% classes))
-  expect_false("RSObject" %in% classes)
-
-  generators <- get_standard_robjc_classes(FALSE)
-  expect_setequal(names(generators), classes)
-  expect_identical(generators[["RSArray"]], RSArray)
-  expect_identical(generators[["RSSet"]], RSSet)
-})
-
 test_that("RObjC generators have identity equality and pointer hashes", {
   protocol <- RSProtocolClass("MetaValueProtocol")
   first <- RSObjectClass("MetaValueSameName")
   second <- RSObjectClass("MetaValueSameName")
   generators <- list(RSObject, RSProtocol, RSCopying, RSString,
-                     RSString$na$class(), RSClassRegistry, protocol, first)
+                     RSString$na$class(), RSHashOperator, protocol, first)
   for (generator in generators) {
     expect_true(generator$isEqual(generator))
     expect_identical(generator$hash(), generator$hash())

@@ -13,7 +13,7 @@ vignette: >
 
 ## コンストラクタの選択
 
-型が分かっており `val` が欠損していないときは `Class$new(val)` を使えます。`RSNumber_withValue()` のような型別の便利コンストラクタは、通常の値と NA の両方を受け取り、対応するクラスを返します。`RSScalar_withValue()` は `NULL` を含めて R の型から自動的に振り分けます。
+型が分かっていれば、`val` が欠損している場合も `Class$new(val)` を使えます。`RSNumber_withValue()` のような型別の便利コンストラクタも通常の値と NA の両方を受け取ります。`RSScalar_withValue()` は `NULL` を含めて R の型から自動的に振り分けます。
 
 ```{r}
 library(robjc)
@@ -27,10 +27,11 @@ stopifnot(dispatched$isMemberOf(RSNumber))
 stopifnot(identical(dispatched$value(), 3L))
 ```
 
-通常クラスの `Class$new(NA)` は `RSScalar$initialize()` で拒否されます。入力が欠損する可能性があれば、型別の便利コンストラクタ、一般の振り分け関数、または `Class$na` を使います。NA インスタンスは共有されるため、便利コンストラクタを繰り返し呼んでも同じインスタンスが返ります。
+通常クラスの `Class$new(NA)` は共有 NA インスタンスを返します。型別の便利コンストラクタ、一般の振り分け関数、`Class$na` からも取得できます。例外として `RSFactor$new()` は levels と ordered 属性を保つ新しい `RSNAFactor` を生成します。
 
 ```{r}
 stopifnot(identical(RSNumber_withValue(NA_integer_), RSNumber$na))
+stopifnot(identical(RSNumber$new(NA_integer_), RSNumber$na))
 stopifnot(identical(RSScalar_withValue(NA_real_), RSNumber$na))
 stopifnot(RSNumber$na$isMemberOf(RSNANumber))
 ```

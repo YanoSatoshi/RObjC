@@ -30,13 +30,13 @@ for declared protocols.
 Printable <- RSProtocolClass(
   "Printable",
   contract_methods = "description",
-  version = "0.0.4 alpha"
+  version = "0.1.0 beta"
 )
 robjc_isProtocol(Printable)
 PrintableObject <- RSObjectClass(
   "PrintableObject",
   protocols = list(Printable),
-  version = "0.0.4 alpha"
+  version = "0.1.0 beta"
 )
 PrintableObject$new()$conformsTo(Printable)
 

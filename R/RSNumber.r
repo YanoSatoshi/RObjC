@@ -4,7 +4,7 @@
 #' @description
 #' `RSNumber` wraps a numeric scalar (double or integer) in a value-object style,
 #' inheriting common scalar behavior from `RSScalar`.
-#' It disallows `NA` values directly; use `RSNANumber` instead. `NaN` is
+#' `RSNumber$new(NA)` returns the shared `RSNANumber` instance. `NaN` is
 #' retained as a regular `RSNumber` value.
 #'
 #' @section Usage:
@@ -17,7 +17,7 @@
 #' @export
 RSNumber <- RSScalarClass(
   "RSNumber",
-  version     = "0.0.4 alpha",
+  version     = "0.1.0 beta",
   super_class = RSScalar,
   na_value    = NA_real_,
   public      = list(
@@ -32,7 +32,7 @@ RSNumber <- RSScalarClass(
     #' and behavior to the superclass `RSScalar`.
     #'
     #' @param val An integer or double scalar without an S3 class attribute.
-    #'   Must not be `NA`.
+    #'   `NA` returns the shared `RSNANumber` instance.
     #'
     #' @return An initialized `RSNumber` object (invisible).
     initialize = function(val) {
@@ -42,7 +42,6 @@ RSNumber <- RSScalarClass(
       if (is.object(val))
         stop("S3 class attributes are not supported for RSNumber.", call. = FALSE)
       super$initialize(val)
-      invisible(self)
     }
   )
 )

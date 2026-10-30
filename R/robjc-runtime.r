@@ -5,7 +5,6 @@
 #' @include runtime_object.r
 #' @include runtime_util.r
 #' @include Rcpp.r
-#' @include util_io.r
 #'
 #' @title Runtime Function Index
 #'
@@ -47,8 +46,8 @@
 #' - [protocol_getAllInheritContracts()] returns inherited method names.
 #' - [protocol_getAllContracts()] returns all declared method names.
 #'
-#' @section Environment identity (internal):
-#' - [get_pointer_hex()] returns an in-session environment address.
+#' @section Object identity (internal):
+#' - [robjc_get_pointer()] returns an in-session object address.
 #'
 #' @section Printing:
 #' - [format.RSObject()] and [print.RSObject()] display instances.

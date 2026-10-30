@@ -15,9 +15,11 @@ through their initializer.
 }
 \details{
 A regular subclass may define \code{initialize(val)} to validate its value type
-and call \code{super$initialize(val)}. The factory supplies \code{na_value} when it
+and return \code{super$initialize(val)} so \verb{$new(NA)} can return the companion.
+The factory supplies \code{na_value} when it
 constructs the NA subclass's shared instance. Type-specific validation must
 allow that missing value when \code{self$class()$isNAClass} is \code{TRUE}.
+A regular class's \verb{$new(NA)} returns its shared NA companion instance.
 Singleton NA companions reject direct construction; use the corresponding
 class's \verb{$na} instance. A non-singleton NA companion accepts only an \code{NA}
 value when constructed directly. \code{NaN} remains a regular scalar value.
@@ -29,6 +31,8 @@ value when constructed directly. \code{NaN} remains a regular scalar value.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-RSScalar-initialize}{\code{RSScalar$new()}}
+    \item \href{#method-RSScalar-encodeWithCoder}{\code{RSScalar$encodeWithCoder()}}
+    \item \href{#method-RSScalar-initWithCoder}{\code{RSScalar$initWithCoder()}}
     \item \href{#method-RSScalar-compare}{\code{RSScalar$compare()}}
     \item \href{#method-RSScalar-description}{\code{RSScalar$description()}}
     \item \href{#method-RSScalar-isEqual}{\code{RSScalar$isEqual()}}
@@ -49,7 +53,6 @@ value when constructed directly. \code{NaN} remains a regular scalar value.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>RSObject$print()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
@@ -69,14 +72,59 @@ accept only \code{NA}, not \code{NaN} or a nonmissing value.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{val}}{An atomic scalar or a scalar \code{POSIXlt} value. \code{NA} is accepted
-only in a generated NA subclass; \code{NaN} remains a regular scalar value.
+      \item{\code{val}}{An atomic scalar or a scalar \code{POSIXlt} value. A regular
+class redirects \code{NA} to its NA companion; \code{NaN} remains a regular scalar value.
 Values with a \code{dim} attribute are rejected.}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    The initialized instance, invisibly.
+    The initialized instance or its NA companion, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSScalar-encodeWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSScalar-encodeWithCoder}{}}}
+\subsection{\code{RSScalar$encodeWithCoder()}}{
+  Encodes the underlying R scalar as logical state.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSScalar$encodeWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedArchiver} recording keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSScalar-initWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSScalar-initWithCoder}{}}}
+\subsection{\code{RSScalar$initWithCoder()}}{
+  Restores the underlying R scalar without calling
+\code{initialize()}. Subclasses can override this for older data formats.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSScalar$initWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedUnarchiver} reading keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
   }
 }
 
@@ -193,7 +241,7 @@ ordering for unequal values.
 \if{latex}{\out{\hypertarget{method-RSScalar-hash}{}}}
 \subsection{\code{RSScalar$hash()}}{
   Hash the wrapped scalar. \code{NA} and \code{NaN} hash to \code{0L}.
-The result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
+The result passes through \code{\link[=robjc_normalize_hash]{robjc_normalize_hash()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSScalar$hash()}

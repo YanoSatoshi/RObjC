@@ -37,7 +37,8 @@ Inherits from \code{\link{RSObject}}. Unlike earlier versions, this class is now
 \item \code{setKey(key)}: Replaces the key if the value is \code{RSNull}.
 \item \code{isEqual(other)}: Compares equality based on the key only.
 \item \code{hash()}: Computes a hash value derived from the key.
-\item \code{objectsForEncoding()}: Returns the key and any RObjC instance value for encoding.
+\item \code{encodeWithCoder()} and \code{initWithCoder()}: Preserve the key and value references.
+\item \code{objectsForEncoding()}: Returns instance members for legacy serialization hooks.
 }
 }
 
@@ -58,7 +59,7 @@ pair$setKey(RSString$new("b"))         # Error: not allowed when value is non-nu
 }
 }
 \seealso{
-\link{RSObject}, \link{RSClassReference}
+\link{RSObject}, \link{RSMutableDictionary}
 }
 \section{Super class}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{RSKeyValuePair}
@@ -67,6 +68,8 @@ pair$setKey(RSString$new("b"))         # Error: not allowed when value is non-nu
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-RSKeyValuePair-initialize}{\code{RSKeyValuePair$new()}}
+    \item \href{#method-RSKeyValuePair-encodeWithCoder}{\code{RSKeyValuePair$encodeWithCoder()}}
+    \item \href{#method-RSKeyValuePair-initWithCoder}{\code{RSKeyValuePair$initWithCoder()}}
     \item \href{#method-RSKeyValuePair-key}{\code{RSKeyValuePair$key()}}
     \item \href{#method-RSKeyValuePair-setKey}{\code{RSKeyValuePair$setKey()}}
     \item \href{#method-RSKeyValuePair-value}{\code{RSKeyValuePair$value()}}
@@ -86,7 +89,6 @@ pair$setKey(RSString$new("b"))         # Error: not allowed when value is non-nu
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>RSObject$isKindOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>RSObject$print()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
@@ -112,6 +114,50 @@ pair$setKey(RSString$new("b"))         # Error: not allowed when value is non-nu
   }
   \subsection{Returns}{
     A new \code{RSKeyValuePair} instance.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSKeyValuePair-encodeWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSKeyValuePair-encodeWithCoder}{}}}
+\subsection{\code{RSKeyValuePair$encodeWithCoder()}}{
+  Encodes the key and value as separate references.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSKeyValuePair$encodeWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedArchiver} recording keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSKeyValuePair-initWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSKeyValuePair-initWithCoder}{}}}
+\subsection{\code{RSKeyValuePair$initWithCoder()}}{
+  Restores the key and value without calling \code{initialize()}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSKeyValuePair$initWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedUnarchiver} reading keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
   }
 }
 
@@ -207,7 +253,7 @@ Only the key is considered for equality; the value is ignored.
 \subsection{\code{RSKeyValuePair$hash()}}{
   Computes the hash code based on the key only.
 This allows the pair to behave correctly in hash-based containers.
-The final result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
+The final result passes through \code{\link[=robjc_normalize_hash]{robjc_normalize_hash()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSKeyValuePair$hash()}
@@ -222,8 +268,8 @@ The final result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
 \if{html}{\out{<a id="method-RSKeyValuePair-objectsForEncoding"></a>}}
 \if{latex}{\out{\hypertarget{method-RSKeyValuePair-objectsForEncoding}{}}}
 \subsection{\code{RSKeyValuePair$objectsForEncoding()}}{
-  Returns RObjC instance keys and values for encoding. Class and protocol
-generators are serialized as R values and are not traversed as child objects.
+  Returns RObjC instance keys and values for legacy serialization hooks.
+Keyed archives use \code{encodeWithCoder()} for all key and value references.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSKeyValuePair$objectsForEncoding()}

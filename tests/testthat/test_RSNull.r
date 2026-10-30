@@ -45,8 +45,8 @@ test_that("RSNull: singleton identity is enforced", {
 })
 
 test_that("RSNull: direct construction points to the shared instance", {
-  expect_error(RSNull$new(), "Use `RSNull$null`. Do not call `RSNull$new()`.",
-               fixed = TRUE)
+  expect_identical(RSNull$new(), RSNull$null)
+  expect_identical(RSNull$new(), RSNull$null)
   expect_identical(RSNull$null, RSNull$instance)
 })
 

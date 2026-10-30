@@ -26,7 +26,7 @@
 #' @export
 RSString <- RSScalarClass(
   "RSString",
-  version     = "0.0.4 alpha",
+  version     = "0.1.0 beta",
   super_class = RSScalar,
   na_value    = NA_character_,
   public      = list(
@@ -34,13 +34,13 @@ RSString <- RSScalarClass(
     #' @description
     #' Initializes an `RSString` object by wrapping a scalar character or factor value.
     #' The input must be of class `"character"` or `"factor"` and of length 1.
-    #' If the value is `NA`, use `RSNAString` instead.
+    #' If the value is `NA`, the shared `RSNAString` instance is returned.
     #'
     #' A factor input is stored as its character label so string ordering is
     #' independent of factor level codes.
     #'
     #' @param val An unclassed character scalar or a standard factor scalar.
-    #'   Must not be `NA`; S3 subclasses are not accepted.
+    #'   `NA` is accepted; S3 subclasses are not accepted.
     #'
     #' @return An initialized `RSString` object (invisible).
     initialize = function(val) {
@@ -53,7 +53,6 @@ RSString <- RSScalarClass(
         stop("RSString requires an unclassed character or standard factor value.",
              call. = FALSE)
       super$initialize(as.character(val))
-      invisible(self)
     },
 
     #' @description Compare strings for three-way sorting. Factor/string pairs

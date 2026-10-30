@@ -26,12 +26,14 @@ produce a companion named \code{RSNA...}; other names receive an \code{NA} suffi
 \code{NA_character_}, \code{as.Date(NA)}, or \code{as.POSIXlt(NA)}. The factory passes it directly to the
 generated NA class's initializer.}
 
-\item{protocols}{Protocol class generators adopted by the new classes.}
+\item{protocols}{Additional protocol class generators adopted by the new
+classes. Parent declarations are recorded directly on each generated class.}
 
 \item{public, private}{R6 members for the regular class. If \code{public}
 defines \code{initialize(val)}, that method must accept the supplied \code{na_value}
-when called on the generated NA subclass and pass it to
-\code{super$initialize(val)}. A default for \code{val} is not required.}
+when called on the generated NA subclass and return the result of
+\code{super$initialize(val)} for regular missing values. A default for \code{val}
+is not required.}
 
 \item{parent_env}{Parent environment for the generated R6 methods.}
 
@@ -58,7 +60,10 @@ its NA subclass. It sets \code{isNAClass} before calling the NA subclass's
 \verb{$new(na_value)}. The inherited initializer stores the missing value through
 \link{RSScalar} when a subclass calls \code{super$initialize(val)}. The shared instance
 is saved in both classes' \code{robjc_isa$slot} and exposed as \code{Class$na}.
-Singleton NA companions reject direct \verb{$new()} calls after the shared
+A regular class's \verb{$new(NA)} returns its shared NA instance when its
+initializer propagates the result of \code{super$initialize(val)}. A class with
+missing-value metadata can instead construct its NA companion, as \link{RSFactor}
+does. Singleton NA companions reject direct \verb{$new()} calls after the shared
 instance is created; use \code{Class$na} for them. When \code{na_singleton = FALSE},
 the NA class remains directly constructible. \code{RSFactor_withFactor()} creates
 a new \link{RSNAFactor} for each missing factor to preserve its metadata.
@@ -67,7 +72,6 @@ a new \link{RSNAFactor} for each missing factor to preserve its metadata.
 Probe <- RSScalarClass("Probe", na_value = NA_integer_,
   public = list(initialize = function(val) {
     super$initialize(val)
-    invisible(self)
   }))
 Probe$na$isKindOf(Probe)
 

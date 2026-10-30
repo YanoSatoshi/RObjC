@@ -1,4 +1,4 @@
-#' @include api_setup.r
+#' @include api_setup.r RSEncoding.r
 #' @title Key-Value Pair Class
 #'
 #' @description
@@ -20,16 +20,18 @@
 #' - `setKey(key)`: Replaces the key if the value is `RSNull`.
 #' - `isEqual(other)`: Compares equality based on the key only.
 #' - `hash()`: Computes a hash value derived from the key.
-#' - `objectsForEncoding()`: Returns the key and any RObjC instance value for encoding.
+#' - `encodeWithCoder()` and `initWithCoder()`: Preserve the key and value references.
+#' - `objectsForEncoding()`: Returns instance members for legacy serialization hooks.
 #'
 #' @return A concrete instance of `RSKeyValuePair`.
 #'
-#' @seealso [RSObject], [RSClassReference]
+#' @seealso [RSObject], [RSMutableDictionary]
 #'
 RSKeyValuePair <- RSObjectClass(
   "RSKeyValuePair",
-  version = "0.0.4 alpha",
+  version = "0.1.0 beta",
   super_class = RSObject,
+  protocols = list(RSCoding),
   private     = list(
     .key    = NULL,
     .value  = NULL
@@ -51,6 +53,32 @@ RSKeyValuePair <- RSObjectClass(
           robjc_isProtocol(value)
       )
       super$initialize()
+      private$.key <- key
+      private$.value <- value
+      invisible(self)
+    },
+
+    #' @description Encodes the key and value as separate references.
+    #' @param coder An [RSKeyedArchiver] recording keyed values.
+    #' @return `self`, invisibly.
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(private$.key, "key")
+      coder$encodeObjectForKey(private$.value, "value")
+      invisible(self)
+    },
+
+    #' @description Restores the key and value without calling `initialize()`.
+    #' @param coder An [RSKeyedUnarchiver] reading keyed values.
+    #' @return `self`, invisibly.
+    initWithCoder = function(coder) {
+      key <- coder$decodeObjectForKey("key")
+      value <- coder$decodeObjectForKey("value")
+      if (!robjc_isRobjcObject(key) && !robjc_isMetaClass(key))
+        stop("Decoded key must be an RObjC object, class, or protocol.",
+             call. = FALSE)
+      if (!robjc_isRobjcObject(value) && !robjc_isMetaClass(value))
+        stop("Decoded value must be an RObjC object, class, or protocol.",
+             call. = FALSE)
       private$.key <- key
       private$.value <- value
       invisible(self)
@@ -124,16 +152,16 @@ RSKeyValuePair <- RSObjectClass(
     #' @description
     #' Computes the hash code based on the key only.
     #' This allows the pair to behave correctly in hash-based containers.
-    #' The final result passes through [normalize_hash()].
+    #' The final result passes through [robjc_normalize_hash()].
     #'
     #' @return One non-missing integer hash value derived from the key.
-    hash = function() normalize_hash(private$.key$hash()),
+    hash = function() robjc_normalize_hash(private$.key$hash()),
 
 
 
     #' @description
-    #' Returns RObjC instance keys and values for encoding. Class and protocol
-    #' generators are serialized as R values and are not traversed as child objects.
+    #' Returns RObjC instance keys and values for legacy serialization hooks.
+    #' Keyed archives use `encodeWithCoder()` for all key and value references.
     #'
     #' @return A list of the RObjC instance key and value, when present.
     objectsForEncoding = function() {

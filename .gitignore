@@ -9,3 +9,4 @@ src/*.o
 src/*.so
 /robjc_*.tar.gz
 /robjc.Rcheck/
+/html/

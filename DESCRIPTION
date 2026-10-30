@@ -1,8 +1,18 @@
 Package: robjc
 Title: Objective-C Inspired OOP Framework for R using 'R6'
-Version: 0.0.4
-Authors@R: 
-    person("Satoshi", "Yano", , "yanosatoshi@gmail.com", role = c("aut", "cre"))
+Version: 0.1.0
+Authors@R: c(
+    person(
+        "Satoshi", "Yano",
+        role = c("aut", "cre"),
+        email = "yanosatoshi@gmail.com"
+    ),
+    person(
+        given = "R6 authors",
+        role = "cph",
+        comment = "Portions derived from the R6 package"
+    )
+    )
 Description: Provides a lightweight object-oriented programming framework in R,
     inspired by Objective-C, using 'R6' classes. Includes scalar wrappers,
     dictionary and set structures, protocol, and safe copying.
@@ -19,8 +29,6 @@ LinkingTo: Rcpp
 VignetteBuilder: knitr
 Collate: 
     'utilities.r'
-    'api_RSScalarClass.r'
-    'util_io.r'
     'Rcpp.r'
     'runtime_util.r'
     'runtime_robjc.r'
@@ -33,10 +41,13 @@ Collate:
     'RSCopying.r'
     'RSObject.r'
     'primary_class_setup.r'
+    'runtime_allocation.r'
+    'api_RSScalarClass.r'
     'api_RSSingletonClass.r'
     'api_RSProtocolClass.r'
     'api_RSObjectClass.r'
     'api_setup.r'
+    'RSEncoding.r'
     'RSModule.r'
     'RSHashOperatorProtocol.r'
     'RSHashOperator.r'
@@ -46,24 +57,22 @@ Collate:
     'RSArray.r'
     'RSScalar.r'
     'RSBoolean.r'
-    'RSEncoding.r'
-    'RSClassDecoder.r'
-    'RSConcreteDictionary.r'
-    'RSMutableDictionary.r'
-    'RSClassEncoder.r'
-    'RSKeyValuePair.r'
-    'RSClassReference.r'
-    'RSClassRegistry.r'
+    'RSCoder.r'
     'RSComplex.r'
+    'RSConcreteDictionary.r'
     'RSConcreteSet.r'
     'RSMutableDataFrame.r'
     'RSDataFrame.r'
     'RSDate.r'
     'RSDateTime.r'
+    'RSMutableDictionary.r'
     'RSDictionary.r'
     'RSString.r'
     'RSFactor.r'
-    'RSInstanceMap.r'
+    'RSKeyValuePair.r'
+    'runtime_class_registry.r'
+    'RSKeyedArchiver.r'
+    'RSKeyedUnarchiver.r'
     'RSMutableSet.r'
     'RSMutableVector.r'
     'RSNull.r'
@@ -71,7 +80,6 @@ Collate:
     'RSRaw.r'
     'RSSet.r'
     'RSVector.r'
-    'RSWrappedClass.r'
     'RcppExports.R'
     'api_RSArray.r'
     'api_RSBoolean.r'

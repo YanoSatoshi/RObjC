@@ -16,5 +16,5 @@
 RSMutableCopying <- RSProtocolClass(
   "RSMutableCopying",
   contract_methods = c("mutableCopy"),
-  version = "0.0.4 alpha"
+  version = "0.1.0 beta"
 )

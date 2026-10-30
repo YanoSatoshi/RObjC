@@ -97,3 +97,7 @@ set_subtract_with <- function(target_xp, other_xp) {
     invisible(.Call(`_robjc_set_subtract_with`, target_xp, other_xp))
 }
 
+robjc_object_address <- function(object) {
+    .Call(`_robjc_robjc_object_address`, object)
+}
+

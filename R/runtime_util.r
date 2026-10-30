@@ -1,80 +1,33 @@
-#' @importFrom utils capture.output
-#' 
-#' @title Get an R6 Object's Environment Address
+#' @title Get an R Object's Address
 #'
 #' @description
-#' Returns a hexadecimal address for the environment enclosing an R6 object's
-#' `$print` method. The address can identify an object during the current R
-#' session; it is not a persistent identifier across sessions.
+#' Returns the memory address of any R object as a hexadecimal string. R6
+#' instances and class generators are environments, so aliases of the same
+#' instance or generator have the same address within the current R session.
 #'
-#' RObjC uses this address for in-session object identity checks. An object
-#' without a `$print` method raises an error.
+#' Value objects such as atomic vectors, lists, data frames, and tibbles can be
+#' copied when modified (copy-on-write). After a copy, the modified binding may
+#' have a different address. This includes modifications to attributes. The
+#' address is therefore not a stable identity for value objects. Addresses are
+#' not persistent across R sessions, and an address may be reused after its
+#' object is released.
 #'
-#' @param some_obj An R6 instance or class generator with a `$print` method.
-#' @param obj_name Optional label used in error messages. By default, the input
-#'   expression is captured.
+#' @param some_obj Any R object.
 #'
-#' @return A character string containing a hexadecimal address, such as
+#' @return A character string containing the object's address, such as
 #'   `"0x55abcde12345"`.
 #'
 #' @examples
 #' obj <- RSObject$new()
-#' robjc:::get_pointer_hex(obj)
-#' robjc:::get_pointer_hex(RSObject)
+#' robjc_get_pointer(obj)
+#' robjc_get_pointer(RSObject)
+#' robjc_get_pointer(list(a = 1L))
+#' robjc_get_pointer(1:3)
 #'
 #' @seealso [RSObject]
 #'
-#' @keywords internal
-get_pointer_hex <- function(some_obj, obj_name = NULL) {
-  if (is.null(obj_name)) {
-    obj_name <- tryCatch(
-      deparse(substitute(some_obj)),
-      error = function(e) "unknown"
-    )
-  }
-  get_label <- function() {
-    tryCatch(
-      {
-        if (robjc_isRobjcObject(some_obj))
-          some_obj$class()$classname
-        else if (robjc_isMetaClass(some_obj))
-          some_obj$classname
-        else if (is.function(some_obj))
-          paste0("function ", obj_name)
-        else
-          class(some_obj)[1]
-      },
-      error = function(e) paste0("unknown object (", obj_name, ")")
-    )
-  }
-  env <- tryCatch(
-    environment(some_obj$print),
-    error = function(e) NULL
-  )
-  if (is.null(env)) {
-    label <- get_label()
-    stop(
-      sprintf("Pointer could not be resolved: object = [%s]", label),
-      call. = FALSE
-    )
-  }
-  addr <- utils::capture.output(print(env))[1]
-  hex_match <- sub("^<environment: (0x[0-9a-f]+)>$", "\\1", addr)
-  if (is.na(hex_match) || !nzchar(hex_match)) {
-    label <- tryCatch({
-        cls_name <- get_label()
-        env_str <- addr
-        paste0(cls_name, " @ ", env_str)
-      },
-      error = function(e) "unknown"
-    )
-    stop(
-      sprintf("Internal pointer (.ptr) could not be extracted for %s.", label),
-      call. = FALSE
-    )
-  }
-  return(hex_match)
-}
+#' @export
+robjc_get_pointer <- function(some_obj) robjc_object_address(some_obj)
 
 
 
@@ -87,8 +40,8 @@ get_pointer_hex <- function(some_obj, obj_name = NULL) {
 #' @param hash_code One integer hash code, possibly `NA_integer_`.
 #' @return `0L` for a missing hash code; otherwise `hash_code` unchanged.
 #' @examples
-#' normalize_hash(NA_integer_)
-#' normalize_hash(42L)
+#' robjc_normalize_hash(NA_integer_)
+#' robjc_normalize_hash(42L)
 #' @seealso [RSObject]
 #' @export
-normalize_hash <- function(hash_code) if (is.na(hash_code)) 0L else hash_code
+robjc_normalize_hash <- function(hash_code) if (is.na(hash_code)) 0L else hash_code

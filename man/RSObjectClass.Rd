@@ -20,7 +20,8 @@ RSObjectClass(
 \item{super_class}{An RObjC object class generator to inherit from. Defaults
 to \link{RSObject}.}
 
-\item{protocols}{A list of protocol class generators adopted by the class.}
+\item{protocols}{Additional protocol class generators adopted by the class.
+The child's identity record also lists protocols declared by its ancestors.}
 
 \item{public, private}{R6 public and private members passed to \code{\link[R6:R6Class]{R6::R6Class()}}.}
 
@@ -44,11 +45,14 @@ A singleton class cannot be used as \code{super_class}; use
 The factory creates an R6 generator with \code{class = FALSE} and
 \code{cloneable = FALSE}. It attaches the class identity as \code{robjc_isa} on the
 generator and as \code{.__isa} in its private fields, then locks the metadata.
-Instances acquire that identity during \link{RSObject} initialization.
+Instances acquire that identity during \link{RSObject} initialization. The
+generator's \verb{$new()} allocates an instance with \code{\link[=robjc_allocate]{robjc_allocate()}}, calls
+\code{initialize(...)}, and returns that method's result. Initializers intended
+to construct a usable object should return \code{self}.
 }
 
 \examples{
-ExampleObject <- RSObjectClass("ExampleObject", version = "0.0.4 alpha")
+ExampleObject <- RSObjectClass("ExampleObject", version = "0.1.0 beta")
 ExampleObject$new()$class()$classname
 
 }

@@ -1,4 +1,4 @@
-#' @include RSComparable.r
+#' @include RSComparable.r RSEncoding.r
 #' @title Scalar Base Class for the Paired-Class API
 #'
 #' @description
@@ -10,9 +10,11 @@
 #'
 #' @details
 #' A regular subclass may define `initialize(val)` to validate its value type
-#' and call `super$initialize(val)`. The factory supplies `na_value` when it
+#' and return `super$initialize(val)` so `$new(NA)` can return the companion.
+#' The factory supplies `na_value` when it
 #' constructs the NA subclass's shared instance. Type-specific validation must
 #' allow that missing value when `self$class()$isNAClass` is `TRUE`.
+#' A regular class's `$new(NA)` returns its shared NA companion instance.
 #' Singleton NA companions reject direct construction; use the corresponding
 #' class's `$na` instance. A non-singleton NA companion accepts only an `NA`
 #' value when constructed directly. `NaN` remains a regular scalar value.
@@ -22,17 +24,17 @@
 #' @export
 RSScalar <- RSObjectClass(
   "RSScalar",
-  version     = "0.0.4 alpha",
+  version     = "0.1.0 beta",
   super_class = RSObject,
-  protocols   = list(RSComparable),
+  protocols   = list(RSComparable, RSCoding),
   public      = list(
 
     #' @description Validate and store one scalar value. NA companion classes
     #'   accept only `NA`, not `NaN` or a nonmissing value.
-    #' @param val An atomic scalar or a scalar `POSIXlt` value. `NA` is accepted
-    #'   only in a generated NA subclass; `NaN` remains a regular scalar value.
+    #' @param val An atomic scalar or a scalar `POSIXlt` value. A regular
+    #'   class redirects `NA` to its NA companion; `NaN` remains a regular scalar value.
     #'   Values with a `dim` attribute are rejected.
-    #' @return The initialized instance, invisibly.
+    #' @return The initialized instance or its NA companion, invisibly.
     initialize = function(val) {
       if (self$isMemberOf(RSScalar))
         stop(
@@ -47,27 +49,47 @@ RSScalar <- RSObjectClass(
           !(isTRUE(is.na(val)) && !isTRUE(is.nan(val)))) {
         stop("NA companion classes require an NA value.", call. = FALSE)
       }
-      #! DO NOT REMOVE
-      #  RSScalarClass creates the NA companion with isNAClass = TRUE, so its
-      #  initializer must accept NA. This branch is still needed when a caller
-      #  passes NA to the regular class's $new();
       if (isTRUE(is.na(val)) &&
           !isTRUE(is.nan(val)) &&
-          !isTRUE(self$class()$isNAClass) &&
-          !identical(self$class(), RSFactor)) {
+          !isTRUE(self$class()$isNAClass)) {
         na_slot <- self$class()$robjc_isa$slot
-        if (robjc_isRobjcObject(na_slot)) {
-          na_class <- na_slot$class()$classname
-          stop(
-            sprintf(
-              "Use %s (via %s$na) for a missing value.",
-              na_class, self$class()$classname
-            ),
-            call. = FALSE
-          )
-        }
+        if (robjc_isRobjcObject(na_slot))
+          return(invisible(na_slot))
         stop("This scalar class has no NA companion.", call. = FALSE)
       }
+      private$.val <- val
+      invisible(self)
+    },
+
+
+    #' @description Encodes the underlying R scalar as logical state.
+    #' @param coder An [RSKeyedArchiver] recording keyed values.
+    #' @return `self`, invisibly.
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(private$.val, "value")
+      invisible(self)
+    },
+
+
+    #' @description Restores the underlying R scalar without calling
+    #'   `initialize()`. Subclasses can override this for older data formats.
+    #' @param coder An [RSKeyedUnarchiver] reading keyed values.
+    #' @return `self`, invisibly.
+    initWithCoder = function(coder) {
+      val <- coder$decodeObjectForKey("value")
+      if ((!is.atomic(val) && !inherits(val, "POSIXlt")) ||
+          length(val) != 1L || !is.null(dim(val)))
+        stop("Decoded scalar value must be a scalar.", call. = FALSE)
+      if (isTRUE(self$class()$isNAClass) &&
+          !(isTRUE(is.na(val)) && !isTRUE(is.nan(val))))
+        stop("NA companion classes require an NA value.", call. = FALSE)
+      if (isTRUE(is.na(val)) && !isTRUE(is.nan(val)) &&
+          !isTRUE(self$class()$isNAClass) &&
+          !identical(self$class(), RSFactor))
+        stop("A regular scalar class cannot decode an NA value.", call. = FALSE)
+      if (inherits(self$class(), ROBJC_SINGLETON) &&
+          !identical(private$.val, val))
+        stop("A singleton scalar cannot be changed during decoding.", call. = FALSE)
       private$.val <- val
       invisible(self)
     },
@@ -106,7 +128,7 @@ RSScalar <- RSObjectClass(
       sprintf(
         "<%s %s> %s",
         self$class()$classname,
-        get_pointer_hex(self), as.character(private$.val)
+        robjc_get_pointer(self), as.character(private$.val)
       )
     },
 
@@ -176,12 +198,12 @@ RSScalar <- RSObjectClass(
 
 
     #' @description Hash the wrapped scalar. `NA` and `NaN` hash to `0L`.
-    #' The result passes through [normalize_hash()].
+    #' The result passes through [robjc_normalize_hash()].
     #' @return One non-missing integer hash code.
     hash = function() {
       hash_code <- if (isTRUE(is.na(private$.val))) 0L else
         RSHashOperator$instance$hashForScalar(private$.val)
-      normalize_hash(hash_code)
+      robjc_normalize_hash(hash_code)
     },
 
 

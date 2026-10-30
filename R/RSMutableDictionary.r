@@ -2,6 +2,7 @@
 #' @include RSConcreteDictionary.r
 #' @include RSCopying.r
 #' @include RSMutableCopying.r
+#' @include RSEncoding.r
 #' 
 #' @title RSMutableDictionary: Native-Backed Mutable Key-Value Store
 #'
@@ -32,9 +33,9 @@
 #' @export
 RSMutableDictionary <- RSObjectClass(
   "RSMutableDictionary",
-  version = "0.0.4 alpha",
+  version = "0.1.0 beta",
   super_class = RSObject,
-  protocols   = list(RSMutableCopying, RSCopying),
+  protocols   = list(RSMutableCopying, RSCopying, RSCoding),
   private = list(
     .storage = NULL,
 
@@ -300,9 +301,9 @@ RSMutableDictionary <- RSObjectClass(
     },
 
     #' @description Computes an order-independent hash from the dictionary keys.
-    #' The final result passes through [normalize_hash()].
+    #' The final result passes through [robjc_normalize_hash()].
     #' @return One non-missing integer hash value.
-    hash = function() normalize_hash(private$.storage$contentHash()),
+    hash = function() robjc_normalize_hash(private$.storage$contentHash()),
 
     #' @description Compares two dictionaries by keys and values.
     #' @param other Another dictionary.
@@ -356,7 +357,8 @@ RSMutableDictionary <- RSObjectClass(
       result$copy()
     },
 
-    #' @description Returns the dictionary entries required for encoding.
+    #' @description Returns entry objects for legacy serialization hooks.
+    #'   Keyed archives use `encodeWithCoder()` for stored pairs.
     #' @return A list of [RSKeyValuePair] objects.
     objectsForEncoding = function() self$allEntriesAsList(),
 
@@ -364,6 +366,47 @@ RSMutableDictionary <- RSObjectClass(
     #' @return `self`, invisibly.
     prepareForSerialization = function() {
       private$.storage$prepareForSerialization()
+      invisible(self)
+    },
+
+    #' @description Encodes the stored key and value references as pairs.
+    #' @param coder An [RSKeyedArchiver] recording keyed values.
+    #' @return `self`, invisibly.
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(private$.storage$entries(), "entries")
+      invisible(self)
+    },
+
+    #' @description Restores native storage from saved pairs without copying
+    #'   keys again. This preserves their references and also serves immutable
+    #'   [RSDictionary] subclasses.
+    #' @param coder An [RSKeyedUnarchiver] reading keyed values.
+    #' @return `self`, invisibly.
+    initWithCoder = function(coder) {
+      entries <- coder$decodeObjectForKey("entries")
+      if (
+        !is.list(entries) ||
+        !all(vapply(
+          entries,
+          function(entry) {
+            is.list(entry) && length(entry) == 2L &&
+            (robjc_isRobjcObject(entry[[1L]]) || robjc_isMetaClass(entry[[1L]])) &&
+            (robjc_isRobjcObject(entry[[2L]]) || robjc_isMetaClass(entry[[2L]]))
+          },
+          logical(1))
+        )
+      )
+        stop("Decoded dictionary entries must contain RObjC keys and values.",
+             call. = FALSE)
+      storage <- RSConcreteDictionary$new()
+      for (entry in entries) {
+        key <- entry[[1L]]
+        hash <- key$hash()
+        if (!is.integer(hash) || length(hash) != 1L || is.na(hash))
+          stop("Key hash() must return one non-missing integer.", call. = FALSE)
+        storage$set(key, entry[[2L]])
+      }
+      private$.storage <- storage
       invisible(self)
     }
   )

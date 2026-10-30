@@ -1,4 +1,5 @@
 #' @include primary_class_setup.r
+#' @include runtime_allocation.r
 #' @title Declare an RObjC Object Class
 #'
 #' @description
@@ -12,7 +13,8 @@
 #' @param class_name One nonempty, nonmissing character string naming the class.
 #' @param super_class An RObjC object class generator to inherit from. Defaults
 #'   to [RSObject].
-#' @param protocols A list of protocol class generators adopted by the class.
+#' @param protocols Additional protocol class generators adopted by the class.
+#'   The child's identity record also lists protocols declared by its ancestors.
 #' @param public,private R6 public and private members passed to [R6::R6Class()].
 #' @param parent_env Parent environment for the generated R6 methods.
 #' @param version One non-empty, non-missing class version without `_`.
@@ -23,10 +25,13 @@
 #' The factory creates an R6 generator with `class = FALSE` and
 #' `cloneable = FALSE`. It attaches the class identity as `robjc_isa` on the
 #' generator and as `.__isa` in its private fields, then locks the metadata.
-#' Instances acquire that identity during [RSObject] initialization.
+#' Instances acquire that identity during [RSObject] initialization. The
+#' generator's `$new()` allocates an instance with [robjc_allocate()], calls
+#' `initialize(...)`, and returns that method's result. Initializers intended
+#' to construct a usable object should return `self`.
 #'
 #' @examples
-#' ExampleObject <- RSObjectClass("ExampleObject", version = "0.0.4 alpha")
+#' ExampleObject <- RSObjectClass("ExampleObject", version = "0.1.0 beta")
 #' ExampleObject$new()$class()$classname
 #'
 #' @export
@@ -70,6 +75,7 @@ RSObjectClass <- function(
     slot      = NULL,
     version   = version
   )
+  robjc_install_new(klass)
   robjc_freeze_isa(klass)
   invisible(klass)
 }

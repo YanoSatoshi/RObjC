@@ -53,7 +53,7 @@ test_that("instances inherit protocol conformance from parent classes", {
 })
 
 test_that("RSSingletonClass creates and locks its shared instance", {
-  Shared <- RSSingletonClass("SharedWidget", version = "0.0.4 alpha")
+  Shared <- RSSingletonClass("SharedWidget", version = "0.1.0 beta")
 
   expect_identical(Shared$instance$class(), Shared)
   expect_identical(Shared$instance, Shared$robjc_isa$slot)
@@ -79,7 +79,6 @@ test_that("RSScalarClass creates a shared NA companion", {
     na_value = NA_integer_,
     public = list(initialize = function(val) {
       super$initialize(val)
-      invisible(self)
     })
   )
 
@@ -88,6 +87,7 @@ test_that("RSScalarClass creates a shared NA companion", {
   expect_identical(One$na, One$robjc_isa$slot)
   expect_identical(One$na, One$na$class()$instance)
   expect_identical(One$new(1L)$value(), 1L)
+  expect_identical(One$new(NA_integer_), One$na)
   expect_identical(One$na$value(), NA_integer_)
   expect_true(bindingIsLocked("isNAClass", One))
   expect_true(bindingIsLocked("na", One))
@@ -107,7 +107,6 @@ test_that("RSScalarClass accepts scalar POSIXlt NA like RSScalar", {
     na_value = as.POSIXlt(NA),
     public = list(initialize = function(val) {
       super$initialize(val)
-      invisible(self)
     })
   )
 
@@ -135,7 +134,13 @@ test_that("built-in scalar classes share their typed NA companions", {
     expect_identical(regular$na, regular$robjc_isa$slot)
     expect_identical(regular$na, na_class$instance)
     expect_identical(regular$na, na_class$robjc_isa$slot)
-    expect_error(regular$new(na_value), na_class$classname, fixed = TRUE)
+    created <- regular$new(na_value)
+    if (identical(regular, RSFactor)) {
+      expect_true(created$isMemberOf(RSNAFactor))
+      expect_false(identical(created, regular$na))
+    } else {
+      expect_identical(created, regular$na)
+    }
     expect_true(is.na(regular$na$value()))
     expect_identical(class(regular$na$value()),
                      if (is.factor(na_value)) "character" else class(na_value))

@@ -173,8 +173,7 @@ robjc_inheritChain <- function(isa) {
 # `hash()` & `isEqual()` insertion
 # ------------
 # Give every RObjC generator identity-based value methods. Use the address of
-# the generator environment itself; get_pointer_hex() identifies the method
-# environment and therefore does not serve this purpose. Map the bit pattern
+# the generator environment itself. Map the bit pattern
 # reserved for R's NA_integer_ to 0L so generator hashes remain non-missing.
 robjc_install_meta_value_methods <- function(generator) {
   generator$isEqual <- function(other) identical(generator, other)
@@ -188,7 +187,7 @@ robjc_install_meta_value_methods <- function(generator) {
     upper <- strtoi(substr(hex, 1L, 4L), base = 16L)
     lower <- strtoi(substr(hex, 5L, 8L), base = 16L)
     hash_code <- bitwOr(bitwShiftL(upper, 16L), lower)
-    normalize_hash(hash_code)
+    robjc_normalize_hash(hash_code)
   }
   # .onLoad() restores these locks for package-defined generators.
   lockBinding("isEqual", generator)
@@ -207,7 +206,8 @@ robjc_install_meta_value_methods <- function(generator) {
 #'   to a class or protocol generator and its private instance fields.
 #' @param r6generator An R6 class generator to initialize.
 #' @param super_class Its parent class or protocol generator.
-#' @param protocols A list of adopted protocol generators.
+#' @param protocols A list of protocol generators declared by this class.
+#'   Object classes also record their ancestors' protocol declarations.
 #' @param slot Optional class-specific metadata.
 #' @param version One character string giving the class version.
 #' @return The new identity environment, invisibly.
@@ -217,7 +217,7 @@ robjc_make_isa <- function(
   super_class,
   protocols = list(),
   slot = NULL,
-  version = "0.0.4 alpha"
+  version = "0.1.0 beta"
 ) {
   if (!is.list(protocols) || !all(vapply(protocols, robjc_isProtocol, logical(1))))
     stop("`protocols` must be a list of RObjC protocols.", call. = FALSE)
@@ -229,6 +229,20 @@ robjc_make_isa <- function(
     stop("`super_class` cannot be NULL.", call. = FALSE)
   if (!inherits(super_class$robjc_isa, ISA_ROOT))
     stop(sprintf("%s does not inherit RSIsA", super_class$classname), call. = FALSE)
+  if (inherits(super_class$robjc_isa, ISA_OBJECT)) {
+    inherited <- unlist(
+      lapply(
+        robjc_inheritChain(super_class$robjc_isa),
+        function(klass) klass$robjc_isa$protocols
+      ),
+      recursive = FALSE,
+      use.names = FALSE
+    )
+    for (protocol in inherited) {
+      if (!any(vapply(protocols, identical, logical(1), protocol)))
+        protocols[[length(protocols) + 1L]] <- protocol
+    }
+  }
   isa <- list2env(
     list(
       class     = r6generator,
@@ -291,7 +305,7 @@ robjc_make_singleton_isa <- function(
   r6generator,
   super_class,
   protocols = list(),
-  version   = "0.0.4 alpha"
+  version   = "0.1.0 beta"
 ) {
   if (!inherits(super_class$robjc_isa, ISA_OBJECT))
     stop(
@@ -305,6 +319,7 @@ robjc_make_singleton_isa <- function(
     slot      = NULL,
     version   = version
   )
+  robjc_install_new(r6generator)
   r6generator$robjc_isa$slot <- r6generator$new()
   r6generator$instance <- r6generator$robjc_isa$slot
   # .onLoad() restores this lock for package-defined singleton generators.

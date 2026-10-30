@@ -1,0 +1,155 @@
+---
+title: "Keyed archives and package class registration"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Keyed archives and package class registration}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Keyed archives
+
+`RSKeyedArchiver` saves the logical state written by `encodeWithCoder()`.
+`RSKeyedUnarchiver` uses `robjc_allocate()` to create a current instance
+without calling `initialize()`, then passes the saved fields to
+`initWithCoder()`. For a singleton class, allocation returns its existing
+shared instance. The archive is a plain R list,
+so `saveRDS()` and `readRDS()` handle file storage. A repeated reference to the
+same RObjC object remains a repeated reference after decoding.
+
+## A registered package class
+
+Classes supplied by `robjc` are registered when the package loads. Their
+archives contain a package name and stable class ID, so no resolver is needed.
+
+```{r}
+library(robjc)
+
+number <- RSNumber$new(42L)
+archive <- RSKeyedArchiver$new()$archive(list(number, number))
+record <- archive$records[[1L]]
+stopifnot(identical(record$package, "robjc"))
+stopifnot(identical(record$class_id, "RSNumber"))
+
+path <- tempfile(fileext = ".rds")
+saveRDS(archive, path)
+decoder <- RSKeyedUnarchiver$new(readRDS(path))
+stopifnot(nrow(decoder$showAllClasses()) == 0L)
+classes <- decoder$showAllClasses(remove_default = FALSE)
+stopifnot(identical(classes$status, "automatic"))
+restored <- decoder$decode()
+unlink(path)
+stopifnot(identical(restored[[1L]], restored[[2L]]))
+stopifnot(identical(restored[[1L]]$nativeValue(), 42L))
+```
+
+`showAllClasses()` omits classes found through package registration by default,
+so the empty tibble above means no class mapping needs attention. Set
+`remove_default = FALSE` to inspect every archived class. The dictionary form,
+`dictionaryWithAllClasses()`, always includes every mapping.
+
+## Register a class in another package
+
+Declare the class in your package namespace and register it from `.onLoad()`.
+`binding` names the namespace variable holding the generator; it does not have
+to match the R6 `classname`. `id` is the permanent name stored in archives.
+Keep it stable when you rename the binding or change the class version.
+
+```{r eval=FALSE}
+# R/Document.r in package "myrecords"
+Document <- robjc::RSObjectClass(
+  "Document", version = "1.0",
+  public = list(
+    title = NULL,
+    initialize = function(title) {
+      super$initialize()
+      self$title <- title
+      invisible(self)
+    },
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(self$title, "title")
+    },
+    initWithCoder = function(coder) {
+      self$title <- coder$decodeObjectForKey("title")
+      invisible(self)
+    }
+  )
+)
+
+# R/zzz.R in the same package
+.onLoad <- function(libname, pkgname) {
+  robjc::robjc_register_class(
+    package = pkgname, id = "document", binding = "Document",
+    generator = Document
+  )
+}
+```
+
+The defining package should list `robjc` in `Imports`. When decoding, the
+unarchiver loads the recorded package if necessary, then reads the registered
+binding from its current namespace. Registration holds only the package name,
+ID, binding name, and namespace identity; it does not retain the generator.
+Use `robjc_register_protocol()` in the same way if protocol generators appear
+as values in archives.
+
+Class version is separate from the stable ID. `initWithCoder()` can inspect
+`coder$savedClassVersion()` to migrate older field layouts.
+
+## Classes defined in a script
+
+A class outside a package namespace cannot be registered with this API.
+`showAllClasses()` marks it as unresolved. Edit the `decoder_class` list column
+of the returned tibble and pass it to `setClasses()` before `decode()`.
+`showClass(class_key)` displays a single mapping. A resolver callback remains
+available for older callers; it receives `class_name`, `version`, and `kind`.
+
+```{r}
+Note <- RSObjectClass(
+  "GuideNote", version = "1.0",
+  public = list(
+    title = NULL,
+    initialize = function(title) {
+      super$initialize()
+      self$title <- title
+      invisible(self)
+    },
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(self$title, "title")
+    },
+    initWithCoder = function(coder) {
+      self$title <- coder$decodeObjectForKey("title")
+      invisible(self)
+    }
+  )
+)
+
+note_archive <- RSKeyedArchiver$new()$archive(Note$new("draft"))
+stopifnot(is.null(note_archive$records[[1L]]$package))
+decoder <- RSKeyedUnarchiver$new(note_archive)
+classes <- decoder$showAllClasses()
+stopifnot(identical(classes$status, "unresolved"))
+classes$decoder_class[1L] <- list(Note)
+decoder$setClasses(classes)
+stopifnot(identical(decoder$showClass(classes$class_key)$status, "manual"))
+note <- decoder$decode()
+stopifnot(identical(note$title, "draft"))
+
+# The same mapping can be edited as an RSMutableDictionary.
+other_decoder <- RSKeyedUnarchiver$new(note_archive)
+mapping <- other_decoder$dictionaryWithAllClasses()
+stopifnot(identical(
+  mapping$objectForKey(RSString$new(classes$class_key)), RSNull$null
+))
+mapping$setObjectForKey(Note, RSString$new(classes$class_key))
+other_decoder$setClasses(mapping)
+stopifnot(identical(other_decoder$decode()$title, "draft"))
+```
+
+The dictionary uses `RSString` class keys and decoder generators as values.
+An unresolved entry has `RSNull$null` as its value. Editing the returned
+dictionary does not change the decoder until `setClasses()` is called.
+
+Encode each field with a unique key. Plain R values are left to R's
+serialization; ordinary lists are traversed for RObjC references. A class
+that stores another RObjC object must encode that field explicitly. The
+archive format is currently `robjc-keyed-1` and may evolve during alpha.

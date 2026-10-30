@@ -30,7 +30,7 @@
 #' @export
 RSFactor <- RSScalarClass(
   "RSFactor",
-  version     = "0.0.4 alpha",
+  version     = "0.1.0 beta",
   super_class = RSString,
   na_value    = factor(NA_character_),
   na_singleton = FALSE,
@@ -43,17 +43,49 @@ RSFactor <- RSScalarClass(
     #'
     #' @param val A scalar with the standard `factor` or `ordered`/`factor`
     #'   class, without an S3 subclass.
-    #' @return An initialized `RSFactor` instance (invisible).
+    #' @return An initialized `RSFactor` instance, or a fresh `RSNAFactor`
+    #'   preserving levels and ordering for a missing factor (invisible).
     initialize = function(val) {
       standard_class <- identical(class(val), "factor") ||
         identical(class(val), c("ordered", "factor"))
       if (!standard_class || length(val) != 1L || !is.null(dim(val)))
         stop("`val` must be a factor scalar.", call. = FALSE)
       if (is.na(val) && !isTRUE(self$class()$isNAClass))
-        stop("Use `RSNAFactor` for NA", call. = FALSE)
+        return(invisible(self$class()$na$class()$new(val)))
       super$initialize(as.character(val))
       private$.levels  <- levels(val)
       private$.ordered <- is.ordered(val)
+      invisible(self)
+    },
+
+    #' @description Encodes the scalar label and its factor metadata.
+    #' @param coder An [RSKeyedArchiver] recording keyed values.
+    #' @return `self`, invisibly.
+    encodeWithCoder = function(coder) {
+      super$encodeWithCoder(coder)
+      coder$encodeObjectForKey(private$.levels, "levels")
+      coder$encodeObjectForKey(private$.ordered, "ordered")
+      invisible(self)
+    },
+
+    #' @description Restores the factor label, levels, and ordering without
+    #'   calling `initialize()`. Also serves non-singleton [RSNAFactor].
+    #' @param coder An [RSKeyedUnarchiver] reading keyed values.
+    #' @return `self`, invisibly.
+    initWithCoder = function(coder) {
+      value <- coder$decodeObjectForKey("value")
+      levels <- coder$decodeObjectForKey("levels")
+      ordered <- coder$decodeObjectForKey("ordered")
+      if (!is.character(value) || is.object(value) || length(value) != 1L ||
+          !is.null(dim(value)) ||
+          !is.character(levels) || is.object(levels) || anyNA(levels) ||
+          anyDuplicated(levels) ||
+          !is.logical(ordered) || length(ordered) != 1L || is.na(ordered) ||
+          (!is.na(value) && !value %in% levels))
+        stop("Decoded factor state is invalid.", call. = FALSE)
+      super$initWithCoder(coder)
+      private$.levels <- levels
+      private$.ordered <- ordered
       invisible(self)
     },
 

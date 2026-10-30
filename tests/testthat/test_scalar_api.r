@@ -120,9 +120,14 @@ test_that("direct scalar construction checks type before NA routing", {
   expect_error(RSComplex$new(NA_real_), "complex scalar", fixed = TRUE)
   expect_error(RSRaw$new(NA_integer_), "raw scalar", fixed = TRUE)
 
-  expect_error(RSBoolean$new(NA), "RSNABoolean", fixed = TRUE)
-  expect_error(RSNumber$new(NA_real_), "RSNANumber", fixed = TRUE)
-  expect_error(RSComplex$new(NA_complex_), "RSNAComplex", fixed = TRUE)
+  for (case in list(
+    list(RSBoolean, NA), list(RSNumber, NA_real_),
+    list(RSString, NA_character_), list(RSComplex, NA_complex_),
+    list(RSDate, as.Date(NA)), list(RSDateTime, as.POSIXct(NA)),
+    list(RSDateTime, as.POSIXlt(NA))
+  )) {
+    expect_identical(case[[1L]]$new(case[[2L]]), case[[1L]]$na)
+  }
 })
 
 test_that("scalar constructors reject dimensioned length-one values", {

@@ -10,7 +10,7 @@
 #' @export
 RSComplex <- RSScalarClass(
   "RSComplex",
-  version = "0.0.4 alpha",
+  version = "0.1.0 beta",
   super_class = RSScalar,
   na_value = NA_complex_,
   public = list(
@@ -23,7 +23,6 @@ RSComplex <- RSScalarClass(
       if (is.object(val))
         stop("S3 class attributes are not supported for RSComplex.", call. = FALSE)
       super$initialize(val)
-      invisible(self)
     },
 
     #' @description Compare using base R's complex sort order: real part, then

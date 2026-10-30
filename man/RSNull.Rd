@@ -28,8 +28,8 @@ The \code{RSNull$instance} and \code{RSNull$null} bindings are locked after crea
 
 \section{Usage}{
 
-Use \code{RSNull$null} to retrieve the shared instance. Direct calls to \verb{$new()}
-after the shared instance has been created raise an error.
+\code{RSNull$null}, \code{RSNull$instance}, and \code{RSNull$new()} return the same shared
+instance. Calling \verb{$new()} does not run \code{initialize()} again.
 }
 
 \examples{
@@ -45,6 +45,8 @@ x$isEqual(RSNull$null)  # TRUE
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-RSNull-initialize}{\code{RSNull$new()}}
+    \item \href{#method-RSNull-encodeWithCoder}{\code{RSNull$encodeWithCoder()}}
+    \item \href{#method-RSNull-initWithCoder}{\code{RSNull$initWithCoder()}}
     \item \href{#method-RSNull-compare}{\code{RSNull$compare()}}
     \item \href{#method-RSNull-nativeCompare}{\code{RSNull$nativeCompare()}}
     \item \href{#method-RSNull-description}{\code{RSNull$description()}}
@@ -64,7 +66,6 @@ x$isEqual(RSNull$null)  # TRUE
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>RSObject$print()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
@@ -86,6 +87,50 @@ It delegates scalar initialization, then stores \code{NULL} as the value.
   }
   \subsection{Returns}{
     The initialized \code{RSNull} instance (invisible).
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSNull-encodeWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSNull-encodeWithCoder}{}}}
+\subsection{\code{RSNull$encodeWithCoder()}}{
+  Encodes the null singleton without scalar value fields.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSNull$encodeWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedArchiver} recording keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSNull-initWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSNull-initWithCoder}{}}}
+\subsection{\code{RSNull$initWithCoder()}}{
+  Returns the already shared null singleton.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSNull$initWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedUnarchiver} reading keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The shared instance, invisibly.
   }
 }
 
@@ -181,7 +226,7 @@ incomparable and cause an error.
   Returns a fixed integer hash value (\code{0L}) for all \code{RSNull} instances.
 Since \code{RSNull} is a singleton and always represents the same conceptual null value,
 a constant hash ensures consistent behavior in hashed collections. The
-final \code{0L} also passes through \code{\link[=normalize_hash]{normalize_hash()}}.
+final \code{0L} also passes through \code{\link[=robjc_normalize_hash]{robjc_normalize_hash()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSNull$hash()}

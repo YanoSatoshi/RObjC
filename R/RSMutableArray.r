@@ -3,6 +3,7 @@
 #' @include RSCopying.r
 #' @include RSComparable.r
 #' @include RSHashOperator.r
+#' @include RSEncoding.r
 #' 
 #' @title RSMutableArray: Ordered, Mutable Object Container
 #'
@@ -38,9 +39,9 @@
 #' @export
 RSMutableArray <- RSObjectClass(
   "RSMutableArray",
-  version = "0.0.4 alpha",
+  version = "0.1.0 beta",
   super_class = RSObject,
-  protocols   = list(RSMutableCopying, RSCopying, RSComparable),
+  protocols   = list(RSMutableCopying, RSCopying, RSComparable, RSCoding),
   private = list(
     .storage = list(),
     .validatedIndex = function(index, len, allow_end = FALSE) {
@@ -232,6 +233,41 @@ RSMutableArray <- RSObjectClass(
     objectsForEncoding = function() Filter(robjc_isRobjcObject, private$.storage),
 
 
+    #' @description Encodes the ordered elements and, when non-default, the
+    #'   hash operator. The coder preserves repeated element references.
+    #' @param coder An [RSKeyedArchiver] recording keyed values.
+    #' @return `self`, invisibly.
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(private$.storage, "objects")
+      if (!identical(private$.hash_operator, RSHashOperator$instance))
+        coder$encodeObjectForKey(private$.hash_operator, "hash_operator")
+      invisible(self)
+    },
+
+
+    #' @description Restores the ordered elements and hash operator without
+    #'   calling `initialize()`. Also serves immutable [RSArray] subclasses.
+    #' @param coder An [RSKeyedUnarchiver] reading keyed values.
+    #' @return `self`, invisibly.
+    initWithCoder = function(coder) {
+      objects <- coder$decodeObjectForKey("objects")
+      if (!is.list(objects) || !all(vapply(objects, private$.validElement, logical(1))))
+        stop(
+          "Decoded array elements must be RObjC objects, classes, or protocols.",
+          call. = FALSE
+        )
+      hash_operator <- coder$decodeObjectForKey("hash_operator")
+      if (is.null(hash_operator)) hash_operator <- RSHashOperator$instance
+      if (!robjc_isRobjcObject(hash_operator) ||
+          !hash_operator$respondsTo("hashFromObjects") ||
+          !hash_operator$respondsTo("hashesOfEachObject"))
+        stop("Decoded hash operator is invalid.", call. = FALSE)
+      private$.storage <- unname(objects)
+      private$.hash_operator <- hash_operator
+      invisible(self)
+    },
+
+
 
     #' @description
     #' Returns the number of objects currently stored in the array.
@@ -279,11 +315,11 @@ RSMutableArray <- RSObjectClass(
     #' @description
     #' Computes an aggregate hash for the array by combining the hash values of all contained elements.
     #' This supports dictionary keys; array ordering uses element comparisons.
-    #' The final result passes through [normalize_hash()].
+    #' The final result passes through [robjc_normalize_hash()].
     #'
     #' @return One non-missing integer hash value.
     hash = function() {
-      normalize_hash(self$hashOperator()$hashFromObjects(private$.storage))
+      robjc_normalize_hash(self$hashOperator()$hashFromObjects(private$.storage))
     },
 
 

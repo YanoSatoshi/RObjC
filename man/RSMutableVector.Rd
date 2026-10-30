@@ -20,6 +20,8 @@ remain stable while the vector is used as a key or set member.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-RSMutableVector-initialize}{\code{RSMutableVector$new()}}
+    \item \href{#method-RSMutableVector-encodeWithCoder}{\code{RSMutableVector$encodeWithCoder()}}
+    \item \href{#method-RSMutableVector-initWithCoder}{\code{RSMutableVector$initWithCoder()}}
     \item \href{#method-RSMutableVector-values}{\code{RSMutableVector$values()}}
     \item \href{#method-RSMutableVector-appendValues}{\code{RSMutableVector$appendValues()}}
     \item \href{#method-RSMutableVector-insertValuesAtIndex}{\code{RSMutableVector$insertValuesAtIndex()}}
@@ -78,6 +80,52 @@ remain stable while the vector is used as a key or set member.
   }
   \subsection{Returns}{
     The initialized instance, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSMutableVector-encodeWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableVector-encodeWithCoder}{}}}
+\subsection{\code{RSMutableVector$encodeWithCoder()}}{
+  Encodes the atomic vector and a nondefault hash operator.
+The vector is a base R serialization value.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$encodeWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedArchiver} recording keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSMutableVector-initWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableVector-initWithCoder}{}}}
+\subsection{\code{RSMutableVector$initWithCoder()}}{
+  Restores the vector and hash operator without calling
+\code{initialize()}. Also serves immutable \link{RSVector} subclasses.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableVector$initWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedUnarchiver} reading keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
   }
 }
 
@@ -335,7 +383,7 @@ type and class.}
 \subsection{\code{RSMutableVector$hash()}}{
   Computes an aggregate hash by combining the hash values of all elements.
 This is used for fast comparison and dictionary key support.
-The result passes through \code{\link[=normalize_hash]{normalize_hash()}}, mapping R's
+The result passes through \code{\link[=robjc_normalize_hash]{robjc_normalize_hash()}}, mapping R's
 \code{NA_integer_} bit pattern to \code{0L}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}

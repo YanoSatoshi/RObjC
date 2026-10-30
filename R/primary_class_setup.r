@@ -11,7 +11,7 @@ isa <- list2env(
     super     = NULL,
     protocols = list(),
     slot      = NULL,
-    version   = "0.0.4 alpha"
+    version   = "0.1.0 beta"
   ),
   envir = new.env(parent = emptyenv(), hash = FALSE)
 )
@@ -29,7 +29,7 @@ isa <- list2env(
     super     = NULL,
     protocols = list(),
     slot      = character(0),
-    version   = "0.0.4 alpha"
+    version   = "0.1.0 beta"
   ),
   envir = new.env(parent = emptyenv(), hash = FALSE)
 )
@@ -49,7 +49,7 @@ isa <- list2env(
     super     = RSProtocol,
     protocols = list(),
     slot      = c("copy"),
-    version   = "0.0.4 alpha"
+    version   = "0.1.0 beta"
   ),
   envir = new.env(parent = emptyenv(), hash = FALSE)
 )

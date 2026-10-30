@@ -78,15 +78,15 @@
 #' }
 #'
 #' @note
-#' All methods must be deterministic and consistent with the semantics of \code{hash()} and \code{isEqual()} on RS objects.
-#' Protocol conformance checks the adoption declaration, not method presence
-#' or return types. Concrete
-#' consumers impose additional requirements: [RSMutableVector] collects
+#' All methods must be deterministic and consistent with the semantics of
+#' \code{hash()} and \code{isEqual()} on RS objects. Protocol conformance
+#' checks the adoption declaration, not method presence or return types.
+#' Concrete consumers impose additional requirements: [RSMutableVector] collects
 #' `hashForScalar()` results as integers, while [RSMutableArray] documents
 #' `hashesOfEachObject()` as an integer vector and `hashFromObjects()` as one
 #' integer hash. When an array is stored as a dictionary key or set member,
 #' its `hash()` must return one nonmissing integer. A custom `hash()` should
-#' return [normalize_hash()] applied to its final computed value.
+#' return [robjc_normalize_hash()] applied to its final computed value.
 #' Modules implementing this protocol are used by scalar, array, set, and
 #' dictionary classes.
 #'
@@ -97,13 +97,7 @@ RSHashOperatorProtocol <- RSProtocolClass(
     "hashForScalar",
     "computeHashCodeWithString",
     "hashesOfEachObject",
-    "hashFromObjects",
-    "areEqualSets",
-    "objectsAlsoIn",
-    "objectsNotIn",
-    "unionOfSets",
-    "intersectionOfSets",
-    "differenceOfSets"
+    "hashFromObjects"
   ),
-  version = "0.0.4 alpha"
+  version = "0.1.0 beta"
 )

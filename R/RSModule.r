@@ -7,8 +7,8 @@
 #' and stores it in `$instance`.
 #'
 #' Subclasses can be declared with `RSSingletonClass()` and accessed through
-#' `Class$instance`. The current factory does not disable `$new()`, so callers
-#' should use the stored instance when singleton identity matters.
+#' `Class$instance`. After declaration, `$new()` returns that same instance
+#' without calling `initialize()` again.
 #'
 #' `initialize()` delegates to [RSObject] and returns the instance. It does not
 #' lock instance fields; subclasses can set fields during initialization.
@@ -36,7 +36,7 @@
 RSModule <- RSSingletonClass(
   "RSModule",
   super_class = RSObject,
-  version     = "0.0.4 alpha",
+  version     = "0.1.0 beta",
   public      = list(
     #' @description Initializes the shared module instance.
     #' @return The initialized instance, invisibly.

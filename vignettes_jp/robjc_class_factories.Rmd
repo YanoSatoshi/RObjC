@@ -26,7 +26,7 @@ object、singleton、scalar の各ファクトリーは `class_name`、`super_cl
 
 ## 通常のオブジェクトクラス
 
-`RSObjectClass()` の親クラスは既定で `RSObject` です。`public` にメソッドを定義し、`$new()` でインスタンスを作ります。
+`RSObjectClass()` の親クラスは既定で `RSObject` です。`public` にメソッドを定義し、`$new()` でインスタンスを作ります。generator はまず `robjc_allocate()` で継承メンバーとクラスの同一性を持つインスタンスを確保し、次に `initialize(...)` を呼びます。`$new()` は initializer の戻り値を返すため、使用するインスタンスを作る initializer は `self` を返します。
 
 ```{r}
 library(robjc)
@@ -38,6 +38,30 @@ Widget <- RSObjectClass(
 widget <- Widget$new()
 stopifnot(identical(widget$label(), "widget"))
 stopifnot(identical(widget$class(), Widget))
+```
+
+`robjc_allocate(Class)` は `initialize()` を呼ばずにインスタンスを確保します。保存済み状態を復元する用途で使い、通常のオブジェクトとして使う前に論理フィールドを設定します。通常の `$new()` は initializer まで実行します。
+
+```{r}
+initializations <- 0L
+Tracked <- RSObjectClass(
+  "VignetteJaTracked",
+  public = list(
+    value = NULL,
+    initialize = function(value) {
+      super$initialize()
+      initializations <<- initializations + 1L
+      self$value <- value
+      invisible(self)
+    }
+  )
+)
+allocated <- robjc_allocate(Tracked)
+stopifnot(identical(allocated$class(), Tracked))
+stopifnot(is.null(allocated$value), identical(initializations, 0L))
+initialized <- Tracked$new(7L)
+stopifnot(identical(initialized$value, 7L))
+stopifnot(identical(initializations, 1L))
 ```
 
 ## Protocol
@@ -60,7 +84,7 @@ stopifnot(LabeledWidget$new()$conformsTo(Labeled))
 
 ## 共有 singleton
 
-`RSSingletonClass()` はクラスの宣言中に `$new()` を呼びます。このため、`initialize()` は引数なしで実行できる必要があります。共有インスタンスは `Class$instance` と `Class$robjc_isa$slot` の両方から取得できます。
+`RSSingletonClass()` はクラスの宣言中に `$new()` を呼びます。このため、`initialize()` は引数なしで実行でき、`self` を返す必要があります。共有インスタンスは `Class$instance` と `Class$robjc_isa$slot` の両方から取得できます。
 
 ```{r}
 Registry <- RSSingletonClass("VignetteRegistry")
@@ -68,26 +92,26 @@ stopifnot(identical(Registry$instance, Registry$robjc_isa$slot))
 stopifnot(identical(Registry$instance$class(), Registry))
 ```
 
-`$new()` 自体は呼び出せるため、共有オブジェクトが必要なときは `$instance` を使います。`RSNull` は `RSSingletonClass()` で宣言され、共有オブジェクトを `RSNull$null` として公開します。
+宣言後の `$new()` は、`initialize()` を再実行せず同じ共有インスタンスを返します。singleton クラスに対する `robjc_allocate()` も同じ共有インスタンスを返します。直接アクセスする場合は `$instance` を使います。`RSNull` は `RSSingletonClass()` で宣言され、共有オブジェクトを `RSNull$null` として公開します。
 
 ## scalar クラスと NA クラス
 
-`RSScalarClass()` には、対象の型に適した長さ 1 の欠損値を `na_value` として渡します。通常クラスと NA サブクラスを宣言し、NA サブクラスの共有インスタンスを作ります。`initialize(val)` を定義する場合は、NA インスタンスの作成時に `na_value` を受け取り、冒頭で `super$initialize(val)` を呼ぶ必要があります。通常クラスへ NA を直接渡すとエラーになります。欠損値には `Class$na` を使います。
+`RSScalarClass()` には、対象の型に適した長さ 1 の欠損値を `na_value` として渡します。通常クラスと NA サブクラスを宣言し、NA サブクラスの共有インスタンスを作ります。`initialize(val)` を定義する場合は、NA インスタンスの作成時に `na_value` を受け取り、通常クラスの `$new(NA)` が `Class$na` を返せるよう `super$initialize(val)` の結果を返します。
 
 ```{r}
 Count <- RSScalarClass(
   "VignetteCount",
   na_value = NA_integer_,
   public = list(initialize = function(val) {
-    super$initialize(val)
     if (!is.integer(val)) stop("Expected an integer scalar.")
-    invisible(self)
+    super$initialize(val)
   })
 )
 stopifnot(identical(Count$new(2L)$value(), 2L))
+stopifnot(identical(Count$new(NA_integer_), Count$na))
 stopifnot(identical(Count$na$value(), NA_integer_))
 stopifnot(identical(Count$na, Count$robjc_isa$slot))
 stopifnot(identical(Count$na$class()$classname, "VignetteCountNA"))
 ```
 
-`RS` で始まる名前の NA クラスには `RSNA...` という名前が付き、それ以外の名前には `NA` が末尾に付きます。ファクトリーは NA インスタンスの初期化前に `isNAClass` を設定するため、型ごとの初期化処理で通常インスタンスと区別できます。既定では生成された NA クラスの `$new()` は無効で、共有インスタンスには `Class$na` を使います。`na_singleton = FALSE` を指定した場合は、欠損値ごとのメタデータを保持できるよう直接生成も可能です。コンストラクタの選択と `NULL`・型付き NA の違いは「scalar と欠損値」（`vignettes_jp/robjc_scalar_values.Rmd`）を参照してください。
+`RS` で始まる名前の NA クラスには `RSNA...` という名前が付き、それ以外の名前には `NA` が末尾に付きます。ファクトリーは NA インスタンスの初期化前に `isNAClass` を設定するため、型ごとの初期化処理で通常インスタンスと区別できます。NA クラスの initializer も `self` を返し、共有インスタンスを `Class$na` に保存できるようにします。既定では生成された NA クラスの `$new()` は無効で、共有インスタンスには `Class$na` を使います。`na_singleton = FALSE` を指定した場合は、欠損値ごとのメタデータを保持できるよう直接生成も可能です。コンストラクタの選択と `NULL`・型付き NA の違いは「scalar と欠損値」（`vignettes_jp/robjc_scalar_values.Rmd`）を参照してください。

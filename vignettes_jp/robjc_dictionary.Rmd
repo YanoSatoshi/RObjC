@@ -15,7 +15,7 @@ vignette: >
 
 Dictionary はキーの `hash()` と `isEqual()` を使って検索します。値が同じ `RSString` なら、格納時とは別のインスタンスでも要素を取得できます。存在しないキーの検索は R の `NULL` を返します。一方、格納した `NULL` は `RSNull$null` オブジェクトとして返るため、`containsKey()` で両者を区別できます。
 
-独自のキークラスで `hash()` を実装する場合は、計算した値を最後に `normalize_hash()` に通して返してください。`NA_integer_` を返さないために必要です。
+独自のキークラスで `hash()` を実装する場合は、計算した値を最後に `robjc_normalize_hash()` に通して返してください。`NA_integer_` を返さないために必要です。
 
 ```{r}
 library(robjc)

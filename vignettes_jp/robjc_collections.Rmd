@@ -43,7 +43,7 @@ stopifnot(identical(editable_array$count(), 3L))
 ## Dictionary：キーで値を探す
 
 Dictionary は RObjC のキーを値に対応付けます。`objectForKey()` で検索し、`containsKey()` でキーの有無を確認します。検索には `hash()` と `isEqual()` が使われるため、格納時とは別でも等しいキーなら値を取得できます。
-独自のキークラスでは、`NA_integer_` を返さないよう、計算したハッシュを最後に `normalize_hash()` に通して返してください。
+独自のキークラスでは、`NA_integer_` を返さないよう、計算したハッシュを最後に `robjc_normalize_hash()` に通して返してください。
 
 ```{r}
 dictionary <- RSDictionary_withObjectForKey(
@@ -61,7 +61,7 @@ Dictionary の要素の順序は未定義です。挿入時にキーの `copy()`
 ## Set：重複のない要素
 
 Set は等しい要素を 1 つにまとめ、反復順序は定義しません。所属判定には各オブジェクトの `hash()` と `isEqual()` が使われます。変更可能な Set では要素を追加・削除できます。`uniteSet()`、`intersectSet()`、`subtractSet()` は新しい読み取り専用 Set を返します。
-独自の要素クラスでも、`hash()` の最後に `normalize_hash()` の結果を返してください。
+独自の要素クラスでも、`hash()` の最後に `robjc_normalize_hash()` の結果を返してください。
 
 ```{r}
 set <- RSSet_withObjects(list(

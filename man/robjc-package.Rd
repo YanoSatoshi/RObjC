@@ -31,4 +31,9 @@ Authors:
   \item Satoshi Yano \email{yanosatoshi@gmail.com}
 }
 
+Other contributors:
+\itemize{
+  \item R6 authors (Portions derived from the R6 package) [copyright holder]
+}
+
 }

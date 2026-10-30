@@ -7,22 +7,6 @@
 RSEncoderProtocol
 }
 \description{
-This protocol defines the required methods for classes that perform
-object encoding in the robjc system. An encoder must implement object
-traversal and serialization logic, and produce metadata structures
-that can be passed to the decoder.
-
-The typical implementer of this protocol is \code{RSClassEncoder}.
-}
-\details{
-Required methods:
-\itemize{
-\item \code{encodeObject(obj)}: Encodes the object and its children.
-\item \code{lockInstance()}: Finalizes and returns the complete encoded metadata.
-}
-
-Optional methods may include:
-\itemize{
-\item \code{encodingContainer(obj)}: Retrieves the class-bound instance storage.
-}
+Declares \code{encodeWithCoder(coder)} for objects that write their logical state
+to a keyed coder. Conformance is a declaration; it does not check the method.
 }

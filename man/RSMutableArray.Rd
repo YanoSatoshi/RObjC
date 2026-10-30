@@ -56,6 +56,8 @@ arr$objectAtIndex(1)$value()  # "b"
     \item \href{#method-RSMutableArray-asList}{\code{RSMutableArray$asList()}}
     \item \href{#method-RSMutableArray-allObjectsAsList}{\code{RSMutableArray$allObjectsAsList()}}
     \item \href{#method-RSMutableArray-objectsForEncoding}{\code{RSMutableArray$objectsForEncoding()}}
+    \item \href{#method-RSMutableArray-encodeWithCoder}{\code{RSMutableArray$encodeWithCoder()}}
+    \item \href{#method-RSMutableArray-initWithCoder}{\code{RSMutableArray$initWithCoder()}}
     \item \href{#method-RSMutableArray-count}{\code{RSMutableArray$count()}}
     \item \href{#method-RSMutableArray-copy}{\code{RSMutableArray$copy()}}
     \item \href{#method-RSMutableArray-mutableCopy}{\code{RSMutableArray$mutableCopy()}}
@@ -347,6 +349,52 @@ child objects by the encoder.
 }
 
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSMutableArray-encodeWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableArray-encodeWithCoder}{}}}
+\subsection{\code{RSMutableArray$encodeWithCoder()}}{
+  Encodes the ordered elements and, when non-default, the
+hash operator. The coder preserves repeated element references.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableArray$encodeWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedArchiver} recording keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSMutableArray-initWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableArray-initWithCoder}{}}}
+\subsection{\code{RSMutableArray$initWithCoder()}}{
+  Restores the ordered elements and hash operator without
+calling \code{initialize()}. Also serves immutable \link{RSArray} subclasses.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableArray$initWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedUnarchiver} reading keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableArray-count"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableArray-count}{}}}
 \subsection{\code{RSMutableArray$count()}}{
@@ -406,7 +454,7 @@ element references.
 \subsection{\code{RSMutableArray$hash()}}{
   Computes an aggregate hash for the array by combining the hash values of all contained elements.
 This supports dictionary keys; array ordering uses element comparisons.
-The final result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
+The final result passes through \code{\link[=robjc_normalize_hash]{robjc_normalize_hash()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableArray$hash()}
