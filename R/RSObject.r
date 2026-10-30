@@ -23,8 +23,8 @@
 #' - `isKindOf(cls)` – Checks if the object inherits from the given class (directly or indirectly).
 #' - `isEqual(other)` – Returns `TRUE` if the reference is identical to `other`.
 #' - `hash()` – Computes an integer hash from the object's environment address.
-#' - `objectID()` – Returns a pointer-like identity based on the environment
-#'   address of the instance's `print` method.
+#' - `objectID()` – Returns a pointer-like identity based on the instance's
+#'   environment address.
 #'
 #' @section Internal Fields:
 #' - `.__isa` – Cached class object.
@@ -32,7 +32,7 @@
 #' @section Notes:
 #' - The hash method uses part of the object's environment address to produce
 #'   an integer hash. Different objects can have the same hash.
-#' - `hash()` applies [normalize_hash()] to its final integer, mapping R's
+#' - `hash()` applies [robjc_normalize_hash()] to its final integer, mapping R's
 #'   `NA_integer_` bit pattern to `0L`. Custom `hash()` methods should do the same.
 #' - Class identity is preserved via explicit references, not via string-based comparisons.
 #'
@@ -109,7 +109,7 @@ RSObject <- R6::R6Class(
     #' Returns a compact description like "<Class 0xabc123>".
     #' @return A character string describing the object.
     description = function() {
-      paste0("<", self$class()$classname, " ", get_pointer_hex(self), ">")
+      paste0("<", self$class()$classname, " ", robjc_get_pointer(self), ">")
     },
 
 
@@ -168,29 +168,28 @@ RSObject <- R6::R6Class(
 
 
     #' @description
-    #' Returns an integer hash derived from the environment address of this
-    #' instance's `print` method. The result passes through [normalize_hash()],
+    #' Returns an integer hash derived from this instance's environment address.
+    #' The result passes through [robjc_normalize_hash()],
     #' so the `NA_integer_` bit pattern maps to `0L`.
     #' @return One non-missing integer hash value.
     hash = function() {
-      hex_str <- get_pointer_hex(self)
+      hex_str <- robjc_get_pointer(self)
       padded <- sprintf("%016s", tolower(sub("^0x", "", hex_str)))
       unit3 <- substr(padded, 9, 12)
       unit4 <- substr(padded, 13, 16)
       u3 <- strtoi(unit3, base = 16L)
       u4 <- strtoi(unit4, base = 16L)
       hash_code <- bitwOr(bitwShiftL(u3, 16L), u4)
-      normalize_hash(hash_code)
+      robjc_normalize_hash(hash_code)
     },
 
 
 
     #' @description
-    #' Returns the hexadecimal address of the environment enclosing this
-    #' instance's `print` method. Within the current R session, the address
-    #' string serves as a pointer-like identity, akin to a C pointer.
+    #' Returns the hexadecimal address of this instance's environment. Within
+    #' the current R session, the address serves as a pointer-like identity.
     #' @return A hexadecimal address string.
-    objectID = function() get_pointer_hex(self),
+    objectID = function() robjc_get_pointer(self),
 
 
 
@@ -233,55 +232,10 @@ RSObject <- R6::R6Class(
 
 
 
-    ##### RSEncoding ####
-    #' @description
-    #' Returns a flat list of direct child objects to be encoded alongside this instance.
-    #'
-    #' This method is part of the `RSEncoding` protocol. It is used by the encoder to
-    #' determine which instances should be recursively encoded. You should override
-    #' this method in your custom subclasses to return all objects that this instance
-    #' owns or manages directly.
-    #'
-    #' Return only instances of `RSObject` subclasses. Native R atomic values such as
-    #' `numeric` and `character` are saved by R and do not belong in this list.
-    #' Wrapped scalars such as `RSNumber` and `RSString` are RObjC objects and do belong
-    #' here when held as children. Omit `NULL`, nested lists, class generators, and `self`;
-    #' the encoder registers the current instance before calling this method.
-    #' Inherited class metadata and class relationships are handled automatically.
-    #'
-    #' When overriding this method, always call `super$objectsForEncoding()` to collect
-    #' objects from parent classes, and combine them with your own declared fields.
-    #' Each returned child is registered recursively. A custom class needs a matching
-    #' `class_map` entry when saved data is decoded.
-    #'
-    #' @return A list of objects to be encoded recursively (defaults to an empty list).
-    #'
-    #' @examples
-    #' \dontrun{
-    #' MyContainerClass <- RSObjectClass("MyContainerClass", super_class = RSObject,
-    #' public = list(
-    #'   instance1 = NULL,
-    #'   instance2 = NULL,
-    #'   initialize = function(obj1, obj2) {
-    #'     self$instance1 <- obj1  # RSObject instance
-    #'     self$instance2 <- obj2  # RSObject instance
-    #'     super$initialize()
-    #'   },
-    #'   objectsForEncoding = function() {
-    #'     inherited <- super$objectsForEncoding()
-    #'     custom <- list(self$instance1, self$instance2)
-    #'     return(c(inherited, custom))
-    #'   }
-    #' ))
-    #' }
-    #'
-    #' @seealso
-    #' \code{\link[=RSEncoding]{RSEncoding}} – Protocol interface for serialization.
-    #' \code{\link[=RSClassEncoder]{RSClassEncoder}} – Main encoder class; see \code{encodeObject()} method for recursive encoding logic.
-    #'
-    #' @note
-    #' Class metadata and superclass information are handled automatically by the encoder.
-    #' Do not include class objects or static class-level state in this list.
+    #' @description Returns an empty list for legacy serialization hooks.
+    #'   The keyed archiver uses `encodeWithCoder()` instead. This method is
+    #'   not part of [RSCoding].
+    #' @return An empty list.
     #'
     #' @keywords internal
     objectsForEncoding = function() list(),

@@ -17,9 +17,6 @@ enabling class-based introspection and inheritance-aware comparisons.
 The default implementation does not create a new instance. This is safe for
 immutable objects. If the object has mutable fields, overriding this method
 is strongly recommended to avoid side effects from shared references.
-
-Class metadata and superclass information are handled automatically by the encoder.
-Do not include class objects or static class-level state in this list.
 }
 \section{Public Methods}{
 
@@ -30,13 +27,12 @@ Do not include class objects or static class-level state in this list.
 \item \code{respondsTo(method)} – Returns \code{TRUE} if the object implements the specified method.
 \item \code{description()} – Returns a concise string representation of the object.
 \item \code{debugDescription()} – Returns a detailed string including all public fields and their structure.
-\item \code{print()} – Outputs the result of \code{description()} to the console.
 \item \code{isMemberOf(cls)} – Checks if the object is a direct instance of the given class.
 \item \code{isKindOf(cls)} – Checks if the object inherits from the given class (directly or indirectly).
 \item \code{isEqual(other)} – Returns \code{TRUE} if the reference is identical to \code{other}.
 \item \code{hash()} – Computes an integer hash from the object's environment address.
-\item \code{objectID()} – Returns a pointer-like identity based on the environment
-address of the instance's \code{print} method.
+\item \code{objectID()} – Returns a pointer-like identity based on the instance's
+environment address.
 }
 }
 
@@ -52,7 +48,7 @@ address of the instance's \code{print} method.
 \itemize{
 \item The hash method uses part of the object's environment address to produce
 an integer hash. Different objects can have the same hash.
-\item \code{hash()} applies \code{\link[=normalize_hash]{normalize_hash()}} to its final integer, mapping R's
+\item \code{hash()} applies \code{\link[=robjc_normalize_hash]{robjc_normalize_hash()}} to its final integer, mapping R's
 \code{NA_integer_} bit pattern to \code{0L}. Custom \code{hash()} methods should do the same.
 \item Class identity is preserved via explicit references, not via string-based comparisons.
 }
@@ -75,33 +71,6 @@ copy <- obj$copy()
 identical(obj, copy)  # TRUE
 }
 
-
-## ------------------------------------------------
-## Method `RSObject$objectsForEncoding()`
-## ------------------------------------------------
-
-\dontrun{
-MyContainerClass <- RSObjectClass("MyContainerClass", super_class = RSObject,
-public = list(
-  instance1 = NULL,
-  instance2 = NULL,
-  initialize = function(obj1, obj2) {
-    self$instance1 <- obj1  # RSObject instance
-    self$instance2 <- obj2  # RSObject instance
-    super$initialize()
-  },
-  objectsForEncoding = function() {
-    inherited <- super$objectsForEncoding()
-    custom <- list(self$instance1, self$instance2)
-    return(c(inherited, custom))
-  }
-))
-}
-
-}
-\seealso{
-\code{\link[=RSEncoding]{RSEncoding}} – Protocol interface for serialization.
-\code{\link[=RSClassEncoder]{RSClassEncoder}} – Main encoder class; see \code{encodeObject()} method for recursive encoding logic.
 }
 \keyword{internal}
 \section{Methods}{
@@ -114,7 +83,6 @@ public = list(
     \item \href{#method-RSObject-respondsTo}{\code{RSObject$respondsTo()}}
     \item \href{#method-RSObject-description}{\code{RSObject$description()}}
     \item \href{#method-RSObject-debugDescription}{\code{RSObject$debugDescription()}}
-    \item \href{#method-RSObject-print}{\code{RSObject$print()}}
     \item \href{#method-RSObject-isMemberOf}{\code{RSObject$isMemberOf()}}
     \item \href{#method-RSObject-isKindOf}{\code{RSObject$isKindOf()}}
     \item \href{#method-RSObject-isEqual}{\code{RSObject$isEqual()}}
@@ -247,21 +215,6 @@ protocol. This does not verify method implementations.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSObject-print"></a>}}
-\if{latex}{\out{\hypertarget{method-RSObject-print}{}}}
-\subsection{\code{RSObject$print()}}{
-  Prints the object description.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSObject$print()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    Invisible self.
-  }
-}
-
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSObject-isMemberOf"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-isMemberOf}{}}}
 \subsection{\code{RSObject$isMemberOf()}}{
@@ -331,8 +284,8 @@ protocol. This does not verify method implementations.
 \if{html}{\out{<a id="method-RSObject-hash"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-hash}{}}}
 \subsection{\code{RSObject$hash()}}{
-  Returns an integer hash derived from the environment address of this
-instance's \code{print} method. The result passes through \code{\link[=normalize_hash]{normalize_hash()}},
+  Returns an integer hash derived from this instance's environment address.
+The result passes through \code{\link[=robjc_normalize_hash]{robjc_normalize_hash()}},
 so the \code{NA_integer_} bit pattern maps to \code{0L}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
@@ -348,9 +301,8 @@ so the \code{NA_integer_} bit pattern maps to \code{0L}.
 \if{html}{\out{<a id="method-RSObject-objectID"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-objectID}{}}}
 \subsection{\code{RSObject$objectID()}}{
-  Returns the hexadecimal address of the environment enclosing this
-instance's \code{print} method. Within the current R session, the address
-string serves as a pointer-like identity, akin to a C pointer.
+  Returns the hexadecimal address of this instance's environment. Within
+the current R session, the address serves as a pointer-like identity.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSObject$objectID()}
@@ -410,51 +362,16 @@ identical(obj, copy)  # TRUE
 \if{html}{\out{<a id="method-RSObject-objectsForEncoding"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-objectsForEncoding}{}}}
 \subsection{\code{RSObject$objectsForEncoding()}}{
-  Returns a flat list of direct child objects to be encoded alongside this instance.
-
-This method is part of the \code{RSEncoding} protocol. It is used by the encoder to
-determine which instances should be recursively encoded. You should override
-this method in your custom subclasses to return all objects that this instance
-owns or manages directly.
-
-Return only instances of \code{RSObject} subclasses. Native R atomic values such as
-\code{numeric} and \code{character} are saved by R and do not belong in this list.
-Wrapped scalars such as \code{RSNumber} and \code{RSString} are RObjC objects and do belong
-here when held as children. Omit \code{NULL}, nested lists, class generators, and \code{self};
-the encoder registers the current instance before calling this method.
-Inherited class metadata and class relationships are handled automatically.
-
-When overriding this method, always call \code{super$objectsForEncoding()} to collect
-objects from parent classes, and combine them with your own declared fields.
-Each returned child is registered recursively. A custom class needs a matching
-\code{class_map} entry when saved data is decoded.
+  Returns an empty list for legacy serialization hooks.
+The keyed archiver uses \code{encodeWithCoder()} instead. This method is
+not part of \link{RSCoding}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSObject$objectsForEncoding()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A list of objects to be encoded recursively (defaults to an empty list).
-  }
-  \subsection{Examples}{
-    \if{html}{\out{<div class="r example copy">}}
-    \preformatted{MyContainerClass <- RSObjectClass("MyContainerClass", super_class = RSObject,
-public = list(
-  instance1 = NULL,
-  instance2 = NULL,
-  initialize = function(obj1, obj2) {
-    self$instance1 <- obj1  # RSObject instance
-    self$instance2 <- obj2  # RSObject instance
-    super$initialize()
-  },
-  objectsForEncoding = function() {
-    inherited <- super$objectsForEncoding()
-    custom <- list(self$instance1, self$instance2)
-    return(c(inherited, custom))
-  }
-))
-}
-    \if{html}{\out{</div>}}
+    An empty list.
   }
 }
 

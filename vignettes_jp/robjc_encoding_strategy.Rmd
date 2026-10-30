@@ -1,60 +1,133 @@
 ---
-title: "robjc におけるエンコードとデコードの設計"
+title: "robjc の keyed archive とクラス登録"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{robjc におけるエンコードとデコードの設計}
+  %\VignetteIndexEntry{robjc の keyed archive とクラス登録}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-# エンコードとデコードの設計
+# keyed archive の仕組み
 
-この vignette では、現在のクラスメタデータとエンコード関連の構成要素を説明します。保存・復元の入口とクラスファクトリーの統合は、まだ進行中です。
+`RSKeyedArchiver` は各オブジェクトの `encodeWithCoder()` が書いた論理状態を記録します。
+`RSKeyedUnarchiver` は `robjc_allocate()` を使い、`initialize()` を呼ばずに現行クラスのインスタンスを確保して、
+`initWithCoder()` でフィールドを復元します。singleton クラスの場合は、確保処理が既存の共有インスタンスを返します。archive は通常の R の list なので、
+ファイルへの保存には `saveRDS()`、読み込みには `readRDS()` を使います。
 
-## クラスの宣言
+## 標準クラスを保存して復元する
 
-`RSObjectClass()` はオブジェクトクラスの generator を、`RSProtocolClass()` は protocol の宣言を作成します。`RSSingletonClass()` はクラスの宣言時に共有インスタンスを作成し、そのインスタンスを generator の `$instance` と `robjc_isa$slot` に保存します。`RSScalarClass()` は通常の scalar クラスと共有 NA クラスを作成します。`RSNull` は `RSSingletonClass()` で宣言します。宣言 API の詳細は「クラスファクトリー API」（`vignettes_jp/robjc_class_factories.Rmd`）を参照してください。
-
-各ファクトリーは generator に `robjc_isa` を付与し、R6 の private field にも同じメタデータへの参照を設定します。メタデータには親クラス、protocol、バージョン、必要に応じて singleton の slot が含まれます。このため、クラスと protocol の同一性は、クラス名の文字列だけではなく generator への参照に基づきます。
-
-## エンコード用メタデータ
-
-`RSClassEncoder` は `RSSingletonClass()` で宣言され、`RSEncoderProtocol` を実装します。`encodeObject()` は `RSEncoding` に適合するオブジェクトをたどり、子オブジェクトは `objectsForEncoding()` から取得します。訪問済みオブジェクトを記録する environment によって、同じオブジェクトを繰り返したどることを防ぎます。`lockInstance()` は、クラス ID ごとに `RSInstanceMap` を保持する `RSClassReference` の dictionary を確定します。
-
-`RSWrappedClass` は generator の名前と `robjc_isa$version` を組み合わせてクラス ID を作ります。この ID は `RSString` として保存されます。`RSClassRegistry` は、クラスの解決に使うフレームワーク内のクラス名を収集します。
-
-## native collection の格納領域
-
-Dictionary と Set の wrapper は、格納処理を `RSConcreteDictionary` と `RSConcreteSet` に委ねます。これらの adapter は、native table を指す Rcpp の external pointer を保持します。native table は、格納されたオブジェクトの `hash()` と `isEqual()` を呼び出します。シリアライズ前には、`prepareForSerialization()` が R 側の snapshot を記録します。デシリアライズ後、adapter はその snapshot から native storage を再構築できます。
-
-## デコード用メタデータ
-
-`RSClassDecoder` はエンコードされたクラス参照を読み取り、クラス ID を現在の runtime にある generator に対応付けます。`resolveClassWith()` はオブジェクトの private な `.__isa` 参照を置き換えますが、R6 インスタンスのメソッドやフィールドは作り直しません。解決できなかったクラス ID は decoder の `unresolved` フィールドに記録されます。
-
-## 現在の入出力処理との接続
-
-ファクトリーは singleton のインスタンスを `$instance` で公開し、公開 API の `robjc_save*()` および `robjc_read_rds()` / `robjc_load()` もこの accessor を使います。ただし、クラス定義が変更された後に保存済みオブジェクトを復元する方法は未解決です。`resolveClassWith()` はクラスメタデータを更新しますが、R6 インスタンスのメソッドやフィールドは再構築しません。
-
-## 実行例：エンコード・保存・読み込み
-
-まずエンコードされたメタデータを確認し、次にオブジェクトを保存して RDS の内容を読み込みます。`robjc_save_rds()` は内部で改めてエンコードするため、最初の手動エンコードはメタデータを観察するための手順です。
+robjc が提供するクラスはパッケージ読み込み時に登録されます。そのため、復元時に
+クラス対応表を渡す必要はありません。
 
 ```{r}
 library(robjc)
 
-obj <- RSString_withValue("hello")
-encoder <- RSClassEncoder$instance$refresh()
-encoder$encodeObject(obj)
-metadata <- encoder$lockInstance()
-stopifnot(metadata$count() > 0L)
+value <- RSString$new("hello")
+archive <- RSKeyedArchiver$new()$archive(list(value, value))
+record <- archive$records[[1L]]
+stopifnot(identical(record$package, "robjc"))
+stopifnot(identical(record$class_id, "RSString"))
 
 path <- tempfile(fileext = ".rds")
-robjc_save_rds(obj, path)
-payload <- readRDS(path)
-stopifnot(all(c("__object__", "__robjc__") %in% names(payload)))
-loaded <- payload[["__object__"]]
-stopifnot(identical(loaded$value(), "hello"))
+saveRDS(archive, path)
+decoder <- RSKeyedUnarchiver$new(readRDS(path))
+stopifnot(nrow(decoder$showAllClasses()) == 0L)
+classes <- decoder$showAllClasses(remove_default = FALSE)
+stopifnot(identical(classes$status, "automatic"))
+restored <- decoder$decode()
 unlink(path)
+stopifnot(identical(restored[[1L]], restored[[2L]]))
+stopifnot(identical(restored[[1L]]$value(), "hello"))
 ```
 
-`readRDS()` は保存されたオブジェクトとメタデータをそのまま読み込みます。保存時のクラス定義を現在の runtime に照合して解決する処理は行いません。`robjc_read_rds()` によるクラス解決を伴う復元は開発中で、現状ではこの `RSString` の例でも失敗します。保存後にクラス定義が変わった場合の復元方法も未解決です。
+`showAllClasses()` は既定で自動解決済みのクラスを除くため、上の空の tibble は
+対応付けが必要なクラスがないことを示します。全件を見るには
+`remove_default = FALSE` を指定します。`dictionaryWithAllClasses()` は常に全件を返します。
+
+## 拡張パッケージのクラスを登録する
+
+拡張パッケージの namespace に generator を定義し、`.onLoad()` で
+`robjc_register_class()` を呼びます。`binding` は namespace 内で generator を保持する
+変数名です。`id` は archive に保存する固定識別子です。クラス名、binding 名、
+クラスのバージョンを変更しても、同じクラスを復元したい間は `id` を維持します。
+
+```{r eval=FALSE}
+# パッケージ myrecords の R/Document.r
+Document <- robjc::RSObjectClass(
+  "Document", version = "1.0",
+  public = list(
+    title = NULL,
+    initialize = function(title) {
+      super$initialize()
+      self$title <- title
+      invisible(self)
+    },
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(self$title, "title")
+    },
+    initWithCoder = function(coder) {
+      self$title <- coder$decodeObjectForKey("title")
+      invisible(self)
+    }
+  )
+)
+
+# 同じパッケージの R/zzz.R
+.onLoad <- function(libname, pkgname) {
+  robjc::robjc_register_class(
+    package = pkgname, id = "document", binding = "Document",
+    generator = Document
+  )
+}
+```
+
+拡張パッケージの `DESCRIPTION` には `Imports: robjc` を記載します。復元時は
+archive に記録されたパッケージを必要に応じてロードし、登録された binding から
+現行 generator を取得します。登録表は generator 自体を保持しません。
+protocol generator を値として保存する場合は `robjc_register_protocol()` で登録します。
+
+クラスのバージョンは固定 `id` と別に保存されます。フィールド構造を変更した場合、
+`initWithCoder()` 内で `coder$savedClassVersion()` を参照して移行できます。
+
+## スクリプト内だけで定義したクラス
+
+パッケージの namespace にないクラスは登録できません。`showAllClasses()` では
+未対応として表示されます。返された tibble の `decoder_class` list 列を編集して
+`setClasses()` に渡した後、`decode()` を呼びます。`showClass(class_key)` は個別の
+対応を表示します。`dictionaryWithAllClasses()` は同じ対応を
+`RSMutableDictionary` で返します。キーは `RSString` の `class_key`、未対応の値は
+`RSNull$null` です。辞書を編集した後も `setClasses()` に渡します。
+従来の `resolve_class` 関数も使用できます。
+
+```{r}
+Note <- RSObjectClass(
+  "GuideJaNote", version = "1.0",
+  public = list(
+    title = NULL,
+    initialize = function(title) {
+      super$initialize()
+      self$title <- title
+      invisible(self)
+    },
+    encodeWithCoder = function(coder) coder$encodeObjectForKey(self$title, "title"),
+    initWithCoder = function(coder) {
+      self$title <- coder$decodeObjectForKey("title")
+      invisible(self)
+    }
+  )
+)
+
+archive <- RSKeyedArchiver$new()$archive(Note$new("下書き"))
+decoder <- RSKeyedUnarchiver$new(archive)
+classes <- decoder$showAllClasses()
+stopifnot(identical(classes$status, "unresolved"))
+classes$decoder_class[1L] <- list(Note)
+decoder$setClasses(classes)
+stopifnot(identical(decoder$showClass(classes$class_key)$status, "manual"))
+restored <- decoder$decode()
+stopifnot(identical(restored$title, "下書き"))
+```
+
+フィールドは一意なキーで明示的に記録します。通常の R 値は R のシリアライズに
+任せます。list の中の RObjC オブジェクトは再帰的に処理され、同じインスタンスへの
+複数の参照も保たれます。現在の archive 形式は `robjc-keyed-1` です。

@@ -1,19 +1,22 @@
 #' @include primary_class_setup.r
+#' @include runtime_allocation.r
 #' @title Declare an RObjC Singleton Class
 #'
 #' @description
 #' Creates an R6 class generator and immediately creates its instance. Access
 #' the instance through `Class$instance`.
 #'
-#' The factory currently leaves `$new()` callable. Use `$instance` when callers
-#' must share the object created at declaration time.
+#' After declaration, `$new()` returns the shared `$instance` without calling
+#' `initialize()` again. This includes [RSNull]; singleton NA companions reject
+#' `$new()`.
 #' The class's initializer must work without arguments because the factory
 #' calls `$new()` without arguments.
 #'
 #' @param class_name One nonempty, nonmissing character string naming the class.
 #' @param super_class An RObjC object class generator to inherit from. Defaults
 #'   to [RSObject].
-#' @param protocols A list of protocol class generators adopted by the class.
+#' @param protocols Additional protocol class generators adopted by the class.
+#'   Parent declarations are recorded directly on the singleton class.
 #' @param public,private R6 public and private members passed to [R6::R6Class()].
 #' @param parent_env Parent environment for the generated R6 methods.
 #' @param version One non-empty, non-missing class version without `_`.
@@ -27,7 +30,7 @@
 #'
 #' @examples
 #' ExampleSingleton <- RSSingletonClass("ExampleSingleton",
-#'   version = "0.0.4 alpha")
+#'   version = "0.1.0 beta")
 #' ExampleSingleton$instance$class()$classname
 #'
 #' @export

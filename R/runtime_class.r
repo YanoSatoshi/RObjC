@@ -98,3 +98,12 @@ class_getWholeProtocols <- function(klass) {
   )
   protocols_list[!duplicated(protocols_list)]
 }
+
+
+# Legacy class-substitution check retained for RSObject$resolveClassWith().
+# This method is outside the new archive protocol and can be retired separately.
+can_resolve_class <- function(old_cls, new_cls) {
+  old_id <- sprintf("%s_%s", old_cls$classname, old_cls$robjc_isa$version)
+  new_id <- sprintf("%s_%s", new_cls$classname, new_cls$robjc_isa$version)
+  identical(old_id, new_id)
+}

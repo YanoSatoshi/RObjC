@@ -19,10 +19,15 @@
         (inherits(generator, ROBJC_SINGLETON) && isTRUE(generator$isNAClass))) {
       lockBinding("new", generator)
     }
+    if (!identical(generator$classname, name)) next
+    if (robjc_isProtocol(generator)) {
+      robjc_register_protocol(pkgname, name, name, generator)
+    } else {
+      robjc_register_class(pkgname, name, name, generator)
+    }
   }
 }
 
 .onAttach <- function(libname, pkgname) {
-  packageStartupMessage("robjc loaded - Objective-C inspired OOP system for R.")
-  packageStartupMessage("welcom to robjc - version 0.0.4 alpha")
+  packageStartupMessage("RObjC - version 0.1.0 beta")
 }

@@ -51,12 +51,13 @@ s$value()  # "hello"
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>RSObject$print()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="description"><a href='../../robjc/html/RSScalar.html#method-RSScalar-description'><code>RSScalar$description()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="encodeWithCoder"><a href='../../robjc/html/RSScalar.html#method-RSScalar-encodeWithCoder'><code>RSScalar$encodeWithCoder()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="hash"><a href='../../robjc/html/RSScalar.html#method-RSScalar-hash'><code>RSScalar$hash()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="initWithCoder"><a href='../../robjc/html/RSScalar.html#method-RSScalar-initWithCoder'><code>RSScalar$initWithCoder()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="isEqual"><a href='../../robjc/html/RSScalar.html#method-RSScalar-isEqual'><code>RSScalar$isEqual()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="nativeCompare"><a href='../../robjc/html/RSScalar.html#method-RSScalar-nativeCompare'><code>RSScalar$nativeCompare()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="nativeValue"><a href='../../robjc/html/RSScalar.html#method-RSScalar-nativeValue'><code>RSScalar$nativeValue()</code></a></span></li>
@@ -69,7 +70,7 @@ s$value()  # "hello"
 \subsection{\code{RSString$new()}}{
   Initializes an \code{RSString} object by wrapping a scalar character or factor value.
 The input must be of class \code{"character"} or \code{"factor"} and of length 1.
-If the value is \code{NA}, use \code{RSNAString} instead.
+If the value is \code{NA}, the shared \code{RSNAString} instance is returned.
 
 A factor input is stored as its character label so string ordering is
 independent of factor level codes.
@@ -82,7 +83,7 @@ independent of factor level codes.
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{val}}{An unclassed character scalar or a standard factor scalar.
-Must not be \code{NA}; S3 subclasses are not accepted.}
+\code{NA} is accepted; S3 subclasses are not accepted.}
     }
     \if{html}{\out{</div>}}
   }

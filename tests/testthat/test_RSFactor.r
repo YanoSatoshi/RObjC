@@ -111,6 +111,17 @@ test_that("RSFactor_withFactor preserves metadata for missing factors", {
   expect_true(a$ordered())
 })
 
+test_that("RSFactor$new returns a fresh NA companion with its metadata", {
+  original <- factor(NA_character_, levels = c("low", "high"), ordered = TRUE)
+  first <- RSFactor$new(original)
+  second <- RSFactor$new(original)
+  expect_true(first$isMemberOf(RSNAFactor))
+  expect_false(identical(first, second))
+  expect_identical(first$nativeValue(), original)
+  expect_identical(first$levels(), levels(original))
+  expect_true(first$ordered())
+})
+
 test_that("RSNAFactor: compare() with na.last = TRUE/FALSE", {
   f <- factor("bar", levels = c("foo", "bar", "baz"))
   val <- RSFactor$new(f)

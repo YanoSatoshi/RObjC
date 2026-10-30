@@ -9,7 +9,7 @@
 #' @export
 RSRaw <- RSObjectClass(
   "RSRaw",
-  version = "0.0.4 alpha",
+  version = "0.1.0 beta",
   super_class = RSScalar,
   public = list(
     #' @description Initialize a raw scalar.

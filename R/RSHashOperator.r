@@ -12,7 +12,7 @@
 #' @export
 RSHashOperator <- RSSingletonClass(
   "RSHashOperator",
-  version = "0.0.4 alpha",
+  version = "0.1.0 beta",
   super_class = RSObject,
   protocols   = list(RSHashOperatorProtocol),
   public = list(
@@ -79,14 +79,14 @@ RSHashOperator <- RSSingletonClass(
     #' @description
     #' Computes a single aggregate hash value by XOR-ing the hashes of a list of objects.
     #' A missing component hash is rejected before aggregation.
-    #' The result passes through [normalize_hash()], mapping R's
+    #' The result passes through [robjc_normalize_hash()], mapping R's
     #' `NA_integer_` bit pattern to `0L`.
     #' @param objects A list of hashable RObjC objects or Class/Protocol generators.
     #' @return One non-missing aggregate integer hash code.
     hashFromObjects = function(objects) {
       hashes <- self$hashesOfEachObject(objects)
       hash_code <- Reduce(bitwXor, hashes, init = 0L)
-      normalize_hash(hash_code)
+      robjc_normalize_hash(hash_code)
     },
 
 

@@ -73,4 +73,4 @@ stopifnot(incomplete$conformsTo(Named))
 stopifnot(!incomplete$respondsTo("name"))
 ```
 
-`RSObject` 自身は `RSCopying` を採用しており、その必須メソッドは `copy()` です。オブジェクトのメソッドについては「RSObject」（`vignettes_jp/robjc_object.Rmd`）、ファクトリーの引数については「クラスファクトリー API」（`vignettes_jp/robjc_class_factories.Rmd`）を参照してください。
+`RSObject` 自身は `RSCopying` を採用しており、その必須メソッドは `copy()` です。オブジェクトのメソッドについては[RSObject](robjc_object.Rmd)、ファクトリーの引数については[クラスファクトリー API](robjc_class_factories.Rmd)を参照してください。

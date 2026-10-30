@@ -13,7 +13,7 @@ vignette: >
 
 ## サブクラスの宣言と初期化
 
-クラスファクトリーは、インスタンスを作る前に同一性のメタデータを設定します。`initialize()` を上書きするときは `super$initialize()` を呼び、R のクラス属性を設定します。サブクラス固有の状態には R6 の private field を使えます。
+クラスファクトリーは、インスタンスを作る前に同一性のメタデータを設定します。`$new()` はインスタンスを確保して R のクラス属性を設定した後、`initialize()` を呼びます。initializer を上書きするときは基底クラスの初期化のために `super$initialize()` を呼び、`self` を返します。`$new()` はその戻り値を返します。サブクラス固有の状態には R6 の private field を使えます。
 
 ```{r}
 library(robjc)
@@ -59,7 +59,7 @@ stopifnot(first$conformsTo(RSCopying))
 
 ## 同一性、表示、コピー
 
-基底クラスの `isEqual()` はオブジェクトの参照を比較します。同じ値を持つ別のインスタンスは等しくありません。基底クラスの `hash()` はポインタから整数を作ります。値に基づく等価性を定義するサブクラスでは、それと整合するハッシュも定義してください。独自の `hash()` は長さ 1 の欠損しない整数を返す必要があります。計算した最後の値を `normalize_hash()` に渡して返し、`NA_integer_` に相当するビットパターンを `0L` に置き換えてください。等しいオブジェクトのハッシュは同じ値にします。`objectID()` はポインタを表す文字列を返します。
+基底クラスの `isEqual()` はオブジェクトの参照を比較します。同じ値を持つ別のインスタンスは等しくありません。基底クラスの `hash()` はポインタから整数を作ります。値に基づく等価性を定義するサブクラスでは、それと整合するハッシュも定義してください。独自の `hash()` は長さ 1 の欠損しない整数を返す必要があります。計算した最後の値を `robjc_normalize_hash()` に渡して返し、`NA_integer_` に相当するビットパターンを `0L` に置き換えてください。等しいオブジェクトのハッシュは同じ値にします。`objectID()` はポインタを表す文字列を返します。
 
 `description()` はクラス名とポインタによる短い表示を返し、`print()` はそれを出力します。`debugDescription()` には public field の概要も含まれます。既定の `copy()` は元のインスタンスをそのまま返します。可変クラスで独立したコピーが必要なら、`copy()` を上書きします。
 
@@ -99,6 +99,6 @@ stopifnot(identical(dictionary$hash(), other_dictionary$hash()))
 stopifnot(!dictionary$isEqual(other_dictionary))
 ```
 
-Dictionary は挿入時にキーの `copy()` を呼びます。格納後も、キーの等価性とハッシュを決める状態は安定している必要があります。可変のキーを作る場合は適切なコピーを用意し、格納中に `hash()` や `isEqual()` が参照する値を変えないようにしてください。コピーとキー検索については「Dictionary のキーとコピー」（`vignettes_jp/robjc_dictionary.Rmd`）を参照してください。
+Dictionary は挿入時にキーの `copy()` を呼びます。格納後も、キーの等価性とハッシュを決める状態は安定している必要があります。可変のキーを作る場合は適切なコピーを用意し、格納中に `hash()` や `isEqual()` が参照する値を変えないようにしてください。コピーとキー検索については[Dictionary のキーとコピー](robjc_dictionary.Rmd)を参照してください。
 
-protocol の宣言と要件の継承は「RSProtocol」（`vignettes_jp/robjc_protocol.Rmd`）、クラスファクトリーの引数は「クラスファクトリー API」（`vignettes_jp/robjc_class_factories.Rmd`）を参照してください。
+protocol の宣言と要件の継承は[RSProtocol](robjc_protocol.Rmd)、クラスファクトリーの引数は[クラスファクトリー API](robjc_class_factories.Rmd)を参照してください。

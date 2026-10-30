@@ -7,19 +7,6 @@
 RSDecoderProtocol
 }
 \description{
-This protocol defines the interface for any robjc-compatible decoder class.
-A decoder is responsible for resolving saved class metadata and restoring
-class relationships for previously encoded objects.
-
-The default implementation is \code{RSClassDecoder}, which performs full structure
-resolution including class inheritance chains and object identity.
-}
-\details{
-Required methods:
-\itemize{
-\item \code{encodedClasses()}: Returns a list of \link{RSKeyValuePair} objects. Each key
-is an \link{RSString} class ID and each value is an \link{RSInstanceMap}.
-\item \code{resolveClassesWithDictionary(class_map)}: Replaces placeholder class definitions
-with actual runtime classes.
-}
+Declares \code{initWithCoder(coder)} for objects that restore their logical state
+from a keyed coder. Conformance is a declaration; it does not check the method.
 }

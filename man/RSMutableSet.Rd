@@ -46,6 +46,8 @@ unchanged.
     \item \href{#method-RSMutableSet-hash}{\code{RSMutableSet$hash()}}
     \item \href{#method-RSMutableSet-isEqual}{\code{RSMutableSet$isEqual()}}
     \item \href{#method-RSMutableSet-objectsForEncoding}{\code{RSMutableSet$objectsForEncoding()}}
+    \item \href{#method-RSMutableSet-encodeWithCoder}{\code{RSMutableSet$encodeWithCoder()}}
+    \item \href{#method-RSMutableSet-initWithCoder}{\code{RSMutableSet$initWithCoder()}}
     \item \href{#method-RSMutableSet-prepareForSerialization}{\code{RSMutableSet$prepareForSerialization()}}
     \item \href{#method-RSMutableSet-uniteSet}{\code{RSMutableSet$uniteSet()}}
     \item \href{#method-RSMutableSet-intersectSet}{\code{RSMutableSet$intersectSet()}}
@@ -64,7 +66,6 @@ unchanged.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>RSObject$isKindOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>RSObject$print()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
@@ -282,7 +283,7 @@ implied and the selected member may change after mutation.
 \if{latex}{\out{\hypertarget{method-RSMutableSet-hash}{}}}
 \subsection{\code{RSMutableSet$hash()}}{
   Computes an order-independent aggregate member hash.
-The final result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
+The final result passes through \code{\link[=robjc_normalize_hash]{robjc_normalize_hash()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableSet$hash()}
@@ -319,8 +320,8 @@ The final result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
 \if{html}{\out{<a id="method-RSMutableSet-objectsForEncoding"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-objectsForEncoding}{}}}
 \subsection{\code{RSMutableSet$objectsForEncoding()}}{
-  Returns the RObjC instance members required for encoding.
-Class and protocol generators are serialized as R values.
+  Returns RObjC instance members for legacy serialization
+hooks. Keyed archives use \code{encodeWithCoder()} for all members.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableSet$objectsForEncoding()}
@@ -328,6 +329,52 @@ Class and protocol generators are serialized as R values.
   }
   \subsection{Returns}{
     A list of RObjC instance members.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSMutableSet-encodeWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableSet-encodeWithCoder}{}}}
+\subsection{\code{RSMutableSet$encodeWithCoder()}}{
+  Encodes all members. Their order has no meaning, while
+the coder preserves shared references to individual members.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$encodeWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedArchiver} recording keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSMutableSet-initWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableSet-initWithCoder}{}}}
+\subsection{\code{RSMutableSet$initWithCoder()}}{
+  Restores native storage without calling \code{initialize()}.
+This also serves immutable \link{RSSet} subclasses.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$initWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedUnarchiver} reading keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
   }
 }
 

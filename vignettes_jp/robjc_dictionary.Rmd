@@ -15,7 +15,7 @@ vignette: >
 
 Dictionary はキーの `hash()` と `isEqual()` を使って検索します。値が同じ `RSString` なら、格納時とは別のインスタンスでも要素を取得できます。存在しないキーの検索は R の `NULL` を返します。一方、格納した `NULL` は `RSNull$null` オブジェクトとして返るため、`containsKey()` で両者を区別できます。
 
-独自のキークラスで `hash()` を実装する場合は、計算した値を最後に `normalize_hash()` に通して返してください。`NA_integer_` を返さないために必要です。
+独自のキークラスで `hash()` を実装する場合は、計算した値を最後に `robjc_normalize_hash()` に通して返してください。`NA_integer_` を返さないために必要です。
 
 ```{r}
 library(robjc)
@@ -29,7 +29,7 @@ stopifnot(!dictionary$containsKey(RSString_withValue("missing")))
 stopifnot(is.null(dictionary$objectForKey(RSString_withValue("missing"))))
 ```
 
-挿入時には `key$copy()` が呼ばれます。基底の `RSObject$copy()` は同じオブジェクトを返しますが、サブクラスでは独立したキーを返すこともできます。格納中はキーの等価性とハッシュを安定させる必要があります。これらが変化すると、存在する要素を検索できなくなる可能性があります。等しいキーのハッシュは一致する必要がありますが、ハッシュが一致するだけではキーは等しくありません。等価性の例は「RSObject」（`vignettes_jp/robjc_object.Rmd`）を参照してください。
+挿入時には `key$copy()` が呼ばれます。基底の `RSObject$copy()` は同じオブジェクトを返しますが、サブクラスでは独立したキーを返すこともできます。格納中はキーの等価性とハッシュを安定させる必要があります。これらが変化すると、存在する要素を検索できなくなる可能性があります。等しいキーのハッシュは一致する必要がありますが、ハッシュが一致するだけではキーは等しくありません。等価性の例は[RSObject](robjc_object.Rmd)を参照してください。
 
 ## `copy()` と `mutableCopy()`
 

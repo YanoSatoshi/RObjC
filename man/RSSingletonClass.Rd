@@ -20,7 +20,8 @@ RSSingletonClass(
 \item{super_class}{An RObjC object class generator to inherit from. Defaults
 to \link{RSObject}.}
 
-\item{protocols}{A list of protocol class generators adopted by the class.}
+\item{protocols}{Additional protocol class generators adopted by the class.
+Parent declarations are recorded directly on the singleton class.}
 
 \item{public, private}{R6 public and private members passed to \code{\link[R6:R6Class]{R6::R6Class()}}.}
 
@@ -35,8 +36,9 @@ The singleton class generator, invisibly.
 Creates an R6 class generator and immediately creates its instance. Access
 the instance through \code{Class$instance}.
 
-The factory currently leaves \verb{$new()} callable. Use \verb{$instance} when callers
-must share the object created at declaration time.
+After declaration, \verb{$new()} returns the shared \verb{$instance} without calling
+\code{initialize()} again. This includes \link{RSNull}; singleton NA companions reject
+\verb{$new()}.
 The class's initializer must work without arguments because the factory
 calls \verb{$new()} without arguments.
 }
@@ -49,7 +51,7 @@ then locks the instance binding and class metadata.
 
 \examples{
 ExampleSingleton <- RSSingletonClass("ExampleSingleton",
-  version = "0.0.4 alpha")
+  version = "0.1.0 beta")
 ExampleSingleton$instance$class()$classname
 
 }

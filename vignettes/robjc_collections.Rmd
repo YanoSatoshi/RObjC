@@ -53,7 +53,7 @@ order and repeated elements are retained.
 Dictionaries map RObjC keys to RObjC values. Search with `objectForKey()` or
 check presence with `containsKey()`. Key lookup uses `hash()` and `isEqual()`,
 so a separate but equal key can find the value.
-For a custom key class, return `normalize_hash(computed_hash)` from `hash()`
+For a custom key class, return `robjc_normalize_hash(computed_hash)` from `hash()`
 to avoid an `NA_integer_` result.
 
 ```{r}
@@ -78,7 +78,7 @@ Sets keep one member for each equality class and have no defined iteration
 order. Membership uses each object's `hash()` and `isEqual()`. A mutable set
 can add and remove members; `uniteSet()`, `intersectSet()`, and
 `subtractSet()` return new read-only sets.
-Custom member classes should also return the result of `normalize_hash()`
+Custom member classes should also return the result of `robjc_normalize_hash()`
 as their final `hash()` value.
 
 ```{r}

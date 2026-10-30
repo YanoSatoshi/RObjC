@@ -31,12 +31,8 @@
 #' - [RSProtocol] is the root protocol generator.
 #' - [RSComparable] declares three-way ordering for comparable instances.
 #' - [RSCopying] and [RSMutableCopying] define copying contracts.
-#' - [RSEncoding], [RSEncoderProtocol], and [RSDecoderProtocol] define
-#'   structural encoding and decoding contracts.
-#'
-#' @section Serialization classes:
-#' - [RSClassEncoder] and [RSClassDecoder] encode and decode object graphs.
-#' - [RSWrappedClass] represents a class name and version together.
+#' - [RSCoding] marks classes supporting keyed coding;
+#'   [RSEncoderProtocol] and [RSDecoderProtocol] declare its two methods.
 #'
 #' @section Utility classes:
 #' - [RSHashOperator] provides shared hashing and set operations.

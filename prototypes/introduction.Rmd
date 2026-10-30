@@ -1,3 +1,0 @@
-title: "Introduction to robjc"
-
-I just wanted a Dictionary. So I built an object-oriented framework for R. As one does.

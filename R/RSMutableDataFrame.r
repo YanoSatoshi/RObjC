@@ -2,6 +2,7 @@
 #' @include api_setup.r
 #' @include RSMutableCopying.r
 #' @include RSCopying.r
+#' @include RSEncoding.r
 #' 
 #' @title RSMutableDataFrame: Mutable Data Frame Object with Key Column Semantics
 #'
@@ -25,7 +26,7 @@ RSMutableDataFrame <- RSObjectClass(
   "RSMutableDataFrame",
   version = "0.0.1 alpha",
   super_class = RSObject,
-  protocols = list(RSMutableCopying, RSCopying),
+  protocols = list(RSMutableCopying, RSCopying, RSCoding),
   private = list(
     .df = NULL,
     .key_columns = character(),
@@ -54,6 +55,34 @@ RSMutableDataFrame <- RSObjectClass(
         key_columns <- names(Filter(is.atomic, private$.df))
       }
       private$.key_columns <- key_columns
+      invisible(self)
+    },
+
+    #' @description Encodes the tibble and its chosen key columns. The tibble
+    #'   is a base R serialization value.
+    #' @param coder An [RSKeyedArchiver] recording keyed values.
+    #' @return `self`, invisibly.
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(private$.df, "data")
+      coder$encodeObjectForKey(private$.key_columns, "key_columns")
+      invisible(self)
+    },
+
+    #' @description Restores the tibble and key columns without calling
+    #'   `initialize()`. Also serves immutable [RSDataFrame] subclasses.
+    #' @param coder An [RSKeyedUnarchiver] reading keyed values.
+    #' @return `self`, invisibly.
+    initWithCoder = function(coder) {
+      df <- coder$decodeObjectForKey("data")
+      key_columns <- coder$decodeObjectForKey("key_columns")
+      if (!is.data.frame(df))
+        stop("Decoded data must be a data frame.", call. = FALSE)
+      if (!is.character(key_columns) || anyNA(key_columns) ||
+          anyDuplicated(key_columns) || !all(key_columns %in% names(df)))
+        stop("Decoded key columns are invalid.", call. = FALSE)
+      private$.df <- private$.checkDataFrame(df)
+      private$.key_columns <- key_columns
+      invisible(self)
     },
 
 
@@ -153,7 +182,7 @@ RSMutableDataFrame <- RSObjectClass(
 
 #' @description
 #' Computes a hash based on the contents of the key columns and metadata such as row count and column names.
-#' The final result passes through [normalize_hash()].
+#' The final result passes through [robjc_normalize_hash()].
 #' @return One non-missing integer hash value.
     hash = function() {
       #! validation check V-030
@@ -168,7 +197,7 @@ RSMutableDataFrame <- RSObjectClass(
       hash_basis <- paste(
         c(colnames(df), nrow(df), key_strings), collapse = "::"
       )
-      normalize_hash(RSHashOperator$instance$computeHashCodeWithString(hash_basis))
+      robjc_normalize_hash(RSHashOperator$instance$computeHashCodeWithString(hash_basis))
     },
 
 

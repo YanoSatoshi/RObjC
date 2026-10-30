@@ -1,4 +1,6 @@
-#' Declare a Scalar Class and Its NA Companion
+#' @include primary_class_setup.r
+#' @include runtime_allocation.r
+#' @title Declare a Scalar Class and Its NA Companion
 #'
 #' @description
 #' Creates a regular scalar class derived from [RSScalar] and an NA companion
@@ -11,11 +13,13 @@
 #' @param na_value A dimensionless length-one missing value, such as `NA_integer_`,
 #'   `NA_character_`, `as.Date(NA)`, or `as.POSIXlt(NA)`. The factory passes it directly to the
 #'   generated NA class's initializer.
-#' @param protocols Protocol class generators adopted by the new classes.
+#' @param protocols Additional protocol class generators adopted by the new
+#'   classes. Parent declarations are recorded directly on each generated class.
 #' @param public,private R6 members for the regular class. If `public`
 #'   defines `initialize(val)`, that method must accept the supplied `na_value`
-#'   when called on the generated NA subclass and pass it to
-#'   `super$initialize(val)`. A default for `val` is not required.
+#'   when called on the generated NA subclass and return the result of
+#'   `super$initialize(val)` for regular missing values. A default for `val`
+#'   is not required.
 #' @param parent_env Parent environment for the generated R6 methods.
 #' @param version One non-empty, non-missing class version without `_`.
 #' @param na_singleton Whether to mark the NA companion class as a singleton.
@@ -33,7 +37,10 @@
 #' `$new(na_value)`. The inherited initializer stores the missing value through
 #' [RSScalar] when a subclass calls `super$initialize(val)`. The shared instance
 #' is saved in both classes' `robjc_isa$slot` and exposed as `Class$na`.
-#' Singleton NA companions reject direct `$new()` calls after the shared
+#' A regular class's `$new(NA)` returns its shared NA instance when its
+#' initializer propagates the result of `super$initialize(val)`. A class with
+#' missing-value metadata can instead construct its NA companion, as [RSFactor]
+#' does. Singleton NA companions reject direct `$new()` calls after the shared
 #' instance is created; use `Class$na` for them. When `na_singleton = FALSE`,
 #' the NA class remains directly constructible. `RSFactor_withFactor()` creates
 #' a new [RSNAFactor] for each missing factor to preserve its metadata.
@@ -42,7 +49,6 @@
 #' Probe <- RSScalarClass("Probe", na_value = NA_integer_,
 #'   public = list(initialize = function(val) {
 #'     super$initialize(val)
-#'     invisible(self)
 #'   }))
 #' Probe$na$isKindOf(Probe)
 #'
@@ -100,6 +106,7 @@ RSScalarClass <- function(
     protocols = protocols,
     version = version
   )
+  robjc_install_new(klass)
   na_class_name <- if (startsWith(class_name, "RS"))
     sub("^RS", "RSNA", class_name)
   else
@@ -134,7 +141,7 @@ rsscalar_make_na_class <- function(
   na_value,
   parent_env,
   protocols = list(),
-  version   = "0.0.4 alpha",
+  version   = "0.1.0 beta",
   na_singleton = TRUE
 ) {
   r6generator <- do.call(
@@ -155,6 +162,7 @@ rsscalar_make_na_class <- function(
     slot      = NULL,
     version   = version
   )
+  robjc_install_new(r6generator)
   r6generator$robjc_isa$slot <- r6generator$new(na_value)
   r6generator$instance <- r6generator$robjc_isa$slot
   # .onLoad() restores this lock for package-defined NA companions.

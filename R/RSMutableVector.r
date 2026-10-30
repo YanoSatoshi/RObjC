@@ -1,4 +1,4 @@
-#' @include RSHashOperator.r RSMutableCopying.r RSCopying.r
+#' @include RSHashOperator.r RSMutableCopying.r RSCopying.r RSEncoding.r
 #' @title RSMutableVector: Mutable Atomic Vector Container
 #' @description Wraps an atomic vector with indexed mutation and copying methods.
 #' Added and searched values must have the stored vector's type and class.
@@ -9,9 +9,9 @@
 #' @export
 RSMutableVector <- RSObjectClass(
   "RSMutableVector",
-  version     = "0.0.4 alpha",
+  version     = "0.1.0 beta",
   super_class = RSObject,
-  protocols   = list(RSMutableCopying, RSCopying, RSComparable),
+  protocols   = list(RSMutableCopying, RSCopying, RSComparable, RSCoding),
   public      = list(
     #' @description Initialize the vector and its hash operator.
     #' @param vec An atomic vector without dimensions.
@@ -27,6 +27,35 @@ RSMutableVector <- RSObjectClass(
       if (!robjc_isRobjcObject(hash_operator) ||
           !hash_operator$respondsTo("hashForScalar"))
         stop("`hash_operator` must provide `hashForScalar()`.", call. = FALSE)
+      private$.vec <- vec
+      private$.hash_operator <- hash_operator
+      invisible(self)
+    },
+
+    #' @description Encodes the atomic vector and a nondefault hash operator.
+    #'   The vector is a base R serialization value.
+    #' @param coder An [RSKeyedArchiver] recording keyed values.
+    #' @return `self`, invisibly.
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(private$.vec, "values")
+      if (!identical(private$.hash_operator, RSHashOperator$instance))
+        coder$encodeObjectForKey(private$.hash_operator, "hash_operator")
+      invisible(self)
+    },
+
+    #' @description Restores the vector and hash operator without calling
+    #'   `initialize()`. Also serves immutable [RSVector] subclasses.
+    #' @param coder An [RSKeyedUnarchiver] reading keyed values.
+    #' @return `self`, invisibly.
+    initWithCoder = function(coder) {
+      vec <- coder$decodeObjectForKey("values")
+      if (!is.atomic(vec) || !is.null(dim(vec)))
+        stop("Decoded vector must be atomic and have no dimensions.", call. = FALSE)
+      hash_operator <- coder$decodeObjectForKey("hash_operator")
+      if (is.null(hash_operator)) hash_operator <- RSHashOperator$instance
+      if (!robjc_isRobjcObject(hash_operator) ||
+          !hash_operator$respondsTo("hashForScalar"))
+        stop("Decoded hash operator is invalid.", call. = FALSE)
       private$.vec <- vec
       private$.hash_operator <- hash_operator
       invisible(self)
@@ -176,14 +205,14 @@ RSMutableVector <- RSObjectClass(
     #' @description
     #' Computes an aggregate hash by combining the hash values of all elements.
     #' This is used for fast comparison and dictionary key support.
-    #' The result passes through [normalize_hash()], mapping R's
+    #' The result passes through [robjc_normalize_hash()], mapping R's
     #' `NA_integer_` bit pattern to `0L`.
     #'
     #' @return One non-missing integer hash value.
     hash = function() {
       hashes <- self$hashesOfValues()
       hash_code <- Reduce(bitwXor, hashes, init = 0L)
-      normalize_hash(hash_code)
+      robjc_normalize_hash(hash_code)
     },
 
 

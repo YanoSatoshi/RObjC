@@ -44,6 +44,8 @@ RSNAFactor
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-RSFactor-initialize}{\code{RSFactor$new()}}
+    \item \href{#method-RSFactor-encodeWithCoder}{\code{RSFactor$encodeWithCoder()}}
+    \item \href{#method-RSFactor-initWithCoder}{\code{RSFactor$initWithCoder()}}
     \item \href{#method-RSFactor-asFactor}{\code{RSFactor$asFactor()}}
     \item \href{#method-RSFactor-nativeValue}{\code{RSFactor$nativeValue()}}
     \item \href{#method-RSFactor-levels}{\code{RSFactor$levels()}}
@@ -62,7 +64,6 @@ RSNAFactor
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>RSObject$print()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
@@ -94,7 +95,53 @@ class, without an S3 subclass.}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    An initialized \code{RSFactor} instance (invisible).
+    An initialized \code{RSFactor} instance, or a fresh \code{RSNAFactor}
+preserving levels and ordering for a missing factor (invisible).
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSFactor-encodeWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSFactor-encodeWithCoder}{}}}
+\subsection{\code{RSFactor$encodeWithCoder()}}{
+  Encodes the scalar label and its factor metadata.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSFactor$encodeWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedArchiver} recording keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSFactor-initWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSFactor-initWithCoder}{}}}
+\subsection{\code{RSFactor$initWithCoder()}}{
+  Restores the factor label, levels, and ordering without
+calling \code{initialize()}. Also serves non-singleton \link{RSNAFactor}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSFactor$initWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedUnarchiver} reading keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
   }
 }
 

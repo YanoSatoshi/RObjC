@@ -49,16 +49,8 @@ Built-in RObjC class and protocol generators, grouped by use. See the
 \item \link{RSProtocol} is the root protocol generator.
 \item \link{RSComparable} declares three-way ordering for comparable instances.
 \item \link{RSCopying} and \link{RSMutableCopying} define copying contracts.
-\item \link{RSEncoding}, \link{RSEncoderProtocol}, and \link{RSDecoderProtocol} define
-structural encoding and decoding contracts.
-}
-}
-
-\section{Serialization classes}{
-
-\itemize{
-\item \link{RSClassEncoder} and \link{RSClassDecoder} encode and decode object graphs.
-\item \link{RSWrappedClass} represents a class name and version together.
+\item \link{RSCoding} marks classes supporting keyed coding;
+\link{RSEncoderProtocol} and \link{RSDecoderProtocol} declare its two methods.
 }
 }
 

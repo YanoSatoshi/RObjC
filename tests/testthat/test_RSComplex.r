@@ -30,5 +30,5 @@ test_that("RSComplex rejects other types and non-scalars", {
   expect_error(RSComplex$new(1), "complex scalar", fixed = TRUE)
   expect_error(RSComplex_withValue(c(1 + 2i, 3 + 4i)),
                "complex scalar", fixed = TRUE)
-  expect_error(RSComplex$new(NA_complex_), "RSNAComplex", fixed = TRUE)
+  expect_identical(RSComplex$new(NA_complex_), RSComplex$na)
 })

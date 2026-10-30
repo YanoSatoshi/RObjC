@@ -26,7 +26,7 @@
 #' @export
 RSDate <- RSScalarClass(
   "RSDate",
-  version     = "0.0.4 alpha",
+  version     = "0.1.0 beta",
   super_class = RSScalar,
   na_value    = as.Date(NA),
   public      = list(
@@ -43,20 +43,19 @@ RSDate <- RSScalarClass(
           !(typeof(val) %in% c("integer", "double")))
         stop("`val` must be a numeric Date.", call. = FALSE)
       super$initialize(val)
-      invisible(self)
     },
 
 
     #' @description
     #' Computes an integer hash from the numeric day count of the internal `Date` value.
     #' This enables consistent use of `RSDate` objects in hashed containers such as sets or dictionaries.
-    #' Missing dates hash to `0L`; the result passes through [normalize_hash()].
+    #' Missing dates hash to `0L`; the result passes through [robjc_normalize_hash()].
     #' 
     #' @return For `hash()`: One non-missing integer hash code.
     hash = function() {
       hash_code <- if (isTRUE(is.na(private$.val))) 0L else
         RSHashOperator$instance$hashForScalar(as.numeric(private$.val))
-      normalize_hash(hash_code)
+      robjc_normalize_hash(hash_code)
     }
   )
 )

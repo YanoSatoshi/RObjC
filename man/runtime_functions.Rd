@@ -20,7 +20,7 @@ internal are documented for developers but are not exported.
 \item \link{R6GENERATOR} documents the runtime's type markers.
 \item RObjC generators expose \verb{$isEqual(other)} for reference identity and
 \verb{$hash()} for a non-missing integer hash derived from the generator
-environment address. The \verb{NA_integer_} bit pattern maps to \verb{0L}.
+environment address. The \code{NA_integer_} bit pattern maps to \code{0L}.
 \item \code{robjc_make_isa()}, \code{robjc_freeze_isa()},
 \code{robjc_make_singleton_isa()}, and \code{protocol_make_isa()} construct and
 lock ISA records for the class factories.
@@ -58,10 +58,10 @@ lock ISA records for the class factories.
 }
 }
 
-\section{Environment identity (internal)}{
+\section{Object identity (internal)}{
 
 \itemize{
-\item \code{\link[=get_pointer_hex]{get_pointer_hex()}} returns an in-session environment address.
+\item \code{\link[=robjc_get_pointer]{robjc_get_pointer()}} returns an in-session object address.
 }
 }
 

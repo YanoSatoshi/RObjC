@@ -9,212 +9,129 @@ vignette: >
 
 # ノートブックを保存・復元する
 
-節ごとにノートを持つノートブックを RDS ファイルに保存する例です。一つのノートを
-二つの節から参照させ、読み込み後も同じオブジェクトを共有できるか確認します。
+一つのノートを二つの節から参照するノートブックを作ります。各クラスは
+`encodeWithCoder()` で保存するフィールドを指定し、`initWithCoder()` で復元します。
+通常の R の値も RObjC オブジェクトも同じ `encodeObjectForKey()` に渡せます。
+list の中にある RObjC オブジェクトは再帰的に記録されます。
 
-オブジェクトの構成は3段です。
-
-```text
-Notebook
-├── Section「作業中」── 共通 Note、下書き Note
-└── Section「保管」── 共通 Note
-```
-
-R はフィールドと参照関係を保存します。Encoder は各 RObjC インスタンスがどのクラスに
-属するかを記録し、Decoder が読み込み時のクラス定義へ結び直せるようにします。
+ここではクラスをスクリプト内に定義するため、復元前にクラス対応表を登録します。拡張パッケージに配置する場合は
+`robjc_register_class()` を `.onLoad()` で呼べば、resolver は不要です。
+登録手順は[keyed archive の仕組み](robjc_encoding_strategy.Rmd)を参照してください。
 
 ```{r}
 library(robjc)
 
 Note <- RSObjectClass(
-  "EncodingGuideJaNote", version = "1.0",
+  "NotebookGuideNote", version = "1.0",
   public = list(
-    title = NULL,     # character(1)：通常の R の文字列
-    priority = NULL,  # numeric(1)：通常の R の数値
-    tags = NULL,      # character ベクトル
-    initialize = function(title, priority = 1, tags = character()) {
+    title = NULL,
+    priority = NULL,
+    initialize = function(title, priority) {
       super$initialize()
       self$title <- title
       self$priority <- priority
-      self$tags <- tags
+      invisible(self)
+    },
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(self$title, "title")
+      coder$encodeObjectForKey(self$priority, "priority")
+    },
+    initWithCoder = function(coder) {
+      self$title <- coder$decodeObjectForKey("title")
+      self$priority <- coder$decodeObjectForKey("priority")
       invisible(self)
     }
   )
 )
 
 Section <- RSObjectClass(
-  "EncodingGuideJaSection", version = "1.0",
+  "NotebookGuideSection", version = "1.0",
   public = list(
-    name = NULL,   # character(1)
-    notes = NULL,  # Note オブジェクトの list
+    name = NULL,
+    notes = NULL,
     initialize = function(name, notes = list()) {
       super$initialize()
       self$name <- name
       self$notes <- notes
       invisible(self)
     },
-    objectsForEncoding = function() {
-      c(super$objectsForEncoding(), self$notes)
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(self$name, "name")
+      coder$encodeObjectForKey(self$notes, "notes")
+    },
+    initWithCoder = function(coder) {
+      self$name <- coder$decodeObjectForKey("name")
+      self$notes <- coder$decodeObjectForKey("notes")
+      invisible(self)
     }
   )
 )
 
 Notebook <- RSObjectClass(
-  "EncodingGuideJaNotebook", version = "1.0",
+  "NotebookGuideNotebook", version = "1.0",
   public = list(
-    sections = NULL,  # Section オブジェクトの list
+    sections = NULL,
     initialize = function(sections = list()) {
       super$initialize()
       self$sections <- sections
       invisible(self)
     },
-    objectsForEncoding = function() {
-      c(super$objectsForEncoding(), self$sections)
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(self$sections, "sections")
+    },
+    initWithCoder = function(coder) {
+      self$sections <- coder$decodeObjectForKey("sections")
+      invisible(self)
     }
   )
 )
 ```
 
-`Note` のフィールドは通常の R の値だけなので、`RSObject` から継承した空の
-`objectsForEncoding()` で十分です。`Section` は直接保持する `Note` を返し、`Notebook` は直接保持する
-`Section` を返します。`Notebook` が孫の `Note` まで列挙する必要はありません。
-Encoder が各 `Section` に、その子を順に尋ねます。
+## 保存と復元
 
-## R の値と RObjC オブジェクトの分担
-
-`objectsForEncoding()` はフィールドの値を一つずつ符号化するメソッドではありません。
-`numeric`、`character`、`logical` やそれらのベクトルは、R の `saveRDS()` が通常どおり
-保存します。ここで Encoder が調べるのは、読み込み後に**クラス参照を結び直す必要がある
-RObjC オブジェクト**です。
-
-| この例のフィールド | 中身 | `objectsForEncoding()` で返すか |
-| --- | --- | --- |
-| `Note$title`、`Section$name` | base R の `character` | 返さない。値は R が保存する。 |
-| `Note$priority`、`Note$tags` | base R の `numeric` と文字ベクトル | 返さない。値は R が保存する。 |
-| `Section$notes` | `Note` オブジェクトの list | 個々の `Note` を返す。list 自体は返さない。 |
-| `Notebook$sections` | `Section` オブジェクトの list | 個々の `Section` を返す。 |
-
-判断するのは数学的な意味ではなく、**フィールドに入っている値の型**です。通常の
-`2.5` は R の numeric 値なので登録不要です。一方、`2.5` を値に持つ `RSNumber`
-オブジェクトをフィールドに置いた場合は、そのオブジェクトを返してクラスを解決します。
-通常の `"text"` と `RSString` オブジェクトも同様に区別します。atomic 値だけの
-通常の R list は返さず、list に RObjC オブジェクトが入る場合はその要素を返します。
-
-## 対象の記述と登録のルール
-
-- クラスが別の RObjC オブジェクトを保持するなら `objectsForEncoding()` を上書きし、
-  **直接の子オブジェクトを平坦な list** で返します。`Section$notes` のような
-  list 型フィールドは中身を連結します。`list(self$notes)` では入れ子の list に
-  なり、個々のノートを返せません。
-- 戻り値に `NULL`、通常の R 値、クラス generator を含めません。子がなければ `list()`、
-  任意の子は存在する場合だけ追加します。
-- 親クラスが保持する子を残すため `super$objectsForEncoding()` を連結します。
-  `self` は含めません。Encoder は子を尋ねる前に現在のオブジェクトを登録します。
-  同じ子への複数の参照や循環参照は扱えます。
-- 返された子は再帰的に登録され、継承元クラスの情報は `lockInstance()` で加わります。
-  子やそのクラスを個別に登録する操作は不要です。
-- 復元時には、独自の継承元クラスも含め、**保存されたすべての独自クラス ID** を
-  `class_map` に入れます。robjc の標準クラスは自動的に対応づけられます。
-
-子を返し忘れても R はそのフィールドを保存しますが、Decoder はその子のクラス参照を
-結び直すための登録情報を持てません。
-
-## 探索の開始点（ルート）を決める
-
-**ルート**とは Encoder が探索を始めるオブジェクトで、基底クラス `RSObject` のことでは
-ありません。この例では変数 `notebook` がルートです。`robjc_save_rds(notebook, path)` は
-このノートブックを `__object__` として保存し、`encodeObject(notebook)` から各節、各ノートへ
-進みます。その際に作ったクラス情報を `__robjc__` として同じファイルに保存します。
-
-節をルートに選べば、その節と到達可能なノートが登録対象になり、セッション内にあるだけの
-別の節は対象になりません。名前付きのルートを複数保存する場合、`robjc_save()` は指定した
-オブジェクトを保存し、各 RObjC オブジェクトをルートとして探索します。
-`encodeObject()` を手動で呼んでも作られるのはメタデータだけで、RDS ファイルには
-書き込みません。通常は保存用関数にその処理を任せます。
-
-## オブジェクト群を保存する
-
-二つの `Section` が同じ `Note` を参照するように組み立てます。`robjc_save_rds()` は
-ルートの `Notebook` を Encoder に渡し、ルートとメタデータを `saveRDS()` で保存します。
-Encoder は各節からノートへ進みますが、共通ノートに二度目に到達したときは訪問済みの
-記録を見て再登録しません。
+`RSKeyedArchiver$new()$archive()` は通常の R list を返します。これを RDS に保存し、
+読み込んだ archive を `RSKeyedUnarchiver` に渡します。`new()` はデータを保持するだけで、
+`showAllClasses()` が保存されたクラス一覧と復元先候補を tibble で示します。
+この例では候補が未登録なので、対応する generator を設定します。
 
 ```{r}
-# オブジェクトを組み立てる。保存するルートは `notebook` の一つ。
-shared_note <- Note$new("公開前の確認", 2.5, c("公開", "共通"))
-draft_note <- Note$new("下書き", 1, "下書き")
+shared_note <- Note$new("公開前の確認", 2.5)
+draft_note <- Note$new("下書き", 1)
 notebook <- Notebook$new(list(
   Section$new("作業中", list(shared_note, draft_note)),
   Section$new("保管", list(shared_note))
 ))
 
-# 保存手続き：`notebook` から探索を始め、RDS ファイルを書き出す。
+archive <- RSKeyedArchiver$new()$archive(notebook)
+stopifnot(length(archive$records) == 5L)
+
 path <- tempfile(fileext = ".rds")
-robjc_save_rds(notebook, path)
-
-# ここから検証専用：生の payload を読み、登録されたインスタンス数を調べる。
-# この readRDS() はクラス解決をせず、通常の復元手順には不要。
-payload <- readRDS(path)
-entries <- payload$`__robjc__`$allEntriesAsList()
-object_counts <- stats::setNames(
-  vapply(entries, function(entry) as.integer(entry$value()$objects()$count()), integer(1)),
-  vapply(entries, function(entry) entry$key()$value(), character(1))
-)
-expected_ids <- c(
-  "EncodingGuideJaNotebook_1.0",
-  "EncodingGuideJaSection_1.0",
-  "EncodingGuideJaNote_1.0"
-)
-stopifnot(identical(unname(object_counts[expected_ids]), c(1L, 2L, 2L)))
-```
-
-RDS の中には、保存対象の `__object__` とクラス情報の `__robjc__` が入ります。
-登録数はノートブック1個、節2個、**異なる**ノート2個です。メタデータには、直接の
-インスタンスを持たない継承元クラスも含まれます。`readRDS()` は中身の確認に使い、
-クラス参照を現在の定義に結び直して利用するには `robjc_read_rds()` を使います。
-
-## 現在のクラス定義で復元する
-
-独自クラスについて、保存時のクラス ID と現在のクラス generator の対応表を作ります。
-別の R セッションで読む場合は、先に3クラスを定義または読み込んでください。
-`RSWrappedClass` が各 generator の名前とバージョンから ID を作り、それが辞書のキーに
-なります。robjc が提供する標準クラスは自動的に対応づけられます。
-
-```{r}
-# 復元手続き：独自クラスの ID を、現在のクラス定義へ対応づける。
-wrapped_classes <- lapply(list(Notebook, Section, Note), RSWrappedClass$new)
-class_map <- RSDictionary_withObjectsForKeys(
-  objects = wrapped_classes,
-  keys = lapply(wrapped_classes, function(x) x$classID())
-)
-
-# 復元手続き：RDS を読み込み、保存時のクラス参照を解決する。
-loaded <- robjc_read_rds(path, class_map = class_map)
-
-# ここから検証専用：クラス、atomic なフィールド、共有 Note の同一性を調べる。
-stopifnot(identical(loaded$class(), Notebook))
-stopifnot(identical(loaded$sections[[1]]$class(), Section))
-stopifnot(identical(loaded$sections[[1]]$notes[[1]]$class(), Note))
-stopifnot(identical(loaded$sections[[1]]$name, "作業中"))
-stopifnot(identical(loaded$sections[[1]]$notes[[2]]$title, "下書き"))
-stopifnot(identical(loaded$sections[[1]]$notes[[1]]$priority, 2.5))
-stopifnot(identical(loaded$sections[[1]]$notes[[1]]$tags, c("公開", "共通")))
-stopifnot(identical(
-  loaded$sections[[1]]$notes[[1]],
-  loaded$sections[[2]]$notes[[1]]
-))
-
-# 例で作った一時ファイルを削除する。
+saveRDS(archive, path)
+saved <- readRDS(path)
 unlink(path)
+
+available <- list(
+  NotebookGuideNote = Note,
+  NotebookGuideSection = Section,
+  NotebookGuideNotebook = Notebook
+)
+decoder <- RSKeyedUnarchiver$new(saved)
+classes <- decoder$showAllClasses()
+stopifnot(nrow(classes) == 3L)
+stopifnot(all(classes$status == "unresolved"))
+classes$decoder_class <- unname(available[classes$class_name])
+decoder$setClasses(classes)
+loaded <- decoder$decode()
+
+stopifnot(identical(loaded$class(), Notebook))
+stopifnot(identical(loaded$sections[[1L]]$name, "作業中"))
+stopifnot(identical(loaded$sections[[1L]]$notes[[2L]]$title, "下書き"))
+stopifnot(identical(loaded$sections[[1L]]$notes[[1L]]$priority, 2.5))
+stopifnot(identical(
+  loaded$sections[[1L]]$notes[[1L]],
+  loaded$sections[[2L]]$notes[[1L]]
+))
 ```
 
-最後の確認は文字列の一致ではなく、**オブジェクトの同一性**を調べています。二つの節が
-復元後も同じ `Note` インスタンスを参照しています。保存時に各オブジェクトが登録された
-ため、ノートブック・二つの節・二つのノートのクラス参照が解決されます。
-タイトル・優先度・タグ・節の名前は R の通常の RDS 保存によって戻り、
-`objectsForEncoding()` には一度も現れません。
-
-保存時と現在のクラス名・バージョンは一致する必要があります。クラス解決は参照先と
-S3 のクラス名を更新しますが、フィールドを移行したり、保存された R6 インスタンスの
-メソッドを差し替えたりはしません。内部のクラス表や探索手順については
-`vignette("robjc_encoding_strategy", package = "robjc")` を参照してください。
+最後の確認は文字列ではなく、復元後の二つの節が**同じ Note インスタンス**を
+参照していることを確かめています。`initialize()` は復元時には呼ばれません。

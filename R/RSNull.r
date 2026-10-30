@@ -19,8 +19,8 @@
 #' - `description()` – Returns a printable description of the null singleton
 #' 
 #' @section Usage:
-#' Use `RSNull$null` to retrieve the shared instance. Direct calls to `$new()`
-#' after the shared instance has been created raise an error.
+#' `RSNull$null`, `RSNull$instance`, and `RSNull$new()` return the same shared
+#' instance. Calling `$new()` does not run `initialize()` again.
 #'
 #' @note
 #' The `RSNull$instance` and `RSNull$null` bindings are locked after creation.
@@ -34,7 +34,7 @@
 RSNull <- RSSingletonClass(
   "RSNull",
   super_class = RSScalar,
-  version     = "0.0.4 alpha",
+  version     = "0.1.0 beta",
   public      = list(
     #' @description
     #' Initializes an `RSNull` instance. The factory invokes it to create the
@@ -53,6 +53,16 @@ RSNull <- RSSingletonClass(
       private$.val <- NULL
       invisible(self)
     },
+
+    #' @description Encodes the null singleton without scalar value fields.
+    #' @param coder An [RSKeyedArchiver] recording keyed values.
+    #' @return `self`, invisibly.
+    encodeWithCoder = function(coder) invisible(self),
+
+    #' @description Returns the already shared null singleton.
+    #' @param coder An [RSKeyedUnarchiver] reading keyed values.
+    #' @return The shared instance, invisibly.
+    initWithCoder = function(coder) invisible(self),
 
 
 
@@ -86,7 +96,7 @@ RSNull <- RSSingletonClass(
     #' @description Return a one-line description of the null singleton.
     #' @return A character scalar containing the class name, pointer, and `NULL`.
     description = function() {
-      sprintf("<%s %s> NULL", self$class()$classname, get_pointer_hex(self))
+      sprintf("<%s %s> NULL", self$class()$classname, robjc_get_pointer(self))
     },
 
 
@@ -104,10 +114,10 @@ RSNull <- RSSingletonClass(
     #' Returns a fixed integer hash value (`0L`) for all `RSNull` instances.
     #' Since `RSNull` is a singleton and always represents the same conceptual null value,
     #' a constant hash ensures consistent behavior in hashed collections. The
-    #' final `0L` also passes through [normalize_hash()].
+    #' final `0L` also passes through [robjc_normalize_hash()].
     #'
     #' @return Integer scalar `0L`.
-    hash    = function() normalize_hash(0L),
+    hash    = function() robjc_normalize_hash(0L),
 
 
 

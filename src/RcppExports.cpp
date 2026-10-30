@@ -278,6 +278,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// robjc_object_address
+std::string robjc_object_address(SEXP object);
+RcppExport SEXP _robjc_robjc_object_address(SEXP objectSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type object(objectSEXP);
+    rcpp_result_gen = Rcpp::wrap(robjc_object_address(object));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_robjc_dictionary_create", (DL_FUNC) &_robjc_dictionary_create, 0},
@@ -304,6 +315,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_robjc_set_unite_with", (DL_FUNC) &_robjc_set_unite_with, 2},
     {"_robjc_set_intersect_with", (DL_FUNC) &_robjc_set_intersect_with, 2},
     {"_robjc_set_subtract_with", (DL_FUNC) &_robjc_set_subtract_with, 2},
+    {"_robjc_robjc_object_address", (DL_FUNC) &_robjc_robjc_object_address, 1},
     {NULL, NULL, 0}
 };
 

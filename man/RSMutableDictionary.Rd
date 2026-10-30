@@ -69,6 +69,8 @@ an independent native table.
     \item \href{#method-RSMutableDictionary-dictionaryByExcludingWithDictionary}{\code{RSMutableDictionary$dictionaryByExcludingWithDictionary()}}
     \item \href{#method-RSMutableDictionary-objectsForEncoding}{\code{RSMutableDictionary$objectsForEncoding()}}
     \item \href{#method-RSMutableDictionary-prepareForSerialization}{\code{RSMutableDictionary$prepareForSerialization()}}
+    \item \href{#method-RSMutableDictionary-encodeWithCoder}{\code{RSMutableDictionary$encodeWithCoder()}}
+    \item \href{#method-RSMutableDictionary-initWithCoder}{\code{RSMutableDictionary$initWithCoder()}}
   }
 }
 \if{html}{\out{<details><summary>Inherited methods</summary>
@@ -80,7 +82,6 @@ an independent native table.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>RSObject$isKindOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="print"><a href='../../robjc/html/RSObject.html#method-RSObject-print'><code>RSObject$print()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
@@ -512,7 +513,7 @@ RObjC object key and retaining a generator key by identity.
 \if{latex}{\out{\hypertarget{method-RSMutableDictionary-hash}{}}}
 \subsection{\code{RSMutableDictionary$hash()}}{
   Computes an order-independent hash from the dictionary keys.
-The final result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
+The final result passes through \code{\link[=robjc_normalize_hash]{robjc_normalize_hash()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableDictionary$hash()}
@@ -615,7 +616,8 @@ The final result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
 \if{html}{\out{<a id="method-RSMutableDictionary-objectsForEncoding"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableDictionary-objectsForEncoding}{}}}
 \subsection{\code{RSMutableDictionary$objectsForEncoding()}}{
-  Returns the dictionary entries required for encoding.
+  Returns entry objects for legacy serialization hooks.
+Keyed archives use \code{encodeWithCoder()} for stored pairs.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableDictionary$objectsForEncoding()}
@@ -634,6 +636,52 @@ The final result passes through \code{\link[=normalize_hash]{normalize_hash()}}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableDictionary$prepareForSerialization()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSMutableDictionary-encodeWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableDictionary-encodeWithCoder}{}}}
+\subsection{\code{RSMutableDictionary$encodeWithCoder()}}{
+  Encodes the stored key and value references as pairs.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableDictionary$encodeWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedArchiver} recording keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSMutableDictionary-initWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableDictionary-initWithCoder}{}}}
+\subsection{\code{RSMutableDictionary$initWithCoder()}}{
+  Restores native storage from saved pairs without copying
+keys again. This preserves their references and also serves immutable
+\link{RSDictionary} subclasses.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableDictionary$initWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedUnarchiver} reading keyed values.}
+    }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{

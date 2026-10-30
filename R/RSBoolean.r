@@ -4,7 +4,7 @@
 #' @description
 #' `RSBoolean` wraps a logical (TRUE/FALSE) scalar. It inherits from `RSScalar` and
 #' provides boolean-specific behavior, including conversion to numeric via `asNumber()`.
-#' It rejects NA values; use `RSNABoolean` for NA.
+#' `RSBoolean$new(NA)` returns the shared `RSNABoolean` instance.
 #' 
 #' @section Methods:
 #' - `asNumber()` — Returns an `RSNumber` with value 1L or 0L, or
@@ -17,7 +17,7 @@
 #' @export
 RSBoolean <- RSScalarClass(
   "RSBoolean",
-  version     = "0.0.4 alpha",
+  version     = "0.1.0 beta",
   super_class = RSScalar,
   na_value    = NA,
   public      = list(
@@ -33,7 +33,6 @@ RSBoolean <- RSScalarClass(
       if (is.object(val))
         stop("S3 class attributes are not supported for RSBoolean.", call. = FALSE)
       super$initialize(val)
-      invisible(self)
     },
 
     #' @description

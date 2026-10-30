@@ -1,0 +1,158 @@
+---
+title: "Use case: save and restore a notebook"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Use case: save and restore a notebook}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Save and restore a notebook
+
+Consider a notebook with two sections that refer to the same note. The archive
+must preserve the note's fields, the section structure, and the fact that both
+sections point to one object. Each class writes fields with `encodeWithCoder()`
+and restores them with `initWithCoder()`. The coder accepts both plain R values
+and RObjC objects; it traverses ordinary lists containing RObjC objects.
+
+These classes are defined in this script, so they must be mapped to current
+generators before decoding. An extension package can instead register its
+classes in `.onLoad()`; see
+`vignette("robjc_encoding_strategy", package = "robjc")`.
+
+```{r}
+library(robjc)
+
+Note <- RSObjectClass(
+  "EncodingGuideNote", version = "1.0",
+  public = list(
+    title = NULL,
+    priority = NULL,
+    initialize = function(title, priority) {
+      super$initialize()
+      self$title <- title
+      self$priority <- priority
+      invisible(self)
+    },
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(self$title, "title")
+      coder$encodeObjectForKey(self$priority, "priority")
+    },
+    initWithCoder = function(coder) {
+      self$title <- coder$decodeObjectForKey("title")
+      self$priority <- coder$decodeObjectForKey("priority")
+      invisible(self)
+    }
+  )
+)
+
+Section <- RSObjectClass(
+  "EncodingGuideSection", version = "1.0",
+  public = list(
+    name = NULL,
+    notes = NULL,
+    initialize = function(name, notes = list()) {
+      super$initialize()
+      self$name <- name
+      self$notes <- notes
+      invisible(self)
+    },
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(self$name, "name")
+      coder$encodeObjectForKey(self$notes, "notes")
+    },
+    initWithCoder = function(coder) {
+      self$name <- coder$decodeObjectForKey("name")
+      self$notes <- coder$decodeObjectForKey("notes")
+      invisible(self)
+    }
+  )
+)
+
+Notebook <- RSObjectClass(
+  "EncodingGuideNotebook", version = "1.0",
+  public = list(
+    sections = NULL,
+    initialize = function(sections = list()) {
+      super$initialize()
+      self$sections <- sections
+      invisible(self)
+    },
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(self$sections, "sections")
+    },
+    initWithCoder = function(coder) {
+      self$sections <- coder$decodeObjectForKey("sections")
+      invisible(self)
+    }
+  )
+)
+```
+
+## Archive the graph
+
+The same `shared_note` appears in both sections. The archiver records five
+instances: one notebook, two sections, and two distinct notes. A second
+reference to `shared_note` points to its existing archive record.
+
+```{r}
+shared_note <- Note$new("Release checklist", 2.5)
+draft_note <- Note$new("Draft outline", 1)
+notebook <- Notebook$new(list(
+  Section$new("Current", list(shared_note, draft_note)),
+  Section$new("Archive", list(shared_note))
+))
+
+archive <- RSKeyedArchiver$new()$archive(notebook)
+stopifnot(length(archive$records) == 5L)
+
+path <- tempfile(fileext = ".rds")
+saveRDS(archive, path)
+saved <- readRDS(path)
+unlink(path)
+```
+
+## Inspect and map classes
+
+`RSKeyedUnarchiver$new()` reads the archive without constructing any notebook
+objects. `showAllClasses()` returns a tibble containing the saved class names,
+versions, resolution status, and a `decoder_class` list column. These
+script-defined classes are unresolved, so map each to its current generator.
+
+```{r}
+available <- list(
+  EncodingGuideNote = Note,
+  EncodingGuideSection = Section,
+  EncodingGuideNotebook = Notebook
+)
+decoder <- RSKeyedUnarchiver$new(saved)
+classes <- decoder$showAllClasses()
+stopifnot(nrow(classes) == 3L)
+stopifnot(all(classes$status == "unresolved"))
+classes$decoder_class <- unname(available[classes$class_name])
+decoder$setClasses(classes)
+loaded <- decoder$decode()
+```
+
+The same mapping can be edited through `dictionaryWithAllClasses()` and passed
+to `setClasses()`. Package-registered classes resolve automatically and are
+hidden by the default `showAllClasses(remove_default = TRUE)` view.
+
+## Verify restored state and identity
+
+```{r}
+stopifnot(identical(loaded$class(), Notebook))
+stopifnot(identical(loaded$sections[[1L]]$name, "Current"))
+stopifnot(identical(loaded$sections[[1L]]$notes[[2L]]$title, "Draft outline"))
+stopifnot(identical(loaded$sections[[1L]]$notes[[1L]]$priority, 2.5))
+stopifnot(identical(
+  loaded$sections[[1L]]$notes[[1L]],
+  loaded$sections[[2L]]$notes[[1L]]
+))
+```
+
+The last check verifies object identity, not merely matching note text.
+Decoding allocates current instances without running their `initialize()`
+methods, then restores the fields written by each class. When a field layout
+changes, `initWithCoder()` can inspect `coder$savedClassVersion()` to handle
+older archives. The keyed archive format is currently `robjc-keyed-1`.

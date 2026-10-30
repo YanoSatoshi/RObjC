@@ -2,6 +2,7 @@
 #' @include RSConcreteSet.r
 #' @include RSCopying.r
 #' @include RSMutableCopying.r
+#' @include RSEncoding.r
 #' 
 #' @title RSMutableSet: Native-Backed Mutable Set
 #'
@@ -27,9 +28,9 @@
 #' @export
 RSMutableSet <- RSObjectClass(
   "RSMutableSet",
-  version = "0.0.4 alpha",
+  version = "0.1.0 beta",
   super_class = RSObject,
-  protocols   = list(RSCopying, RSMutableCopying),
+  protocols   = list(RSCopying, RSMutableCopying, RSCoding),
   private = list(
     .storage = NULL,
 
@@ -129,9 +130,9 @@ RSMutableSet <- RSObjectClass(
     },
 
     #' @description Computes an order-independent aggregate member hash.
-    #' The final result passes through [normalize_hash()].
+    #' The final result passes through [robjc_normalize_hash()].
     #' @return One non-missing integer hash value.
-    hash = function() normalize_hash(private$.storage$contentHash()),
+    hash = function() robjc_normalize_hash(private$.storage$contentHash()),
 
     #' @description Compares two sets by membership.
     #' @param other Another set.
@@ -149,10 +150,45 @@ RSMutableSet <- RSObjectClass(
       ))
     },
 
-    #' @description Returns the RObjC instance members required for encoding.
-    #'   Class and protocol generators are serialized as R values.
+    #' @description Returns RObjC instance members for legacy serialization
+    #'   hooks. Keyed archives use `encodeWithCoder()` for all members.
     #' @return A list of RObjC instance members.
     objectsForEncoding = function() Filter(robjc_isRobjcObject, self$allObjectsAsList()),
+
+    #' @description Encodes all members. Their order has no meaning, while
+    #'   the coder preserves shared references to individual members.
+    #' @param coder An [RSKeyedArchiver] recording keyed values.
+    #' @return `self`, invisibly.
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(self$allObjectsAsList(), "objects")
+      invisible(self)
+    },
+
+    #' @description Restores native storage without calling `initialize()`.
+    #'   This also serves immutable [RSSet] subclasses.
+    #' @param coder An [RSKeyedUnarchiver] reading keyed values.
+    #' @return `self`, invisibly.
+    initWithCoder = function(coder) {
+      objects <- coder$decodeObjectForKey("objects")
+      if (
+        !is.list(objects) ||
+        !all(vapply(objects,
+          function(item) {robjc_isRobjcObject(item) || robjc_isMetaClass(item)},
+          logical(1))
+        )
+      )
+        stop("Decoded set members must be RObjC objects, classes, or protocols.",
+             call. = FALSE)
+      storage <- RSConcreteSet$new()
+      for (item in objects) {
+        hash <- item$hash()
+        if (!is.integer(hash) || length(hash) != 1L || is.na(hash))
+          stop("Member hash() must return one non-missing integer.", call. = FALSE)
+        storage$add(item)
+      }
+      private$.storage <- storage
+      invisible(self)
+    },
 
     #' @description Captures native storage for R serialization.
     #' @return `self`, invisibly.

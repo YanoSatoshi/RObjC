@@ -1,0 +1,59 @@
+# Introduction to robjc
+
+`robjc` grew from a need for a dictionary whose keys could be application
+objects. Such a dictionary needs a clear account of object identity, value
+equality, and hashing. Those requirements led to a small shared object model,
+protocols, scalar wrappers, and collections inspired by Objective-C's
+Foundation framework.
+
+The package complements ordinary R values and data frames. It is designed for
+programs that manage connected, mutable domain objects: an object can have a
+class, implement a protocol, appear in several collections, and be referenced
+from more than one place. `robjc` does not aim to accelerate numerical
+computation or replace R's usual data analysis tools.
+
+## Objects and contracts
+
+Class factories create R6 generators with explicit class identity and
+inheritance. `RSObjectClass()` declares an ordinary class;
+`RSProtocolClass()` declares methods that conforming classes must provide;
+`RSSingletonClass()` creates one shared instance; and `RSScalarClass()` creates
+a scalar class with an NA companion. The [class factory guide](robjc_class_factories.Rmd)
+shows each declaration. The [object guide](robjc_object.Rmd) describes class
+introspection, equality, and copying.
+
+`RSObject` distinguishes identity from equality. Classes can implement
+`isEqual()` and `hash()` to give objects value semantics. Dictionary keys and
+set members rely on this pair: equal objects must have the same hash, and
+values used for lookup must retain the relevant state while stored.
+
+## Values and collections
+
+Built-in scalar classes wrap logical, numeric, complex, character, factor,
+date, and date-time values. Typed NA companions represent missing scalar
+values; `RSNull` represents R's `NULL`. `RSScalar_withValue()` selects a
+wrapper from an R value, while typed `$new()` calls can be used when the type
+is known. The [scalar guide](robjc_scalar_values.Rmd) explains missing values
+and the special handling of factor metadata.
+
+Arrays, vectors, sets, dictionaries, and data frames have mutable and
+immutable forms. Dictionaries and sets use native tables behind RObjC
+interfaces. The [collections guide](robjc_collections.Rmd) and
+[dictionary guide](robjc_dictionary.Rmd) describe their behavior and copying
+rules.
+
+## Saving object state
+
+Keyed archives store fields selected by an object's `encodeWithCoder()` method.
+When an archive is loaded, the caller can inspect its class mappings before
+`decode()` allocates current instances and invokes `initWithCoder()`. Repeated
+references to the same object remain shared after decoding. Built-in classes
+resolve automatically; extension packages can register their generators in
+`.onLoad()`; classes created in scripts can be mapped manually. See the
+[keyed archive guide](robjc_keyed_coding.Rmd) and the
+[notebook example](robjc_encoding_use_case.Rmd).
+
+The current package version is **0.1.0 beta**. The keyed archive format and
+public APIs may evolve during beta development. Users extending the class
+system should understand object identity, equality, and hashing, particularly
+when using custom objects as dictionary keys or set members.

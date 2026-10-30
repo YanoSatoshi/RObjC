@@ -16,7 +16,7 @@ instance at `Class$na`. `RSNull` represents R's `NULL` separately.
 
 ## Choose a constructor
 
-Use `Class$new(val)` when the type is known and `val` is nonmissing. A typed
+Use `Class$new(val)` when the type is known, including when `val` is missing. A typed
 convenience constructor, such as `RSNumber_withValue()`, accepts either a
 nonmissing scalar or an NA and returns the matching class. The general
 `RSScalar_withValue()` dispatches on the R type, including `NULL`.
@@ -33,13 +33,13 @@ stopifnot(dispatched$isMemberOf(RSNumber))
 stopifnot(identical(dispatched$value(), 3L))
 ```
 
-Regular `Class$new(NA)` is rejected by `RSScalar$initialize()`. When missing
-input is possible, use the typed convenience constructor, the general
-dispatcher, or `Class$na` directly. The NA companion is shared, so repeated
-convenience calls return the same instance.
+Regular `Class$new(NA)` returns the shared NA companion. The typed convenience
+constructor, general dispatcher, and `Class$na` also provide it. `RSFactor` is
+the exception: `$new()` creates an `RSNAFactor` that retains levels and ordering.
 
 ```{r}
 stopifnot(identical(RSNumber_withValue(NA_integer_), RSNumber$na))
+stopifnot(identical(RSNumber$new(NA_integer_), RSNumber$na))
 stopifnot(identical(RSScalar_withValue(NA_real_), RSNumber$na))
 stopifnot(RSNumber$na$isMemberOf(RSNANumber))
 ```
