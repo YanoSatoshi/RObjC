@@ -43,11 +43,10 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
+      - uses: r-lib/actions/setup-tinytex@v2
+      
       - name: Build and check package
         uses: r-lib/actions/check-r-package@v2
-        with:
-          build_args: 'c("--no-manual", "--no-build-vignettes")'
-          args: 'c("--no-manual", "--ignore-vignettes")'
 
       - name: Build Windows binary
         if: runner.os == 'Windows'
