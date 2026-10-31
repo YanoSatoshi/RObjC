@@ -60,4 +60,4 @@ jobs:
           name: robjc-windows
           path: "*.zip"
           if-no-files-found: error
-          args: 'c("--no-manual", "--ignore-vignettes")'
+          
