@@ -1,65 +1,27 @@
 #' @include runtime_robjc.r
 
 
-# Summarize R6 member lists without expanding their values or evaluating methods.
-robjc_member_summaries <- function(
-  members,
-  exclude = character()
-) {
-  if (is.null(members) || length(members) == 0L)
-    return(character())
-  names <-
-    if (is.environment(members))
-      ls(members, all.names = TRUE)
-    else
-      names(members)
-  names <- setdiff(names, exclude)
-  vapply(
-    names,
-    function(name) {
-      if (is.environment(members) && bindingIsActive(name, members))
-        return(paste0("    ", name, ": active binding"))
-      value <- .subset2(members, name)
-      summary <- if (is.function(value))
-        deparse(args(value))[[1L]]
-      else if (is.null(value))
-        "NULL"
-      else if (is.environment(value))
-        "environment"
-      else if (is.atomic(value))
-        paste(utils::head(as.character(value), 60L), collapse = " ")
-      else
-        typeof(value)
-      paste0("    ", name, ": ", summary)
-    },
-    character(1),
-    USE.NAMES = FALSE
-  )
-}
-
-
-
-#' Format an RObjC Instance
+#' @title Format an RObjC Instance
 #'
-#' @description Formats an RObjC instance using its generator's `$classname`
-#'  and summarizes public and private members. The instance's `$print()` 
-#'  method remains a separate, brief description method.
+#' @description Formats an RObjC instance using its generator's `$classname`.
+#'  Public and private data members are shown. Methods are included when
+#'  `method = TRUE`. The `description()` and `debugDescription()` methods
+#'  return the same text for the corresponding `method` setting.
 #' @param x An RObjC instance.
-#' @param ... Unused.
+#' @param method Whether to include methods among the displayed members.
+#'   Defaults to `FALSE`.
+#' @param ... Additional arguments passed by `print()` to `format()`.
 #' @return A character string containing the formatted instance.
+#' @rdname format.RSObject
 #' @examples
 #' obj <- RSString$new("hello")
 #' print(obj)
 #' # <RSString> RObjC instance
 #' #   Inherits from: <RSScalar>
-#' #   Public:
-#' #     class: function ()
-#' #     ...
-#' #   Private:
-#' #     .comparable: function (other)
-#' #     .val: hello
+#' format(obj)                # Includes private data members.
+#' format(obj, method = TRUE) # Also includes methods.
 #' @export
-format.RSObject <- function(x, ...) {
+format.RSObject <- function(x, method = FALSE, ...) {
   klass <- x$class()
   lines <- c(paste0("<", klass$classname, "> RObjC instance"))
   if (!is.null(klass$robjc_isa$super))
@@ -70,10 +32,18 @@ format.RSObject <- function(x, ...) {
   lines <- c(
     lines,
     "  Public:",
-    robjc_member_summaries(x, exclude = c(".__active__", ".__enclos_env__"))
+    robjc_member_summaries(
+      x,
+      exclude = c(".__active__", ".__enclos_env__"),
+      include_methods = method
+    )
   )
-  private <- x$.__enclos_env__$private
-  private_lines <- robjc_member_summaries(private, exclude = ".__isa")
+  private_members <- x$.__enclos_env__$private
+  private_lines <- robjc_member_summaries(
+    private_members,
+    exclude = ".__isa",
+    include_methods = method
+  )
   if (length(private_lines) > 0L)
     lines <- c(lines, "  Private:", private_lines)
   paste(lines, collapse = "\n")
@@ -97,7 +67,7 @@ robjc_isa_value_summary <- function(value) {
     return(paste0(
       "<", value$classname, ">"
     ))
-  if (robjc_isRobjcObject(value))
+  if (robjc_isInstance(value))
     return(paste0(
       "<", value$.__enclos_env__$private$.__isa$class$classname, " instance>"
     ))

@@ -90,17 +90,19 @@ test_that("set constructors deduplicate and copy mutable storage", {
   expect_identical(RSSet_withSet(immutable), immutable)
 })
 
-test_that("set constructors accept NULL as RSNull", {
+test_that("set constructors require explicit RSNull members", {
   for (constructor in list(RSSet_withObject, RSMutableSet_withObject)) {
-    set <- constructor(NULL)
+    expect_error(constructor(NULL), "RSNull$null", fixed = TRUE)
+    set <- constructor(robjc_wrap_null(NULL))
     expect_equal(set$count(), 1L)
-    expect_true(set$containsObject(NULL))
+    expect_error(set$containsObject(NULL), "robjc_wrap_null", fixed = TRUE)
     expect_true(set$containsObject(RSNull$null))
   }
   for (constructor in list(RSSet_withObjects, RSMutableSet_withObjects)) {
-    set <- constructor(list(NULL, RSNull$null, RSString_withValue("x")))
+    expect_error(constructor(list(NULL)), "RSNull$null", fixed = TRUE)
+    set <- constructor(list(robjc_wrap_null(NULL), RSNull$null, RSString_withValue("x")))
     expect_equal(set$count(), 2L)
-    expect_true(set$containsObject(NULL))
+    expect_true(set$containsObject(RSNull$null))
   }
 })
 
@@ -164,20 +166,22 @@ test_that("dictionary constructors preserve mappings and isolate copies", {
   expect_identical(RSDictionary_withDictionary(immutable), immutable)
 })
 
-test_that("dictionary constructors accept NULL keys and values", {
+test_that("dictionary constructors require explicit RSNull keys and values", {
   constructors <- list(
-    function() RSDictionary_withObjectForKey(NULL, NULL),
-    function() RSMutableDictionary_withObjectForKey(NULL, NULL),
-    function() RSDictionary_withObjectsForKeys(list(NULL), list(NULL)),
-    function() RSMutableDictionary_withObjectsForKeys(list(NULL), list(NULL)),
-    function() RSDictionary_withObjectsAndKeys(list(NULL, NULL)),
-    function() RSMutableDictionary_withObjectsAndKeys(list(NULL, NULL))
+    function(value, key) RSDictionary_withObjectForKey(value, key),
+    function(value, key) RSMutableDictionary_withObjectForKey(value, key),
+    function(value, key) RSDictionary_withObjectsForKeys(list(value), list(key)),
+    function(value, key) RSMutableDictionary_withObjectsForKeys(list(value), list(key)),
+    function(value, key) RSDictionary_withObjectsAndKeys(list(value, key)),
+    function(value, key) RSMutableDictionary_withObjectsAndKeys(list(value, key))
   )
   for (constructor in constructors) {
-    dictionary <- constructor()
+    expect_error(constructor(NULL, RSNull$null), "RSNull$null", fixed = TRUE)
+    expect_error(constructor(RSNull$null, NULL), "RSNull$null", fixed = TRUE)
+    dictionary <- constructor(robjc_wrap_null(NULL), robjc_wrap_null(NULL))
     expect_equal(dictionary$count(), 1L)
-    expect_true(dictionary$containsKey(NULL))
-    expect_identical(dictionary$objectForKey(NULL), RSNull$null)
+    expect_error(dictionary$containsKey(NULL), "robjc_wrap_null", fixed = TRUE)
+    expect_identical(dictionary$objectForKey(RSNull$null), RSNull$null)
   }
 })
 
@@ -188,7 +192,7 @@ test_that("dictionary constructors validate keys, values, and pair shapes", {
   expect_error(RSDictionary_withObjectForKey("value", key),
                "values must be RObjC objects", fixed = TRUE)
   expect_error(RSDictionary_withObjectForKey(value, "key"),
-               "keys must be copyable RObjC objects, classes, protocols", fixed = TRUE)
+               "keys must be copyable RObjC objects", fixed = TRUE)
   expect_error(RSMutableDictionary_withObjectsForKeys(list(value), list()),
                "same length", fixed = TRUE)
   expect_error(RSDictionary_withObjectsForKeys(list(value), "key"),
@@ -196,7 +200,7 @@ test_that("dictionary constructors validate keys, values, and pair shapes", {
   expect_error(RSDictionary_withObjectsAndKeys(list(value)),
                "even-length list", fixed = TRUE)
   expect_error(RSMutableDictionary_withObjectsAndKeys(list(value, "key")),
-               "keys must be copyable RObjC objects, classes, protocols", fixed = TRUE)
+               "keys must be copyable RObjC objects", fixed = TRUE)
   expect_error(RSDictionary_withDictionary(RSArray_empty()),
                "RSDictionary or RSMutableDictionary", fixed = TRUE)
 })

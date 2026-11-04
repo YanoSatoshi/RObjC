@@ -17,14 +17,16 @@
 #' - `class()` – Returns the internal class object of the instance.
 #' - `conformsTo(protocol)` – Returns `TRUE` if the object conforms to the specified protocol.
 #' - `respondsTo(method)` – Returns `TRUE` if the object implements the specified method.
-#' - `description()` – Returns a concise string representation of the object.
-#' - `debugDescription()` – Returns a detailed string including all public fields and their structure.
+#' - `description()` – Formats public and private data members without methods.
+#' - `debugDescription()` – Formats public and private members, including methods.
 #' - `isMemberOf(cls)` – Checks if the object is a direct instance of the given class.
 #' - `isKindOf(cls)` – Checks if the object inherits from the given class (directly or indirectly).
 #' - `isEqual(other)` – Returns `TRUE` if the reference is identical to `other`.
 #' - `hash()` – Computes an integer hash from the object's environment address.
 #' - `objectID()` – Returns a pointer-like identity based on the instance's
 #'   environment address.
+#' - `==` and `!=` – Compare reference identity. Unlike `isEqual()`, these
+#'   operators do not compare values or collection contents.
 #'
 #' @section Internal Fields:
 #' - `.__isa` – Cached class object.
@@ -106,31 +108,68 @@ RSObject <- R6::R6Class(
 
 
     #' @description
-    #' Returns a compact description like "<Class 0xabc123>".
+    #' Formats public and private data members without methods. Matches
+    #' `format(self)` and the text printed by `print(self)`.
     #' @return A character string describing the object.
     description = function() {
-      paste0("<", self$class()$classname, " ", robjc_get_pointer(self), ">")
+      klass <- self$class()
+      lines <- paste0("<", klass$classname, "> RObjC instance")
+      if (!is.null(klass$robjc_isa$super))
+        lines <- c(
+          lines,
+          paste0("  Inherits from: <", klass$robjc_isa$super$classname, ">")
+        )
+      lines <- c(
+        lines,
+        "  Public:",
+        robjc_member_summaries(
+          self,
+          exclude = c(".__active__", ".__enclos_env__"),
+          include_methods = FALSE
+        )
+      )
+      private_lines <- robjc_member_summaries(
+        self$.__enclos_env__$private,
+        exclude = ".__isa",
+        include_methods = FALSE
+      )
+      if (length(private_lines) > 0L)
+        lines <- c(lines, "  Private:", private_lines)
+      paste(lines, collapse = "\n")
     },
 
 
 
     #' @description
-    #' Returns debug-level string with public field summary.
-    #' @return A character string.
+    #' Formats the object with public and private data members and methods.
+    #' Matches `format(self, method = TRUE)` and the text printed by
+    #' `print(self, method = TRUE)`.
+    #' @return A character string describing the object's members.
     debugDescription = function() {
-      descript <- self$description()
-      fields <- ls(self, all.names = TRUE)
-      if (length(fields) == 0) return(paste0(descript, "{ }"))
-      field_values <- vapply(fields,
-        function(f){
-          value <- tryCatch(self[[f]], error = function(e){"<error>"})
-          val_str <- utils::capture.output(str(value, max.level = 1))
-          paste(val_str, collapse = " ")
-        },
-        character(1)
+      klass <- self$class()
+      lines <- paste0("<", klass$classname, "> RObjC instance")
+      if (!is.null(klass$robjc_isa$super))
+        lines <- c(
+          lines,
+          paste0("  Inherits from: <", klass$robjc_isa$super$classname, ">")
+        )
+      lines <- c(
+        lines,
+        "  Public:",
+        robjc_member_summaries(
+          self,
+          exclude = c(".__active__", ".__enclos_env__"),
+          include_methods = TRUE
+        )
       )
-      fields_info <- paste(fields, ": ", field_values, collapse =", ")
-      paste0(descript, "{", fields_info, "}")
+      private_lines <- robjc_member_summaries(
+        self$.__enclos_env__$private,
+        exclude = ".__isa",
+        include_methods = TRUE
+      )
+      if (length(private_lines) > 0L)
+        lines <- c(lines, "  Private:", private_lines)
+      paste(lines, collapse = "\n")
     },
 
 
@@ -238,28 +277,7 @@ RSObject <- R6::R6Class(
     #' @return An empty list.
     #'
     #' @keywords internal
-    objectsForEncoding = function() list(),
-
-
-    #' @description
-    #' Replace class object for decoding (use on load), then update the
-    #' instance's S3 class names to match the resolved class hierarchy.
-    #' 
-    #' @param new_cls Class to replace.
-    #' 
-    #' @keywords internal
-    resolveClassWith = function(new_cls) {
-      stopifnot(
-        "Class version check." = can_resolve_class(self$class(), new_cls)
-      )
-      private$.__isa <- new_cls$robjc_isa
-      class(self) <- vapply(
-        robjc_inheritChain(private$.__isa),
-        function(klass) klass$classname,
-        character(1)
-      )
-      invisible(self)
-    }
+    objectsForEncoding = function() list()
   ),
 
 
@@ -270,3 +288,27 @@ RSObject <- R6::R6Class(
     .__isa = NULL
   )
 )
+
+#' @title Compare RObjC Instance Identity
+#'
+#' @description
+#' `==` and `!=` test whether two operands are the same RObjC instance.
+#' They use [identical()] on the underlying R6 environments. Subclasses can
+#' define value-based `isEqual()` methods without changing these operators.
+#'
+#' @param e1,e2 Objects to compare.
+#' @return One non-missing logical value.
+#' @rdname RSObject-identity-operators
+#' @examples
+#' a <- RSNumber$new(1L)
+#' b <- RSNumber$new(1L)
+#' a == a             # TRUE
+#' a == b             # FALSE
+#' a$isEqual(b)       # TRUE
+#' a != b             # TRUE
+#' @export
+`==.RSObject` <- function(e1, e2) identical(e1, e2)
+
+#' @rdname RSObject-identity-operators
+#' @export
+`!=.RSObject` <- function(e1, e2) !identical(e1, e2)

@@ -19,13 +19,13 @@ RSKeyedArchiver <- RSObjectClass(
     .current_fields = NULL,
 
     .encode_value = function(value) {
-      if (robjc_isRobjcObject(value) || robjc_isMetaClass(value)) {
+      if (robjc_isInstance(value) || robjc_isMetaClass(value)) {
         address <- robjc_get_pointer(value)
         if (exists(address, envir = private$.retained, inherits = FALSE))
           return(list(type = "ref", id = address))
 
         private$.retained[[address]] <- value
-        if (robjc_isRobjcObject(value)) {
+        if (robjc_isInstance(value)) {
           generator <- value$class()
           kind      <- "instance"
         } else {

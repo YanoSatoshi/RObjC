@@ -1,0 +1,208 @@
+---
+title: "プロトコルのガイド"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{プロトコルのガイド}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# プロトコル
+
+プロトコルは、クラスが提供すべきメソッド名を定める契約です。
+プロトコル自体はメソッドを実装せず、インスタンスも作れません。
+準拠を宣言するクラスが、要求されたメソッドを実装します。
+
+このガイドでは、プロトコルを使う理由から、`RSProtocolClass()` による宣言、利用側での確認までを説明します。
+ファクトリーの引数は[クラスファクトリーのガイド](guide_05_ClassFactory.Rmd)を参照してください。
+
+## プロトコルは何のためにあるか
+
+異なるクラスが同じ役割を果たせることを、継承関係とは別に表すための仕組みがプロトコルです。
+robjc のプロトコルは、Java のインターフェース、Python のプロトコルと近しい概念です。
+
+宛名を作る処理が、受け取ったオブジェクトの `name()` と `address()` を呼ぶ場合を考えます。
+渡されるのは人物かもしれませんし、会社かもしれません。
+どちらも名前と住所を持ちますが、人物クラスと会社クラスは互いを継承していません。
+共通の親クラスが `RSObject` であっても、それだけでは `name()` と `address()` を使えるとは分かりません。
+
+処理側が人物と会社を個別に判別すると、新しい種類の宛先を追加するたびに、その処理も変更することになります。
+二つのメソッドがあるかを毎回調べる方法もありますが、それだけでは「宛先として扱ってよい」という意図は表せません。
+
+そこで、「宛先には `name()` と `address()` が必要」という約束を一つのプロトコルにまとめます。
+人物クラスと会社クラスはそれぞれ、そのプロトコルへの準拠を宣言し、必要なメソッドを実装します。
+宛名を作る処理は、人物か会社かを判別する代わりに、プロトコルへの準拠を確認して同じコードで扱えます。
+新しい宛先クラスにも、同じ約束を適用できます。
+
+robjc はクラス宣言時に、要求された**メソッド名**が揃っているかを既定で検証します。
+プロトコル自体がメソッドを実装するわけではありません。
+また、引数、戻り値、実際の動作は検証しません。
+準拠宣言が表す役割と、メソッドの具体的な約束は、ドキュメントとテストでも確かめます。
+一つのクラスが複数のプロトコルに準拠することもできます。
+
+## プロトコルを宣言する
+
+`RSProtocolClass()` の `contract_methods` に、必要なメソッドの**名前**を文字列で指定します。
+次の `Named` プロトコルは、`name()` メソッドを要求します。
+プロトコルは要件を表すジェネレータで、`$new()` からインスタンスを作ることはできません。
+
+```{r}
+library(robjc)
+
+Named <- RSProtocolClass(
+  "Guide03Named",
+  contract_methods = "name"
+)
+stopifnot(robjc_isProtocol(Named))
+stopifnot(is.null(Named$new))
+```
+
+別のプロトコルを `super_protocols` に渡すと、その要件を継承できます。
+次の `Detailed` は `name()` に加えて `details()` を要求します。
+親にある名前を `contract_methods` に重ねて書く必要はありません。
+
+```{r}
+Detailed <- RSProtocolClass(
+  "Guide03Detailed",
+  super_protocols = list(Named),
+  contract_methods = "details"
+)
+stopifnot(robjc_isProtocol(Detailed))
+```
+
+プロトコルが記録するのはメソッド名であり、引数の形や戻り値の型、実装本体ではありません。
+具体的な約束事は、プロトコルのドキュメントと、それを使う側のコードで明確にします。
+
+## プロトコルへの準拠を宣言・確認する
+
+オブジェクトクラスのファクトリーに `protocols = list(...)` を渡して準拠を宣言します。
+インスタンスの `conformsTo()` は宣言された関係を調べます。
+子プロトコルに準拠したクラスは、親プロトコルにも準拠していると判定されます。
+
+```{r}
+Record <- RSObjectClass(
+  "Guide03Record",
+  protocols = list(Detailed),
+  public = list(
+    name = function() "record",
+    details = function() "a named record"
+  )
+)
+
+record <- Record$new()
+stopifnot(identical(protocol_validateContracts(Record), character(0)))
+stopifnot(record$conformsTo(Detailed))
+stopifnot(record$conformsTo(Named))
+stopifnot(record$respondsTo("name"))
+stopifnot(record$respondsTo("details"))
+```
+
+クラスを継承すると、親クラスの準拠宣言も利用できます。
+`SpecialRecord` は `protocols` を再指定していませんが、`Record` から宣言とメソッドを受け継ぎます。
+
+```{r}
+SpecialRecord <- RSObjectClass(
+  "Guide03SpecialRecord",
+  super_class = Record
+)
+special <- SpecialRecord$new()
+stopifnot(special$conformsTo(Detailed))
+stopifnot(special$respondsTo("name"))
+```
+
+### 利用する側：人物と会社を同じ関数で扱う
+
+先ほどの宛名の例を実装します。
+`Addressable` は `Named` の `name()` を引き継ぎ、`address()` を追加で要求します。
+`Person` と `Company` は互いを継承しませんが、どちらも `Addressable` への準拠を宣言します。
+
+```{r}
+Addressable <- RSProtocolClass(
+  "Guide03Addressable",
+  super_protocols = list(Named),
+  contract_methods = "address"
+)
+
+Person <- RSObjectClass(
+  "Guide03Person",
+  protocols = list(Addressable),
+  public = list(
+    name = function() "Alex Morgan",
+    address = function() "123 Maple St, Boston, MA 02108, USA"
+  )
+)
+Company <- RSObjectClass(
+  "Guide03Company",
+  protocols = list(Addressable),
+  public = list(
+    name = function() "Harbor Books Ltd",
+    address = function() "24 High Street, Oxford OX1 4BH, UK"
+  )
+)
+
+format_destination <- function(destination) {
+  if (!destination$conformsTo(Addressable))
+    stop("The object must conform to Addressable.")
+  paste(destination$name(), destination$address(), sep = ": ")
+}
+
+person <- Person$new()
+company <- Company$new()
+stopifnot(!person$isKindOf(Company))
+stopifnot(!company$isKindOf(Person))
+stopifnot(identical(format_destination(person),
+                    "Alex Morgan: 123 Maple St, Boston, MA 02108, USA"))
+stopifnot(identical(format_destination(company),
+                    "Harbor Books Ltd: 24 High Street, Oxford OX1 4BH, UK"))
+```
+
+利用側の `format_destination()` は、人物か会社かを判定しません。
+受け取ったオブジェクトが宛先の役割を引き受けているかだけを確認します。
+ここでは、`name()` が名前を、`address()` が住所を返すことを両クラスのテストでも確認しています。
+
+### 準拠宣言と契約の履行
+
+`protocols = list(...)` は準拠の**宣言**です。
+クラスファクトリーは既定で要求メソッドの存在を確認し、不足があればクラス宣言を停止します。
+検証には親プロトコルの要求と親クラスから継承したメソッドも含まれます。
+
+ただし、`validate_protocols = FALSE` で検証を後回しにできます。
+その場合、準拠を宣言していてもメソッドが不足することがあります。
+次のクラスは `Named` への準拠を宣言していますが、`name()` を実装していません。
+
+```{r}
+DeclaredOnly <- RSObjectClass(
+  "Guide03DeclaredOnly",
+  protocols = list(Named),
+  validate_protocols = FALSE
+)
+incomplete <- DeclaredOnly$new()
+stopifnot(incomplete$conformsTo(Named))
+stopifnot(!incomplete$respondsTo("name"))
+stopifnot(identical(protocol_validateContracts(DeclaredOnly), "name"))
+
+Undeclared <- RSObjectClass(
+  "Guide03Undeclared",
+  public = list(name = function() "Has a name")
+)
+undeclared <- Undeclared$new()
+stopifnot(undeclared$respondsTo("name"))
+stopifnot(!undeclared$conformsTo(Named))
+```
+
+三つの確認方法は、知りたいことによって使い分けます。
+
+| 利用場面 | 確認方法 | 分かること |
+|:--|:--|:--|
+| クラス実装時に、宣言した契約のメソッドが揃ったか | `protocol_validateContracts(Class)` | 不足するメソッド名。揃っていれば `character(0)` |
+| 利用側で、オブジェクトが特定の役割を引き受けると宣言しているか | `object$conformsTo(Protocol)` | 準拠宣言の有無。メソッドの有無は調べない |
+| 利用側で、個別の公開メソッドを呼べるか | `object$respondsTo("method")` | そのインスタンスにメソッドがあるか。準拠宣言は調べない |
+
+`protocol_validateContracts()` の引数はクラスジェネレータ一つです。
+上の `DeclaredOnly` は準拠を宣言していても `name()` が不足します。
+一方、`Undeclared` は `name()` を実装していても準拠を宣言していません。
+`conformsTo()` と `respondsTo()` が別の問いに答えることが分かります。
+いずれもメソッドの振る舞いは検証しません。
+
+robjc の基底クラス `RSObject` も `RSCopying` プロトコルへの準拠を宣言し、`copy()` を提供しています。
+クラスの契約については `RSProtocol` のクラスドキュメントを参照してください。

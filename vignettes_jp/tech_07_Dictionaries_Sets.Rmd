@@ -1,0 +1,109 @@
+---
+title: "技術ノート: Dictionary と Set の C++ 実装"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{技術ノート: Dictionary と Set の C++ 実装}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# C++ のハッシュ表と R メソッド
+
+`RSSet` と `RSDictionary` は、RObjC オブジェクトを格納する公開クラスです。
+要素やキーの探索には C++ のハッシュ表を使いますが、ハッシュ値と同値性の意味は各 RObjC オブジェクトの `hash()` と `isEqual()` が決めます。
+このノート（07）は、R のクラスから C++ の格納領域までの経路と、C++ から R メソッドへ戻るコールバックを説明します。
+公開 API の使い方は[コレクションのガイド](guide_07_Collections.Rmd)、両メソッドの契約は[同値性とハッシュのガイド](guide_08_Hash_isEqual.Rmd)を参照してください。
+
+## 三層に分かれた実装
+
+公開クラス `RSSet`、`RSMutableSet`、`RSDictionary`、`RSMutableDictionary` は、入力の検証、可変・不変の操作、コピー、コーディングを担当します。
+内部クラス `RSConcreteSet` と `RSConcreteDictionary` は、Rcpp の関数を呼び出し、C++ オブジェクトへの external pointer を保持します。
+C++ の `NativeSet` と `NativeDictionary` は、実際の追加、探索、削除を行います。
+
+```text
+公開クラスのメソッド
+    → RSConcreteSet / RSConcreteDictionary
+    → Rcpp の set_* / dictionary_* 関数
+    → C++ の unordered_set / unordered_map
+    → RSObjectHash / RSObjectEqual
+    → RObjC オブジェクトの hash() / isEqual()
+```
+
+`NativeSet` は `std::unordered_set<SEXP, RSObjectHash, RSObjectEqual>` を使います。
+`NativeDictionary` は `std::unordered_map<SEXP, SEXP, RSObjectHash, RSObjectEqual>` を使い、キーだけをハッシュ表の探索対象にします。
+値は同じエントリに保存されますが、値の `hash()` で場所を決めるわけではありません。
+
+## `hash()` と `isEqual()` のコールバック
+
+`src/RSObjectHash.cpp` の `RSObjectHash` は、受け取った `SEXP` を R の環境として扱い、その環境の `hash` メソッドを呼びます。
+`RSObjectEqual` は比較する二つの `SEXP` のうち一方の `isEqual` メソッドにもう一方を渡します。
+Rcpp は返り値をそれぞれ C++ の `std::size_t` と `bool` に変換します。
+
+```cpp
+std::size_t RSObjectHash::operator()(SEXP key) const {
+  Rcpp::Environment env(key);
+  Rcpp::Function fn = env["hash"];
+  return Rcpp::as<std::size_t>(fn());
+}
+
+bool RSObjectEqual::operator()(SEXP a, SEXP b) const {
+  Rcpp::Environment env(a);
+  Rcpp::Function fn = env["isEqual"];
+  return Rcpp::as<bool>(fn(b));
+}
+```
+
+R 側では、公開クラスが格納前に `hash()` の結果を「長さ一つの欠損していない integer」として検証します。
+独自の `hash()` を実装する場合は、最後に `robjc_normalize_hash()` を通し、`NA_integer_` のビットパターンを避けます。
+同値な二つのオブジェクトには同じハッシュ値が必要です。
+衝突したハッシュ値の候補を区別するために `isEqual()` が使われます。
+
+```{r}
+library(robjc)
+
+stored <- RSString$new("id")
+lookup <- RSString$new("id")
+stopifnot(!identical(stored, lookup))
+stopifnot(stored$isEqual(lookup))
+stopifnot(identical(stored$hash(), lookup$hash()))
+
+set <- RSSet$new(list(stored))
+stopifnot(identical(set$member(lookup), stored))
+
+value <- RSNumber$new(7L)
+dictionary <- RSMutableDictionary$new()
+dictionary$setObjectForKey(value, stored)
+stopifnot(identical(dictionary$objectForKey(lookup), value))
+```
+
+この例で `lookup` は保存した `stored` と別のインスタンスですが、ハッシュと同値性の契約に従って同じ要素・キーを探せます。
+ハッシュ表は平均的には線型探索より少ない候補を調べますが、衝突が多い場合や R メソッドへのコールバックが重い場合の性能は別に評価する必要があります。
+また C++ 側が `hash()` や `isEqual()` を呼ぶ回数や順序に依存する実装は避けます。
+
+## 挿入時のコピーと保持
+
+Set は挿入したオブジェクトをコピーせず、その参照を保持します。
+Dictionary は RObjC インスタンスをキーにする場合、公開クラス側で `key$copy()` を呼んでから C++ に渡します。
+クラスやプロトコルのジェネレータをキーにした場合は、同じジェネレータ参照を保持します。
+Dictionary の値はコピーせず、渡された参照を保存します。
+これらは `RSConcreteSet` や C++ のハッシュ表ではなく、公開クラスが決める規則です。
+
+格納された R オブジェクトを C++ の `SEXP` として保持するため、`NativeSet` と `NativeDictionary` は R の precious multi-set に要素やキー・値を登録します。
+削除や置換の際は不要になった参照を解放し、native storage の破棄時には multi-set 自体を解放します。
+この仕組みにより、C++ の表にだけ残った R オブジェクトが GC で回収されないようにしています。
+
+## ハッシュに関わる状態を変えない
+
+Set の要素と Dictionary のキーは、格納後もハッシュと同値性に関わる状態を安定させる必要があります。
+状態を変更して `hash()` の結果が変わると、挿入時とは別の場所を検索することになり、保存されているのに見つからない可能性があります。
+`isEqual()` の判断だけが変わっても、重複判定や検索結果の整合が崩れます。
+Dictionary が `copy()` を呼ぶのはキーの状態を分離するためですが、独自クラスの `copy()` が `self` を返す場合やコピー後のオブジェクトが可変な場合は、利用者側で安定性を守る必要があります。
+
+```{r}
+stopifnot(identical(dictionary$objectForKey(RSString$new("id")), value))
+```
+
+ハッシュ表そのものは順序付きのコレクションではありません。
+Set の要素一覧や Dictionary のキー一覧に順序を仮定せず、格納した順番が必要なら Array などを併用します。
+Keyed Archive では external pointer をそのまま保存せず、公開クラスの `encodeWithCoder()` が論理的な要素やキー・値を書き出します。
+この保存経路は[ノート 08](tech_08_Archiving.Rmd)で説明します。

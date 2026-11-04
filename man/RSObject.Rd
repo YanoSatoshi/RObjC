@@ -25,14 +25,16 @@ is strongly recommended to avoid side effects from shared references.
 \item \code{class()} – Returns the internal class object of the instance.
 \item \code{conformsTo(protocol)} – Returns \code{TRUE} if the object conforms to the specified protocol.
 \item \code{respondsTo(method)} – Returns \code{TRUE} if the object implements the specified method.
-\item \code{description()} – Returns a concise string representation of the object.
-\item \code{debugDescription()} – Returns a detailed string including all public fields and their structure.
+\item \code{description()} – Formats public and private data members without methods.
+\item \code{debugDescription()} – Formats public and private members, including methods.
 \item \code{isMemberOf(cls)} – Checks if the object is a direct instance of the given class.
 \item \code{isKindOf(cls)} – Checks if the object inherits from the given class (directly or indirectly).
 \item \code{isEqual(other)} – Returns \code{TRUE} if the reference is identical to \code{other}.
 \item \code{hash()} – Computes an integer hash from the object's environment address.
 \item \code{objectID()} – Returns a pointer-like identity based on the instance's
 environment address.
+\item \code{==} and \code{!=} – Compare reference identity. Unlike \code{isEqual()}, these
+operators do not compare values or collection contents.
 }
 }
 
@@ -91,7 +93,6 @@ identical(obj, copy)  # TRUE
     \item \href{#method-RSObject-inheritClassesAsList}{\code{RSObject$inheritClassesAsList()}}
     \item \href{#method-RSObject-copy}{\code{RSObject$copy()}}
     \item \href{#method-RSObject-objectsForEncoding}{\code{RSObject$objectsForEncoding()}}
-    \item \href{#method-RSObject-resolveClassWith}{\code{RSObject$resolveClassWith()}}
   }
 }
 \if{html}{\out{<hr>}}
@@ -188,7 +189,8 @@ protocol. This does not verify method implementations.
 \if{html}{\out{<a id="method-RSObject-description"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-description}{}}}
 \subsection{\code{RSObject$description()}}{
-  Returns a compact description like "<Class 0xabc123>".
+  Formats public and private data members without methods. Matches
+\code{format(self)} and the text printed by \code{print(self)}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSObject$description()}
@@ -203,14 +205,16 @@ protocol. This does not verify method implementations.
 \if{html}{\out{<a id="method-RSObject-debugDescription"></a>}}
 \if{latex}{\out{\hypertarget{method-RSObject-debugDescription}{}}}
 \subsection{\code{RSObject$debugDescription()}}{
-  Returns debug-level string with public field summary.
+  Formats the object with public and private data members and methods.
+Matches \code{format(self, method = TRUE)} and the text printed by
+\code{print(self, method = TRUE)}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSObject$debugDescription()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A character string.
+    A character string describing the object's members.
   }
 }
 
@@ -372,26 +376,6 @@ not part of \link{RSCoding}.
   }
   \subsection{Returns}{
     An empty list.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSObject-resolveClassWith"></a>}}
-\if{latex}{\out{\hypertarget{method-RSObject-resolveClassWith}{}}}
-\subsection{\code{RSObject$resolveClassWith()}}{
-  Replace class object for decoding (use on load), then update the
-instance's S3 class names to match the resolved class hierarchy.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSObject$resolveClassWith(new_cls)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{new_cls}}{Class to replace.}
-    }
-    \if{html}{\out{</div>}}
   }
 }
 

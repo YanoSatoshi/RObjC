@@ -2,10 +2,10 @@
 #' @title RSSet and RSMutableSet Convenience Constructors
 #' @description Construct sets from RObjC objects, class or protocol generators,
 #'   an array, or an existing set.
-#'   `NULL` elements are stored as [RSNull].
-#' @param object An RObjC object, class generator, protocol generator, or `NULL`.
+#'   Use `RSNull$null` to store a null member; R `NULL` is rejected.
+#' @param object An RObjC object, class generator, or protocol generator.
 #' @param objects A list of RObjC objects, class generators, protocol generators,
-#'   or `NULL` elements.
+#'   including `RSNull$null` for null members.
 #' @param array An `RSArray` or `RSMutableArray` instance.
 #' @param set An `RSSet` or `RSMutableSet` instance.
 #' @return A set of the type named by the function, except that copying an
@@ -16,22 +16,22 @@ NULL
 .rs_api_set_objects <- function(objects) {
   if (!is.list(objects) || !all(vapply(
     objects,
-    function(object) is.null(object) || robjc_isRobjcObject(object) ||
+    function(object) robjc_isInstance(object) ||
       robjc_isMetaClass(object),
     logical(1)
   )))
-    stop("`objects` must be a list of RObjC objects, classes, protocols, or NULL.", call. = FALSE)
+    stop("`objects` must be a list of RObjC objects, classes, or protocols; use RSNull$null for null members.", call. = FALSE)
   objects
 }
 
 .rs_api_set_array <- function(array) {
-  if (!robjc_isRobjcObject(array) || !array$isKindOf(RSMutableArray))
+  if (!robjc_isInstance(array) || !array$isKindOf(RSArray))
     stop("`array` must be an RSArray or RSMutableArray.", call. = FALSE)
   array
 }
 
 .rs_api_set <- function(set) {
-  if (!robjc_isRobjcObject(set) || !set$isKindOf(RSMutableSet))
+  if (!robjc_isInstance(set) || !set$isKindOf(RSSet))
     stop("`set` must be an RSSet or RSMutableSet.", call. = FALSE)
   set
 }

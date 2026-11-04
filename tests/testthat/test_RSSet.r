@@ -17,28 +17,16 @@ test_that("RSSet: allObjectsAsList returns correct content", {
   expect_setequal(values, c("a", "b"))
 })
 
-test_that("RSSet: addObject is prohibited", {
+test_that("RSSet: immutable API does not expose mutation methods", {
   s <- RSSet$new(list())
-  expect_error(
-    s$addObject(RSString_withValue("x")),
-    msg_immutable_try_mutate(s$class())
-  )
-})
-
-test_that("RSSet: removeObject is prohibited", {
-  s <- RSSet$new(list(RSString_withValue("y")))
-  expect_error(
-    s$removeObject(RSString_withValue("y")),
-    msg_immutable_try_mutate(s$class())
-  )
-})
-
-test_that("RSSet: removeAll is prohibited", {
-  s <- RSSet$new(list(RSString_withValue("z")))
-  expect_error(
-    s$removeAllObjects(),
-    msg_immutable_try_mutate(s$class())
-  )
+  expect_false(s$respondsTo("addObject"))
+  expect_false(s$respondsTo("removeObject"))
+  expect_false(s$respondsTo("removeAllObjects"))
+  expect_true(s$isKindOf(RSSet))
+  expect_false(s$isKindOf(RSMutableSet))
+  mutable <- RSMutableSet$new()
+  expect_true(mutable$isKindOf(RSSet))
+  expect_true(mutable$respondsTo("addObject"))
 })
 
 test_that("RSSet: copy returns RSSet", {
@@ -67,4 +55,11 @@ test_that("RSSet_withSet creates independent native storage", {
   expect_s3_class(copied, "RSSet")
   expect_equal(copied$count(), 1)
   expect_true(copied$containsObject(RSString_withValue("a")))
+})
+test_that("RSSet rejects R NULL members", {
+  expect_error(RSSet$new(list(NULL)), "RSNull$null", fixed = TRUE)
+  set <- RSSet$new(list(RSNull$null))
+  expect_error(set$member(NULL), "robjc_wrap_null", fixed = TRUE)
+  expect_error(set$containsObject(NULL), "robjc_wrap_null", fixed = TRUE)
+  expect_identical(set$member(RSNull$null), RSNull$null)
 })

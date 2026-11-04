@@ -1,0 +1,137 @@
+---
+title: "Technical Note: Runtime Object Classification"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Technical Note: Runtime Object Classification}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Objects distinguished by the runtime
+
+The robjc runtime determines whether a value is a class generator, a protocol generator, or a class instance.
+These checks support factory argument validation, inheritance checks, collection elements, and archive restoration.
+This note (03) explains the predicates in `R/runtime_robjc.r` and the S3 classes on which they rely.
+See [note 01](tech_01_isa.Rmd) for the structure of `isa` itself.
+
+## Three kinds of object
+
+Both an R6 class generator and an instance returned by `$new()` are environments.
+`is.environment()` cannot distinguish them.
+An ordinary R6 generator and a robjc generator are also alike in this respect.
+robjc marks generators and `isa` records with S3 classes, while instances carry a private reference to `.__isa`.
+
+```{r}
+library(robjc)
+
+PlainR6 <- R6::R6Class("Tech03PlainR6")
+Example <- RSObjectClass("Tech03Example")
+instance <- Example$new()
+Protocol <- RSProtocolClass("Tech03Protocol", contract_methods = "run")
+
+stopifnot(is.environment(PlainR6))
+stopifnot(is.environment(Example))
+stopifnot(is.environment(instance))
+stopifnot(is.environment(Protocol))
+```
+
+## `class(isa)` and `class(self)`
+
+Each class definition has an `isa` metadata environment.
+An object class's `isa` has the S3 classes `RSObjectIsA` and `RSIsA`; a protocol's `isa` has `RSProtocolIsA` and `RSIsA`.
+An instance's `class(self)` contains class names from the current class up through its parents.
+The same `class()` function therefore describes different kinds of environments.
+
+```{r}
+stopifnot(identical(class(Example$robjc_isa), c("RSObjectIsA", "RSIsA")))
+stopifnot(identical(class(Protocol$robjc_isa), c("RSProtocolIsA", "RSIsA")))
+stopifnot(identical(class(instance), c("Tech03Example", "RSObject")))
+stopifnot(identical(instance$class(), Example))
+```
+
+The distinction is also visible inside a method through `self` and `private$.__isa`.
+`self$class()` returns the generator stored in `private$.__isa$class`, rather than searching the strings in `class(self)`.
+
+```{r}
+Inspect <- RSObjectClass("Tech03Inspect",
+  public = list(
+    inspectClasses = function() list(
+      instance = class(self),
+      isa = class(private$.__isa)
+    )
+  )
+)
+view <- Inspect$new()$inspectClasses()
+stopifnot(identical(view$instance, c("Tech03Inspect", "RSObject")))
+stopifnot(identical(view$isa, c("RSObjectIsA", "RSIsA")))
+```
+
+## Generator markers
+
+An ordinary object class generator has `RobjcClass` and `R6ClassGenerator` markers.
+A Singleton generator additionally has `RobjcSingleton`.
+That marker is a property of an object class, not a fourth object category.
+Protocol generators also carry `RobjcClass`, so their generator S3 class alone does not distinguish them from object classes.
+The runtime also inspects `RSObjectIsA` or `RSProtocolIsA` on `isa`.
+
+| Target | Main evidence |
+|:--|:--|
+| Object class generator | Environment, `RobjcClass`, and `RSObjectIsA` on `isa` |
+| Singleton generator | Object class conditions plus `RobjcSingleton` |
+| Protocol generator | Environment, `RobjcClass`, and `RSProtocolIsA` on `isa` |
+| Instance | Environment with private `.__isa` marked `RSObjectIsA` |
+
+## `robjc_isMetaClass()`, `robjc_isClass()`, and `robjc_isProtocol()`
+
+`robjc_isMetaClass()` requires an environment marked `RobjcClass` whose `robjc_isa` carries `RSIsA`.
+Despite the name, this predicate accepts **both** object class and protocol generators.
+`robjc_isClass()` further requires `RSObjectIsA`.
+`robjc_isProtocol()` instead requires `RSProtocolIsA`.
+
+```{r}
+stopifnot(robjc_isMetaClass(Example), robjc_isClass(Example))
+stopifnot(robjc_isMetaClass(Protocol), robjc_isProtocol(Protocol))
+stopifnot(!robjc_isClass(Protocol), !robjc_isProtocol(Example))
+stopifnot(!robjc_isMetaClass(PlainR6))
+```
+
+## `robjc_isInstance()`
+
+An instance is not a generator and holds its class's `isa` at `.__enclos_env__$private$.__isa`.
+`robjc_isInstance()` checks that the value is an environment without the generator marker, then checks for a private environment and an `.__isa` marked `RSObjectIsA`.
+It does not rely on the strings in `class(instance)` alone.
+
+```{r}
+lookalike <- structure(new.env(), class = "Tech03Example")
+stopifnot(robjc_isInstance(instance))
+stopifnot(!robjc_isInstance(Example))
+stopifnot(!robjc_isInstance(PlainR6$new()))
+stopifnot(!robjc_isInstance(lookalike))
+```
+
+This predicate recognizes objects produced through ordinary robjc construction; it is not a security boundary against deliberately forged environments.
+A caller that reproduces the internal markers can reach the limits of a marker-based check.
+
+## `robjc_doesBelongToRobjc()` and choosing a predicate
+
+`robjc_doesBelongToRobjc()` returns true when either `robjc_isMetaClass()` or `robjc_isInstance()` does.
+It suits an entry point that accepts classes, protocols, and instances.
+An `isa` record is internal robjc metadata but is not itself accepted by this predicate.
+
+```{r}
+stopifnot(robjc_doesBelongToRobjc(Example))
+stopifnot(robjc_doesBelongToRobjc(Protocol))
+stopifnot(robjc_doesBelongToRobjc(instance))
+stopifnot(!robjc_doesBelongToRobjc(Example$robjc_isa))
+```
+
+| Accepted value | Predicate |
+|:--|:--|
+| Object class or protocol generator | `robjc_isMetaClass()` |
+| Object class generator | `robjc_isClass()` |
+| Protocol generator | `robjc_isProtocol()` |
+| Class instance | `robjc_isInstance()` |
+| Any of those generators or an instance | `robjc_doesBelongToRobjc()` |
+
+After classifying a value, use `robjc_inheritChain()` or an instance's `isKindOf()` to inspect inheritance.
+Keeping classification separate from inheritance lets the runtime work with generator references instead of relying solely on class-name strings.

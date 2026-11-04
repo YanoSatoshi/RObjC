@@ -41,11 +41,15 @@ test_that("RSMutableSet: retains the inserted representative", {
   expect_identical(s$member(equal_object), original)
 })
 
-test_that("RSMutableSet: represents NULL with RSNull", {
-  s <- RSMutableSet$new(list(NULL))
+test_that("RSMutableSet: requires explicit RSNull", {
+  expect_error(RSMutableSet$new(list(NULL)), "RSNull$null", fixed = TRUE)
+  s <- RSMutableSet$new(list(RSNull$null))
 
-  expect_true(s$containsObject(NULL))
-  expect_true(s$member(NULL)$isKindOf(RSNull))
+  expect_error(s$addObject(NULL), "robjc_wrap_null", fixed = TRUE)
+  expect_error(s$removeObject(NULL), "robjc_wrap_null", fixed = TRUE)
+  expect_error(s$member(NULL), "robjc_wrap_null", fixed = TRUE)
+  expect_true(s$containsObject(RSNull$null))
+  expect_true(s$member(RSNull$null)$isKindOf(RSNull))
   expect_true(s$anyObject()$isKindOf(RSNull))
 })
 

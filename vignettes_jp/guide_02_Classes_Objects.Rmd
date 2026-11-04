@@ -1,0 +1,160 @@
+---
+title: "クラスとオブジェクトのガイド"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{クラスとオブジェクトのガイド}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# クラスとオブジェクト
+
+robjc のクラスは R6 の**クラスジェネレータ**を使って宣言し、インスタンスはその `$new()` で作ります。
+ジェネレータにはクラス名や親クラスなどの情報が付き、インスタンスはそれを参照して自分のクラスを判定します。
+このガイドでは、小さなクラスを作りながら、初期化、継承、参照の同一性を確かめます。
+
+## 通常のクラスを定義する
+
+`RSObjectClass()` は、robjc の通常のクラスを作るファクトリーです。
+`super_class` には親クラスのジェネレータを渡します。省略すると `RSObject` を継承します。
+`private` は内部の状態、`public` は外部から呼べるメソッドや参照できる値を定義します。
+同じ名前を `private` と `public` の両方に置くことはできません。
+
+```{r}
+library(robjc)
+
+Record <- RSObjectClass(
+  "Guide02Record",
+  super_class = RSObject,
+  private = list(.label = NULL),
+  public = list(
+    initialize = function(label) {
+      super$initialize()
+      if (!is.character(label) || length(label) != 1L || is.na(label))
+        return(NULL)
+      private$.label <- label
+      invisible(self)
+    },
+    label = function() private$.label
+  )
+)
+```
+
+`Record` はインスタンスではなく、クラスのジェネレータです。
+`private$.label` は各インスタンスが持つ状態で、公開メソッド `label()` を通して読み取れます。
+ファクトリーの引数や他の種類のクラスは[クラスファクトリーのガイド](guide_05_ClassFactory.Rmd)を参照してください。
+
+## インスタンスを生成・初期化する
+
+robjc の `Class$new(...)` はインスタンスを確保し、続けて `initialize(...)` を呼びます。
+`$new()` が返すのは、**`initialize()` の返り値**です。
+使えるインスタンスを作れたら `self` を返します。`invisible(self)` とすれば、対話的に呼んだときの自動表示も抑えられます。
+
+上の `initialize()` は、まず `super$initialize()` で親クラスの初期化を通します。
+次に `label` を検証し、有効なら内部状態に保存して `self` を返します。
+検証に失敗したときは `NULL` を返すため、`$new()` の結果も `NULL` になります。
+
+カスタムクラスで `initialize()` を独自に実装する場合、以下の 2 点に注意します。
+
+**1. `super$initialize()` を呼ぶこと：**
+基底クラス `RSObject` の `initialize()` は、インスタンスの S3 クラスを設定します。
+親クラスが行う初期化を通すため、独自の `initialize()` から `super$initialize()` を呼びます。
+
+**2. 返したい値（通常は `self`）を明示的に返すこと：**
+通常の R6 の `new()` と異なり、robjc の `$new()` は `initialize()` の返り値をそのまま返します。
+初期化に失敗したときに `NULL` などを返せますが、意図しない値を最後に返さないようにします。
+
+
+```{r}
+record <- Record$new("first")
+stopifnot(record$isMemberOf(Record))
+stopifnot(identical(record$label(), "first"))
+
+invalid <- Record$new(1L)
+stopifnot(is.null(invalid))
+```
+
+## クラスと継承関係を調べる
+
+インスタンスの `class()` は所属するクラスの**ジェネレータ**を、`superClass()` は直接の親クラスのジェネレータを返します。
+これらはクラス名の文字列を返す base R の `class(object)` とは異なります。
+`isMemberOf(Class)` はそのクラスに直接属するかを、`isKindOf(Class)` は親クラスを含む継承関係にあるかを判定します。
+
+```{r}
+TaggedRecord <- RSObjectClass(
+  "Guide02TaggedRecord",
+  super_class = Record,
+  public = list(tag = function() "tagged")
+)
+
+tagged <- TaggedRecord$new("second")
+stopifnot(identical(tagged$class(), TaggedRecord))
+stopifnot(identical(tagged$superClass(), Record))
+stopifnot(tagged$isMemberOf(TaggedRecord))
+stopifnot(!tagged$isMemberOf(Record))
+stopifnot(tagged$isKindOf(Record))
+stopifnot(tagged$isKindOf(RSObject))
+stopifnot(identical(tagged$label(), "second"))
+```
+
+判定には `"Guide02Record"` のような名前ではなく、`Record` のようなジェネレータを渡します。
+同名で二度宣言しても別のクラスになり得るため、名前だけではクラスの同一性を確定できません。
+
+## 参照の同一性を扱う
+
+robjc のインスタンスは参照型です。
+変数へ代入すると同じインスタンスへの参照が増え、`$new()` を再度呼ぶと別のインスタンスが作られます。
+`identical()` と robjc の `==`、`!=` は、その**参照の同一性**を調べます。
+
+```{r}
+alias <- record
+another <- Record$new("first")
+
+stopifnot(identical(record, alias))
+stopifnot(record == alias)
+stopifnot(record != another)
+stopifnot(!identical(record, another))
+```
+
+`record` と `another` は同じ文字列を保持していますが、別々のインスタンスです。
+値として等しいかどうかは `isEqual()` で判定します。
+この `Record` は `isEqual()` を独自に定義していないので、基底クラスの実装に従い、別インスタンスとは等しくありません。
+値による比較を定義する方法は[同一性・同値性・ハッシュのガイド](guide_08_Hash_isEqual.Rmd)で扱います。
+
+```{r}
+stopifnot(!record$isEqual(another))
+stopifnot(record$isEqual(alias))
+```
+
+## 表示とコピーを行う
+
+`description()` は S3 の `print()` と同じ構成で、公開・非公開のデータをメソッドを除いて文字列にします。
+`debugDescription()` は同じ構成に公開・非公開のメソッドも加えます。
+どちらも表示用の説明で、保存形式ではありません。
+
+```{r}
+ordinary <- record$description()
+details <- record$debugDescription()
+
+stopifnot(grepl("Guide02Record", ordinary, fixed = TRUE))
+stopifnot(grepl(".label", details, fixed = TRUE))
+stopifnot(grepl("label", details, fixed = TRUE))
+```
+
+基底クラス `RSObject` の `copy()` は `self` を返します。
+このため `Record` の `copy()` も同じインスタンスを返します。
+独立したコピーが必要なクラスでは `copy()` を上書きし、何を複製し、何を共有するかを決めます。
+`mutableCopy()` はすべてのクラスに備わるメソッドではありません。対応する変更可能なクラスを持つ Collection や Vector などが提供します。
+
+```{r}
+stopifnot(identical(record$copy(), record))
+stopifnot(!record$respondsTo("mutableCopy"))
+
+fixed_array <- RSArray$new(list(record))
+editable_array <- fixed_array$mutableCopy()
+stopifnot(editable_array$isMemberOf(RSMutableArray))
+stopifnot(identical(editable_array$objectAtIndex(1L), record))
+```
+
+Array のコピーは外側の Collection を新しく作りますが、格納した `record` は同じ参照を保ちます。
+コピーの深さや独自クラスでの実装は[値とコピーのガイド](guide_06_Values_Copying.Rmd)で説明します。

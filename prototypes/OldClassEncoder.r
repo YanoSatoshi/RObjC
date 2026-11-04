@@ -87,7 +87,7 @@ OldClassEncoder <- RSSingletonClass(
     #' @export
     encodingContainer = function(obj) {
       if (self$status_frozen) stop("Encoder is frozen.", call. = FALSE)
-      if (!robjc_isRobjcObject(obj))
+      if (!robjc_isInstance(obj))
         stop("`obj` must be an RObjC instance.", call. = FALSE)
       klass <- obj$class()
       version <- klass$robjc_isa$version
@@ -119,7 +119,7 @@ OldClassEncoder <- RSSingletonClass(
     #' @export
     encodeObject = function(obj) {
       stopifnot(!self$status_frozen)
-      if (!robjc_isRobjcObject(obj))
+      if (!robjc_isInstance(obj))
         stop("`obj` must be an RObjC instance.", call. = FALSE)
       walk <- function(current) {
         oid <- current$objectID()

@@ -34,7 +34,7 @@
 RSNull <- RSSingletonClass(
   "RSNull",
   super_class = RSScalar,
-  version     = "0.1.0 beta",
+  version     = "0.1.1 beta",
   public      = list(
     #' @description
     #' Initializes an `RSNull` instance. The factory invokes it to create the
@@ -133,3 +133,21 @@ RSNull$is_na_class <- NA
 # .onLoad() restores these locks on the package-defined generator after lazy loading.
 lockBinding("null", RSNull)
 lockBinding("is_na_class", RSNull)
+
+#' Access a Method on the Null Singleton
+#'
+#' Existing members of [RSNull] are returned as usual. An unknown member
+#' returns a function that accepts any arguments and returns the shared null
+#' singleton, allowing messages to be chained through null values.
+#'
+#' @param x The `RSNull` singleton.
+#' @param name A member name.
+#' @return The existing member, or a function returning `RSNull$null`.
+#' @examples
+#' RSNull$null$missingMethod(1)$anotherMethod()
+#' @export
+`$.RSNull` <- function(x, name) {
+  if (exists(name, envir = x, inherits = FALSE))
+    return(get(name, envir = x, inherits = FALSE))
+  function(...) RSNull$null
+}

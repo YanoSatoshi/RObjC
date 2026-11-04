@@ -28,7 +28,7 @@ test_that("immutable arrays inherit keyed coding and remain immutable", {
 
   expect_true(restored$isMemberOf(RSArray))
   expect_true(is.nan(restored$objectAtIndex(1L)$value()))
-  expect_error(restored$addObject(RSNumber$new(1L)), "immutable")
+  expect_false(restored$respondsTo("addObject"))
 })
 
 test_that("mutable arrays can contain a reference to themselves", {

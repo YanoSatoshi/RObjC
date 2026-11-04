@@ -3,14 +3,15 @@
 #' @description Construct dictionaries from RObjC object or generator keys and
 #'   supported values, or an existing dictionary. RObjC object keys must conform
 #'   to `RSCopying` because insertion copies them; class and protocol generator
-#'   keys are retained by identity. `NULL` keys and values are stored as [RSNull].
-#' @param object An RObjC object, class generator, protocol generator, or `NULL`.
+#'   keys are retained by identity. Use `RSNull$null` for null keys or values;
+#'   R `NULL` is rejected.
+#' @param object An RObjC object, class generator, or protocol generator.
 #' @param key An RObjC object key conforming to `RSCopying`, a class or protocol
-#'   generator, or `NULL`.
+#'   generator. Use `RSNull$null` for a null key.
 #' @param objects A list of RObjC objects, class generators, protocol generators,
-#'   or `NULL` values.
+#'   including `RSNull$null` for null values.
 #' @param keys A list of RObjC keys conforming to `RSCopying`, class or protocol
-#'   generators, or `NULL` keys.
+#'   generators, including `RSNull$null` for null keys.
 #' @param objectsAndKeys An even-length list alternating value, key, value, key.
 #' @param dictionary An `RSDictionary` or `RSMutableDictionary` instance.
 #' @return A dictionary of the type named by the function, except that copying
@@ -19,19 +20,18 @@
 NULL
 
 .rs_api_dictionary_value <- function(object) {
-  if (!is.null(object) && !robjc_isRobjcObject(object) && !robjc_isClass(object) &&
+  if (!robjc_isInstance(object) && !robjc_isClass(object) &&
       !robjc_isProtocol(object))
-    stop("Dictionary values must be RObjC objects, classes, protocols, or NULL.",
+    stop("Dictionary values must be RObjC objects, classes, or protocols; use RSNull$null for null values.",
          call. = FALSE)
   object
 }
 
 .rs_api_dictionary_key <- function(key) {
-  if (!is.null(key) &&
-      !robjc_isMetaClass(key) &&
-      (!robjc_isRobjcObject(key) || !isTRUE(key$conformsTo(RSCopying))))
+  if (!robjc_isMetaClass(key) &&
+      (!robjc_isInstance(key) || !isTRUE(key$conformsTo(RSCopying))))
     stop(
-      "Dictionary keys must be copyable RObjC objects, classes, protocols, or NULL.",
+      "Dictionary keys must be copyable RObjC objects, classes, or protocols; use RSNull$null for null keys.",
       call. = FALSE
     )
   key
@@ -59,8 +59,8 @@ NULL
 }
 
 .rs_api_dictionary <- function(dictionary) {
-  if (!robjc_isRobjcObject(dictionary) ||
-      !dictionary$isKindOf(RSMutableDictionary)) {
+  if (!robjc_isInstance(dictionary) ||
+      !dictionary$isKindOf(RSDictionary)) {
     stop("`dictionary` must be an RSDictionary or RSMutableDictionary.",
          call. = FALSE)
   }

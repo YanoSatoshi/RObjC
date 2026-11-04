@@ -62,7 +62,7 @@ RSString <- RSScalarClass(
     #' @param na.last Whether missing values sort last.
     #' @return `-1L`, `0L`, or `1L` for comparable values.
     compare = function(other, na.last = TRUE) {
-      if (robjc_isRobjcObject(other) && other$isKindOf(RSString) &&
+      if (robjc_isInstance(other) && other$isKindOf(RSString) &&
           xor(self$isKindOf(RSFactor), other$isKindOf(RSFactor)))
         stop("Factor and string values have no shared ordering.", call. = FALSE)
       super$compare(other, na.last = na.last)

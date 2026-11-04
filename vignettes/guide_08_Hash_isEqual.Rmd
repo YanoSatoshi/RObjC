@@ -1,0 +1,245 @@
+---
+title: "Identity, Equality, and Hashing Guide"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Identity, Equality, and Hashing Guide}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Identity, equality, and hashing
+
+robjc provides several ways to compare objects.
+Choose one according to the question you want to answer.
+
+| Question | Method | Basis for the result |
+|:--|:--|:--|
+| Do two references point to the same instance? | `identical()`, `==`, `!=` | Object identity |
+| Should two objects count as equal values? | `$isEqual(other)` | Equality defined by the class |
+| Where should a Set element or Dictionary key be sought? | `$hash()` and `$isEqual(other)` | Narrow candidates by hash, then check equality |
+
+`hash()` does not decide equality directly.
+Distinct objects may have the same hash.
+This guide first separates identity from equality, then implements both `isEqual()` and `hash()` in a custom class.
+
+## Compare identity with `identical()`, `==`, and `!=`
+
+robjc instances are reference objects.
+Assigning one to another variable makes both variables refer to the same instance.
+Creating another instance with the same value produces a **different object**.
+robjc distinguishes **equality as values** from **identity as one object**.
+
+For robjc objects, `==` and `!=` compare **identity** using `identical()`.
+
+```{r}
+library(robjc)
+
+first   <- RSNumber$new(7L)
+alias   <- first
+another <- RSNumber$new(7L)
+
+stopifnot(identical(first, alias))
+stopifnot(first == alias)
+stopifnot(first != another)
+stopifnot(!identical(first, another))
+```
+
+`first` and `another` wrap the same integer and are **equal as values**, but they are separately created instances.
+**`==` checks identity rather than the wrapped value**, so it is `FALSE` for this pair.
+
+## Compare values with `isEqual()`
+
+Each class can define what it means for two objects to be equal as values through `isEqual()`.
+For example, `RSNumber` inherits value comparison from `RSScalar`; it returns `TRUE` for separate instances that wrap equal values.
+
+```{r}
+stopifnot(first$isEqual(another))
+stopifnot(another$isEqual(first))
+stopifnot(first == alias)
+stopifnot(!(first == another))
+```
+
+To compare values in a custom class, define `isEqual()`.
+The following `Label` class regards separately created instances as equal when they hold the same string.
+
+```{r}
+Label <- RSObjectClass(
+  "GuideEqualLabel",
+  private = list(.text = NULL),
+  public = list(
+    initialize = function(text) {
+      super$initialize()
+      if (!is.character(text) || length(text) != 1L || is.na(text))
+        stop("`text` must be one non-missing string.")
+      private$.text <- text
+      invisible(self)
+    },
+    text = function() private$.text,
+    isEqual = function(other) {
+      if (!robjc_isInstance(other) || !other$isMemberOf(self$class()))
+        return(FALSE)
+      identical(private$.text, other$text())
+    }
+  )
+)
+
+label_a <- Label$new("ready")
+label_b <- Label$new("ready")
+label_c <- Label$new("done")
+stopifnot(label_a$isEqual(label_b))
+stopifnot(!label_a$isEqual(label_c))
+stopifnot(!label_a$isEqual(RSString$new("ready")))
+stopifnot(label_a != label_b)
+```
+
+The method first checks that `other` is a robjc instance and a direct member of the same class as `self`.
+It can then return `FALSE` for `NULL` or a different kind of object without calling `other$text()`.
+Once the class check succeeds, it compares the strings returned by `text()` with `identical()`.
+`label_a$isEqual(label_b)` is `TRUE`, but `label_a == label_b` is `FALSE` because the instances are distinct.
+
+When defining `isEqual()`, preserve reflexivity (an object equals itself), symmetry (if `a` equals `b`, then `b` equals `a`), and transitivity (if `a` equals `b` and `b` equals `c`, then `a` equals `c`).
+Set and Dictionary lookup depend on this consistency.
+
+## Understand the `RSObject` defaults
+
+`RSObject$isEqual()` uses `identical(self, other)`.
+Without an override, an object is equal only to itself.
+
+```{r}
+left <- RSObject$new()
+right <- RSObject$new()
+stopifnot(left$isEqual(left))
+stopifnot(!left$isEqual(right))
+stopifnot(is.integer(left$hash()), length(left$hash()) == 1L)
+stopifnot(!is.na(left$hash()))
+```
+
+The default `hash()` derives an integer from the instance's environment address, but that integer could be `NA_integer_`.
+It passes the result through `robjc_normalize_hash()`, which maps `NA_integer_` to `0L`.
+
+An address based hash is useful for lookup within the current R session.
+It is not guaranteed to stay the same across sessions or to be unique among all instances.
+Classes such as `RSScalar` that compare by value override both `isEqual()` and `hash()`.
+
+## Look up objects in Set and Dictionary
+
+Set uses an object's `hash()` and `isEqual()` to detect duplicates and test membership; Dictionary uses them to look up keys.
+A separate instance can find a stored element when the two are equal and have the same hash.
+
+In a linear search, code walks through elements from the start and compares each with `isEqual()`.
+The number of comparisons grows with the collection; finding the last element or a missing one requires checking them all.
+robjc Set and Dictionary use hash tables instead.
+They place elements or keys according to `hash()` when inserting them.
+During lookup, they calculate the search object's hash and call `isEqual()` only on candidates in the corresponding location.
+
+If hashes are well distributed, average lookup time stays roughly constant as the collection grows.
+If many objects share a hash, more candidates must be compared.
+A hash narrows the search; it is not a unique object identifier.
+
+Equal objects must return the same hash.
+The reverse does not hold: sharing a hash does not imply equality.
+`isEqual()` distinguishes candidates whose hashes collide.
+
+```{r}
+set <- RSMutableSet$new()
+set$addObject(RSString$new("apple"))
+set$addObject(RSString$new("apple"))
+stopifnot(set$count() == 1L)
+stopifnot(set$containsObject(RSString$new("apple")))
+
+dictionary <- RSMutableDictionary$new()
+dictionary$setObjectForKey(RSNumber$new(3L), RSString$new("quantity"))
+stopifnot(identical(
+  dictionary$objectForKey(RSString$new("quantity"))$value(), 3L
+))
+```
+
+## Implement custom equality and hashing
+
+The next class holds one integer as a key.
+It considers instances with the same integer equal and calculates a hash from that integer.
+`value()` is read-only so the key value cannot change after insertion into a Set or Dictionary.
+
+For ordinary hash calculations, use the shared `RSHashOperator$instance`.
+Its `hashForScalar()` calculates hashes for length-one R values such as `integer` and `character`; `computeHashCodeWithString()` handles strings specifically.
+For arguments and calculation details, see the class documentation with `help("RSHashOperator", package = "robjc")`.
+
+```{r}
+operator <- RSHashOperator$instance
+stopifnot(is.integer(operator$hashForScalar(12L)))
+stopifnot(identical(
+  operator$hashForScalar("apple"),
+  operator$computeHashCodeWithString("apple")
+))
+```
+
+The `NumberKey` example deliberately uses a simple remainder calculation to show hash collisions and the role of `isEqual()`.
+For a real class, consider `RSHashOperator` according to the value being hashed.
+
+```{r}
+NumberKey <- RSObjectClass(
+  "GuideNumberKey",
+  private = list(.value = NULL),
+  public = list(
+    initialize = function(value) {
+      super$initialize()
+      if (!is.integer(value) || length(value) != 1L)
+        stop("`value` must be one integer.")
+      private$.value <- value
+      invisible(self)
+    },
+    value = function() private$.value,
+    isEqual = function(other) {
+      robjc_isInstance(other) &&
+        other$isMemberOf(self$class()) &&
+        identical(private$.value, other$value())
+    },
+    hash = function() {
+      computed_hash <- as.integer(private$.value %% 10L)
+      robjc_normalize_hash(computed_hash)
+    }
+  )
+)
+
+a <- NumberKey$new(12L)
+b <- NumberKey$new(12L)
+c <- NumberKey$new(22L)
+stopifnot(a$isEqual(b), identical(a$hash(), b$hash()))
+stopifnot(!a$isEqual(c), identical(a$hash(), c$hash()))
+```
+
+Here, the hashes of `12L` and `22L` deliberately collide.
+Because `isEqual()` compares their full values, Set and Dictionary can still treat them as separate elements and keys.
+
+```{r}
+keys <- RSMutableSet$new()
+keys$addObject(a)
+keys$addObject(b)
+keys$addObject(c)
+stopifnot(keys$count() == 2L)
+stopifnot(keys$containsObject(NumberKey$new(12L)))
+stopifnot(keys$containsObject(NumberKey$new(22L)))
+
+lookup <- RSMutableDictionary$new()
+lookup$setObjectForKey(RSString$new("twelve"), a)
+lookup$setObjectForKey(RSString$new("twenty-two"), c)
+stopifnot(identical(lookup$objectForKey(b)$value(), "twelve"))
+stopifnot(identical(
+  lookup$objectForKey(NumberKey$new(22L))$value(), "twenty-two"
+))
+```
+
+At the **end** of a custom `hash()` method, return `robjc_normalize_hash(computed_hash)`.
+If an integer calculation produces `NA_integer_`, this function replaces it with `0L`.
+Returning `NA_integer_` directly would make the hash unusable for collection lookup.
+
+```{r}
+stopifnot(identical(robjc_normalize_hash(NA_integer_), 0L))
+stopifnot(identical(robjc_normalize_hash(42L), 42L))
+```
+
+Normalization does not automatically make equality and hashing consistent.
+Your implementation must ensure that **if `a$isEqual(b)` is `TRUE`, then `a$hash()` and `b$hash()` are equal**.
+While an object is stored as a Set element or Dictionary key, do not change the state that determines its equality or hash.
+Dictionary calls `copy()` on a key when inserting it.
+See the [collections guide](guide_07_Collections.Rmd) for Dictionary usage.

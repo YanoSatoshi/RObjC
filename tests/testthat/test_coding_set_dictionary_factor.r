@@ -1,7 +1,6 @@
 resolve_coding_collection_class <- function(class_name, version, kind) {
-  expect_identical(version, "0.1.0 beta")
   expect_true(kind %in% c("instance", "class"))
-  switch(class_name,
+  generator <- switch(class_name,
     RSMutableArray = RSMutableArray,
     RSMutableSet = RSMutableSet,
     RSSet = RSSet,
@@ -14,6 +13,8 @@ resolve_coding_collection_class <- function(class_name, version, kind) {
     RSNAFactor = RSNAFactor,
     stop("Unexpected class: ", class_name)
   )
+  expect_identical(version, generator$robjc_isa$version)
+  generator
 }
 
 round_trip_coding_collection <- function(object) {
@@ -36,7 +37,7 @@ test_that("mutable and immutable sets restore members and shared references", {
     expect_identical(set$member(RSNull$null), RSNull$null)
     expect_identical(set$member(RSString), RSString)
     if (identical(set_class, RSSet))
-      expect_error(set$addObject(RSNumber$new(1L)), "immutable")
+      expect_false(set$respondsTo("addObject"))
     else
       expect_identical(set$addObject(RSNumber$new(1L)), set)
   }
@@ -62,7 +63,7 @@ test_that("dictionaries restore keys, values, cycles and immutability", {
     if (identical(dictionary_class, RSMutableDictionary)) {
       expect_identical(restored$objectForKey(key), restored)
     } else {
-      expect_error(restored$setObjectForKey(RSNull$null, key), "immutable")
+      expect_false(restored$respondsTo("setObjectForKey"))
     }
   }
 })
@@ -78,7 +79,7 @@ test_that("dictionary restores the stored key without copying it again", {
       value = NULL,
       copy = function() CopyKey$new(self$value),
       hash = function() robjc_normalize_hash(as.integer(self$value)),
-      isEqual = function(other) robjc_isRobjcObject(other) &&
+      isEqual = function(other) robjc_isInstance(other) &&
         other$isKindOf(CopyKey) && identical(self$value, other$value),
       encodeWithCoder = function(coder) coder$encodeObjectForKey(self$value, "value"),
       initWithCoder = function(coder) {
@@ -105,6 +106,28 @@ test_that("factor metadata and null singleton survive keyed coding", {
   expect_identical(restored[[2L]]$asFactor(), missing$asFactor())
   expect_identical(restored[[3L]], RSNull$null)
   expect_identical(restored[[3L]], restored[[4L]])
+})
+
+test_that("RSNull archives record the current version and restore older records", {
+  archive <- RSKeyedArchiver$new()$archive(RSNull$null)
+  id <- archive$root$id
+  expect_identical(archive$records[[id]]$version, "0.1.1 beta")
+
+  decoder <- suppressMessages(RSKeyedUnarchiver$new(archive))
+  classes <- decoder$showAllClasses(remove_default = FALSE)
+  expect_identical(classes$class_name, "RSNull")
+  expect_identical(classes$version, "0.1.1 beta")
+  expect_identical(classes$status, "automatic")
+  expect_identical(decoder$decode(), RSNull$null)
+
+  older_archive <- unserialize(serialize(archive, NULL))
+  older_archive$records[[id]]$version <- "0.1.0 beta"
+  older_decoder <- suppressMessages(RSKeyedUnarchiver$new(older_archive))
+  expect_identical(
+    older_decoder$showAllClasses(remove_default = FALSE)$version,
+    "0.1.0 beta"
+  )
+  expect_identical(older_decoder$decode(), RSNull$null)
 })
 
 test_that("scalar subclasses retain native values and NA companions", {

@@ -16,8 +16,8 @@
 #' - [robjc_isMetaClass()] recognizes class and protocol generators.
 #' - [robjc_isClass()] recognizes object class generators.
 #' - [robjc_isProtocol()] recognizes protocol generators.
-#' - [robjc_isRobjcObject()] recognizes instances.
-#' - [robjc_isBelongingRobjc()] recognizes instances or generators.
+#' - [robjc_isInstance()] recognizes instances.
+#' - [robjc_doesBelongToRobjc()] recognizes instances or generators.
 #' - [robjc_inheritChain()] follows the classes in an ISA record.
 #' - [R6GENERATOR] documents the runtime's type markers.
 #' - RObjC generators expose `$isEqual(other)` for reference identity and

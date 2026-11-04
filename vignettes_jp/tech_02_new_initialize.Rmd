@@ -1,0 +1,201 @@
+---
+title: "技術ノート: new と initialize"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{技術ノート: new と initialize}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# インスタンスの確保と初期化
+
+robjc は R6 をクラスの土台にしていますが、インスタンス生成時の `$new()` だけは独自の経路を使います。
+中心になるのは `robjc_allocate()` です。
+この関数がインスタンスを**確保**し、`initialize()` または `initWithCoder()` がその論理的な状態を**初期化**します。
+
+このノートでは、R6 の生成処理を手がかりに、その分離が必要になった理由と実際の経路を説明します。
+クラスファクトリーが `$new()` を差し替える手順は[ノート 04](tech_04_ClassFactory.Rmd)、アーカイブ全体の参照管理は[ノート 08](tech_08_Archiving.Rmd)で扱います。
+
+## R6 の `$new()` をたどる
+
+R6 のジェネレータを作り、その `$new` や `body(R6Trace$new)` を表示すると、現在使っている R6 の生成処理を確認できます。
+
+```{r}
+R6Trace <- R6::R6Class("R6Trace", public = list(
+  initialize = function() invisible(self)
+))
+```
+
+通常の R6 の `$new()` は、概ね次の順に処理します。
+
+1. 親クラスのフィールドとメソッドを集める。
+2. public、private、`self`、`super` のための環境を作り、メソッドを結び付ける。
+3. フィールドとメソッドを配置し、必要な binding をロックする。
+4. `initialize(...)` を呼ぶ。
+5. 最後に、確保した public 環境を返す。
+
+したがって、通常の R6 では `initialize()` の**返り値**は `$new()` の返り値になりません。
+例えば、初期化メソッドが `NULL` を返しても、`$new()` は確保済みのオブジェクトを返します。
+
+```{r}
+R6Failure <- R6::R6Class("R6Failure", public = list(
+  initialize = function(ok = TRUE) {
+    if (!ok) return(NULL)
+    invisible(self)
+  }
+))
+stopifnot(is.environment(R6Failure$new(FALSE)))
+```
+
+robjc の `R/runtime_allocation.r` は、R6 の生成経路を調べたうえで、確保に必要な処理を `robjc_allocate()` に分けています。
+R6 由来の処理を含むため、このファイルには出典とライセンスを記載しています。
+
+## `robjc_allocate()` は何を作るか
+
+`robjc_allocate(ClassObj)` は、指定したクラスの新しいインスタンスを作ります。
+親クラスを含む public/private フィールドとメソッド、`self`・`private`・`super` を参照する環境、S3 クラス、必要なロックや finalizer を設定します。
+一方、**`initialize()` は呼びません**。
+
+```{r}
+library(robjc)
+
+initialize_calls <- 0L
+AllocationExample <- RSObjectClass("Tech02AllocationExample",
+  private = list(.value = NULL),
+  public = list(
+    initialize = function(value) {
+      initialize_calls <<- initialize_calls + 1L
+      super$initialize()
+      private$.value <- value
+      invisible(self)
+    },
+    value = function() private$.value
+  )
+)
+
+allocated <- robjc_allocate(AllocationExample)
+stopifnot(initialize_calls == 0L)
+stopifnot(allocated$isMemberOf(AllocationExample))
+stopifnot(is.null(allocated$value()))
+
+initialized <- AllocationExample$new(42L)
+stopifnot(initialize_calls == 1L)
+stopifnot(identical(initialized$value(), 42L))
+```
+
+確保だけをした `allocated` にはメソッドと初期フィールドが揃っていますが、アプリケーション上の有効な状態が揃っているとは限りません。
+この API を直接使う場合は、呼び出し側が後から状態を与える必要があります。
+通常の生成には `$new()` を使います。
+
+なお、Singleton のジェネレータを `robjc_allocate()` に渡すと、新しい環境ではなく既存の共有インスタンスが返ります。
+
+## robjc の `$new()` が返すもの
+
+クラスファクトリーは、生成したジェネレータの `$new()` を `robjc_install_new()` で差し替えます。
+通常クラスについての要点は次の数行です。
+
+```{r eval=FALSE}
+function(...) {
+  object <- robjc_allocate(klass)
+  object$initialize(...)
+}
+```
+
+末尾の `object$initialize(...)` は、概念的には `return(object$initialize(...))` と同じです。
+`initialize()` が `invisible(self)` を返せば `$new()` はそのインスタンスを返し、別の値を返せば `$new()` もその値を返します。
+
+初期化できなかったことを `NULL` で表すクラスなら、その結果を呼び出し側へ伝えられます。
+これは R6 の例との違いです。
+
+```{r}
+ConditionalExample <- RSObjectClass("Tech02ConditionalExample",
+  public = list(
+    initialize = function(ok = TRUE) {
+      if (!ok) return(NULL)
+      super$initialize()
+      invisible(self)
+    }
+  )
+)
+stopifnot(is.null(ConditionalExample$new(FALSE)))
+stopifnot(ConditionalExample$new(TRUE)$isMemberOf(ConditionalExample))
+```
+
+これは返り値の違いを示す例です。
+入力の検証違反など、失敗理由を呼び出し側に伝える必要がある場合は、各クラスの `initialize()` と同様に `stop()` を使います。
+
+### クラスクラスタへの接続
+
+`RSScalarClass()` が作る通常の Scalar クラスでは、NA を受け取った `initialize()` が、自分ではなく NA 用クラスの共有インスタンスを返せます。
+`$new()` が初期化結果を返すため、呼び出し側にもその共有インスタンスが届きます。
+
+```{r}
+stopifnot(identical(RSNumber$new(NA_real_), RSNumber$na))
+```
+
+この仕組みは `$new()` の差し替えによって可能になりますが、NA クラスの自動生成や型別の扱いは[ノート 06](tech_06_Scalars.Rmd)で説明します。
+
+## `initialize()` と親クラス
+
+確保済みのインスタンスに、意味のある状態を与えるのが `initialize()` です。
+`RSObject$initialize()` は `isa` を参照して `class(self)` を設定し、`invisible(self)` を返します。
+サブクラスは通常、`super$initialize()` を呼び、自分のフィールドを設定して `invisible(self)` を返します。
+
+例えば `RSArray$initialize()` は引数とハッシュ演算子を確認し、親の初期化を呼んだあと、要素を検証して private な保存領域を埋めます。
+`RSMutableArray$initialize()` は `super$initialize(objects, hash_operator)` に委ね、最後に `invisible(self)` を返します。
+各クラスは自分が必要とする不変条件をここで成立させます。
+
+ただし、`super$initialize()` の**返り値を伝播すべきクラス**では、最後に無条件で `invisible(self)` を返してはいけません。
+Scalar の NA 切り替えでは、親から返された共有インスタンスをそのまま返す必要があります。
+
+## Singleton の生成
+
+`RSSingletonClass()` は、クラス宣言中に一度だけ通常の生成経路でインスタンスを作り、ジェネレータの `$instance` に保存します。
+その後の `$new()` は保存済みの `$instance` を返し、`initialize()` を再実行しません。
+
+```{r}
+stopifnot(identical(RSNull$new(), RSNull$instance))
+```
+
+NA 用クラスは `RSScalarClass()` の `na_singleton` 引数によって、直接生成の規則が決まります。
+
+| 生成元と設定 | クラスへの `$new()` | 例 |
+|:--|:--|:--|
+| `RSSingletonClass()` | 保存済みの `$instance` を返す | `RSNull$new()` |
+| `RSScalarClass(na_singleton = TRUE)` が作る NA 子クラス | 共有インスタンス作成後、引数に関係なくエラー | `RSNANumber$new(NA_real_)` |
+| `RSScalarClass(na_singleton = FALSE)` が作る NA 子クラス | 新しいインスタンスを作るが、値の検証は行う | `RSNAFactor$new(factor(NA))` |
+
+既定の `na_singleton = TRUE` では、ファクトリーが NA 子クラスの共有インスタンスを一度作った後、その子クラスの `$new()` を常に `stop()` する関数へ差し替えます。
+共有 NA を得るときは、通常クラスの `$na`、または型に合う NA を渡した通常クラスの `$new()` を使います。
+`RSFactor` は欠損値ごとに水準と順序の情報を保持するため `na_singleton = FALSE` を指定しており、`RSNAFactor$new()` で別の NA インスタンスを作れます。
+ただし `RSNAFactor$new()` に非 NA の factor を渡すと、初期化時の値検証でエラーになります。
+
+```{r}
+stopifnot(identical(RSNumber$new(NA_real_), RSNumber$na))
+stopifnot(inherits(tryCatch(RSNANumber$new(NA_real_), error = identity), "error"))
+
+missing_factor <- factor(NA_character_, levels = c("low", "high"))
+stopifnot(RSNAFactor$new(missing_factor)$isMemberOf(RSNAFactor))
+stopifnot(!identical(RSFactor$new(missing_factor), RSFactor$na))
+```
+
+`RSNull$initialize()` 自体には共有インスタンス生成後の再初期化を防ぐ検査がありますが、通常の `RSNull$new()` は `initialize()` を呼ばずに共有インスタンスを返します。
+この検査と、NA 子クラスの `$new()` をエラーにする規則は別のものです。
+
+## デコード時は `initWithCoder()` に進む
+
+アーカイブの復元では、通常の `initialize()` が期待する引数を渡せないことがあります。
+また、保存されたオブジェクト同士が互いを参照する場合、参照先の状態がまだ完成していない段階で、そのインスタンスを参照できる必要があります。
+
+`RSKeyedUnarchiver` の既定の `make_instance` は `robjc_allocate()` です。
+復元処理は、解決したジェネレータからインスタンスを確保し、**参照 ID とインスタンスの対応表に登録してから**、`initWithCoder(self)` を呼びます。
+
+```text
+通常の生成:  Class$new(...) → robjc_allocate(Class) → initialize(...) → その返り値
+
+アーカイブ:  クラス解決 → robjc_allocate(Class) → 参照表へ登録
+                                             → initWithCoder(coder) → 復元済みオブジェクト
+```
+
+例えば `RSScalar$initWithCoder()` は保存値を読み、通常の `initialize()` を呼ばずに private フィールドへ設定します。
+アーカイブ内のクラスと現在のクラスの対応づけ、共有参照と循環参照を維持する具体的な処理は[ノート 08](tech_08_Archiving.Rmd)に譲ります。

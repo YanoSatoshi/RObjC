@@ -1,0 +1,196 @@
+---
+title: "Technical Note: new() and initialize()"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Technical Note: new() and initialize()}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Allocating and initializing an instance
+
+robjc uses R6 as the basis of its class system, but it takes a different path through `$new()`.
+The central operation is `robjc_allocate()`.
+It **allocates** an instance, while `initialize()` or `initWithCoder()` **initializes** its logical state.
+
+This note traces R6 construction to explain why robjc separates those steps.
+See [note 04](tech_04_ClassFactory.Rmd) for how a factory replaces `$new()` and [note 08](tech_08_Archiving.Rmd) for the full archive reference strategy.
+
+## Trace R6's `$new()`
+
+Create an R6 generator and inspect its `$new` function or `body(R6Trace$new)` to see the implementation in the installed version of R6.
+
+```{r}
+R6Trace <- R6::R6Class("R6Trace", public = list(
+  initialize = function() invisible(self)
+))
+```
+
+An ordinary R6 `$new()` roughly follows these steps:
+
+1. Collect fields and methods from parent classes.
+2. Create the public and private environments and bind methods to environments containing `self` and `super`.
+3. Install fields and methods, then lock the required bindings.
+4. Call `initialize(...)`.
+5. Return the allocated public environment.
+
+The **return value** of `initialize()` therefore does not determine what ordinary R6 `$new()` returns.
+Even when the initializer returns `NULL`, `$new()` returns the allocated object.
+
+```{r}
+R6Failure <- R6::R6Class("R6Failure", public = list(
+  initialize = function(ok = TRUE) {
+    if (!ok) return(NULL)
+    invisible(self)
+  }
+))
+stopifnot(is.environment(R6Failure$new(FALSE)))
+```
+
+The robjc implementation in `R/runtime_allocation.r` separates the allocation steps after examining the R6 path.
+That file credits the R6 source and its license because it includes derived construction logic.
+
+## What `robjc_allocate()` builds
+
+`robjc_allocate(ClassObj)` builds a new instance of the specified class.
+It assembles inherited public and private fields and methods, the environments used by `self`, `private`, and `super`, S3 classes, required locks, and finalizers.
+It does **not** call `initialize()`.
+
+```{r}
+library(robjc)
+
+initialize_calls <- 0L
+AllocationExample <- RSObjectClass("Tech02AllocationExample",
+  private = list(.value = NULL),
+  public = list(
+    initialize = function(value) {
+      initialize_calls <<- initialize_calls + 1L
+      super$initialize()
+      private$.value <- value
+      invisible(self)
+    },
+    value = function() private$.value
+  )
+)
+
+allocated <- robjc_allocate(AllocationExample)
+stopifnot(initialize_calls == 0L)
+stopifnot(allocated$isMemberOf(AllocationExample))
+stopifnot(is.null(allocated$value()))
+
+initialized <- AllocationExample$new(42L)
+stopifnot(initialize_calls == 1L)
+stopifnot(identical(initialized$value(), 42L))
+```
+
+The allocated object has methods and initial fields, but it may not yet satisfy the application's state requirements.
+Callers that use this API directly must populate that state afterward.
+Use `$new()` for ordinary construction.
+For a Singleton generator, `robjc_allocate()` returns the existing shared instance instead of creating a new environment.
+
+## What robjc's `$new()` returns
+
+The class factory calls `robjc_install_new()` to replace the generator's `$new()`.
+For an ordinary class, the essential part is:
+
+```{r eval=FALSE}
+function(...) {
+  object <- robjc_allocate(klass)
+  object$initialize(...)
+}
+```
+
+The final expression is equivalent to `return(object$initialize(...))` for the return value.
+If the initializer returns `invisible(self)`, `$new()` returns that instance; if it returns something else, `$new()` returns that instead.
+An initializer can therefore signal unsuccessful construction by returning `NULL`.
+
+```{r}
+ConditionalExample <- RSObjectClass("Tech02ConditionalExample",
+  public = list(
+    initialize = function(ok = TRUE) {
+      if (!ok) return(NULL)
+      super$initialize()
+      invisible(self)
+    }
+  )
+)
+stopifnot(is.null(ConditionalExample$new(FALSE)))
+stopifnot(ConditionalExample$new(TRUE)$isMemberOf(ConditionalExample))
+```
+
+This illustrates the return-value difference from R6.
+When a caller needs to know why validation failed, an initializer should use `stop()`, as robjc's classes do for invalid input.
+
+### Connection to class clusters
+
+For a regular Scalar class created by `RSScalarClass()`, an initializer receiving `NA` can return the NA companion's shared instance instead of `self`.
+Because `$new()` returns the initializer's result, the caller receives that companion.
+
+```{r}
+stopifnot(identical(RSNumber$new(NA_real_), RSNumber$na))
+```
+
+See [note 06](tech_06_Scalars.Rmd) for automatic NA class creation and type-specific behavior.
+
+## `initialize()` and parent classes
+
+`initialize()` gives an allocated instance its meaningful state.
+`RSObject$initialize()` reads `isa`, sets `class(self)`, and returns `invisible(self)`.
+A subclass normally calls `super$initialize()`, sets its own fields, and returns `invisible(self)`.
+For example, `RSArray$initialize()` checks its arguments and hash operator, calls its parent, validates the elements, and fills private storage.
+`RSMutableArray$initialize()` delegates to its parent and then returns `invisible(self)`.
+
+There is an important exception to that final return pattern.
+An initializer that needs to propagate the result of `super$initialize()` must not unconditionally return `self` afterward.
+Scalar NA routing depends on returning the companion instance supplied by the parent initializer.
+
+## Singleton construction
+
+`RSSingletonClass()` creates an instance once while declaring the class and stores it in `$instance`.
+Later `$new()` calls return that stored instance without running `initialize()` again.
+
+```{r}
+stopifnot(identical(RSNull$new(), RSNull$instance))
+```
+
+Direct construction of an NA companion follows the `na_singleton` argument of `RSScalarClass()`.
+
+| Factory and setting | Behavior of `$new()` on that class | Example |
+|:--|:--|:--|
+| `RSSingletonClass()` | Returns the stored `$instance` | `RSNull$new()` |
+| NA companion from `RSScalarClass(na_singleton = TRUE)` | Always errors after the shared instance has been created | `RSNANumber$new(NA_real_)` |
+| NA companion from `RSScalarClass(na_singleton = FALSE)` | Creates an instance, subject to value validation | `RSNAFactor$new(factor(NA))` |
+
+With the default `na_singleton = TRUE`, the factory creates the companion's shared instance and then replaces its `$new()` with a function that always calls `stop()`.
+Obtain the shared NA through the regular class's `$na` or by passing a correctly typed NA to its `$new()`.
+`RSFactor` specifies `na_singleton = FALSE` so each missing factor can retain its own levels and ordering.
+Passing a nonmissing factor to `RSNAFactor$new()` still fails validation.
+
+```{r}
+stopifnot(identical(RSNumber$new(NA_real_), RSNumber$na))
+stopifnot(inherits(tryCatch(RSNANumber$new(NA_real_), error = identity), "error"))
+
+missing_factor <- factor(NA_character_, levels = c("low", "high"))
+stopifnot(RSNAFactor$new(missing_factor)$isMemberOf(RSNAFactor))
+stopifnot(!identical(RSFactor$new(missing_factor), RSFactor$na))
+```
+
+`RSNull$initialize()` separately guards against reinitializing its shared instance.
+Ordinary `RSNull$new()` bypasses that initializer and returns the instance; this is distinct from the NA companion's direct-construction rule.
+
+## Decoding proceeds to `initWithCoder()`
+
+During archive restoration, the original arguments expected by `initialize()` may be unavailable.
+For a cycle, an object also needs to be available as a reference before all its fields have been restored.
+The default `make_instance` for `RSKeyedUnarchiver` is `robjc_allocate()`.
+The unarchiver allocates an instance, registers its reference ID and instance in a map, and only then calls `initWithCoder(self)`.
+
+```text
+Ordinary:  Class$new(...) → robjc_allocate(Class) → initialize(...) → its result
+
+Archive:   Resolve class → robjc_allocate(Class) → register reference
+                                               → initWithCoder(coder) → restored object
+```
+
+For example, `RSScalar$initWithCoder()` reads a saved value and assigns its private field without calling ordinary `initialize()`.
+See [note 08](tech_08_Archiving.Rmd) for class mapping and the specific strategy for shared and cyclic references.

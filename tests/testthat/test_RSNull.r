@@ -54,3 +54,21 @@ test_that("RSScalar_withValue(NULL) returns RSNull", {
   wrapped <- RSScalar_withValue(NULL)
   expect_true(wrapped$isKindOf(RSNull))
 })
+
+test_that("RSNull forwards unknown messages to the shared singleton", {
+  null <- RSNull$null
+  expect_identical(null$value(), NULL)
+  expect_identical(null$hash(), 0L)
+  expect_false(null$respondsTo("missingMethod"))
+  expect_true(is.function(null$missingMethod))
+  expect_identical(null$missingMethod(1, option = "x"), null)
+  expect_identical(null$missingMethod()$anotherMethod(), null)
+})
+
+test_that("robjc_wrap_null prepares collection items", {
+  expect_identical(robjc_wrap_null(NULL), RSNull$null)
+  object <- RSNumber$new(1L)
+  expect_identical(robjc_wrap_null(object), object)
+  expect_identical(robjc_wrap_null(RSNumber), RSNumber)
+  expect_error(robjc_wrap_null(1L), "Unsupported object type: integer", fixed = TRUE)
+})

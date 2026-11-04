@@ -110,10 +110,10 @@ robjc_isProtocol <- function(obj) {
 #' @section Implementation details:
 #' The check reads the instance's private `.__isa` field.
 #' @examples
-#' robjc_isRobjcObject(RSObject$new())
-#' robjc_isRobjcObject(RSObject)
+#' robjc_isInstance(RSObject$new())
+#' robjc_isInstance(RSObject)
 #' @export
-robjc_isRobjcObject <- function(obj) {
+robjc_isInstance <- function(obj) {
   if (is.null(obj) || !is.environment(obj))
     return(FALSE) # not environment
   if (inherits(obj, ROBJC_CLASS))
@@ -137,8 +137,8 @@ robjc_isRobjcObject <- function(obj) {
 #' @return `TRUE` for a recognized RObjC instance or generator, otherwise
 #'   `FALSE`.
 #' @export
-robjc_isBelongingRobjc <- function(obj) {
-  robjc_isMetaClass(obj) || robjc_isRobjcObject(obj)
+robjc_doesBelongToRobjc <- function(obj) {
+  robjc_isMetaClass(obj) || robjc_isInstance(obj)
 }
 
 
@@ -300,12 +300,15 @@ robjc_freeze_isa <- function(klass) {
 #' @param super_class Its parent RObjC object class generator.
 #' @param protocols A list of adopted protocol generators.
 #' @param version One character string giving the class version.
+#' @param validate_protocols Whether to check declared protocol methods before
+#'   the singleton instance is created.
 #' @noRd
 robjc_make_singleton_isa <- function(
   r6generator,
   super_class,
   protocols = list(),
-  version   = "0.1.0 beta"
+  version   = "0.1.0 beta",
+  validate_protocols = TRUE
 ) {
   if (!inherits(super_class$robjc_isa, ISA_OBJECT))
     stop(
@@ -319,6 +322,13 @@ robjc_make_singleton_isa <- function(
     slot      = NULL,
     version   = version
   )
+  if (validate_protocols) {
+    missing <- protocol_validateContracts(r6generator)
+    if (length(missing))
+      stop(sprintf("Class `%s` is missing protocol methods: %s.",
+                   r6generator$classname, paste(missing, collapse = ", ")),
+           call. = FALSE)
+  }
   robjc_install_new(r6generator)
   r6generator$robjc_isa$slot <- r6generator$new()
   r6generator$instance <- r6generator$robjc_isa$slot

@@ -47,9 +47,9 @@ RSKeyValuePair <- RSObjectClass(
     initialize = function(key, value) {
       stopifnot(
         "Key must be an RObjC object, class, or protocol." =
-          robjc_isRobjcObject(key) || robjc_isMetaClass(key),
+          robjc_isInstance(key) || robjc_isMetaClass(key),
         "Value must be an RObjC object, class, or protocol." =
-          robjc_isRobjcObject(value) || robjc_isClass(value) ||
+          robjc_isInstance(value) || robjc_isClass(value) ||
           robjc_isProtocol(value)
       )
       super$initialize()
@@ -73,10 +73,10 @@ RSKeyValuePair <- RSObjectClass(
     initWithCoder = function(coder) {
       key <- coder$decodeObjectForKey("key")
       value <- coder$decodeObjectForKey("value")
-      if (!robjc_isRobjcObject(key) && !robjc_isMetaClass(key))
+      if (!robjc_isInstance(key) && !robjc_isMetaClass(key))
         stop("Decoded key must be an RObjC object, class, or protocol.",
              call. = FALSE)
-      if (!robjc_isRobjcObject(value) && !robjc_isMetaClass(value))
+      if (!robjc_isInstance(value) && !robjc_isMetaClass(value))
         stop("Decoded value must be an RObjC object, class, or protocol.",
              call. = FALSE)
       private$.key <- key
@@ -116,7 +116,7 @@ RSKeyValuePair <- RSObjectClass(
     #' pair$setKey(RSString$new("b"))         # Error: not allowed when value is non-null
     #' }
     setKey = function(key) {
-      if (!robjc_isRobjcObject(key) && !robjc_isMetaClass(key))
+      if (!robjc_isInstance(key) && !robjc_isMetaClass(key))
         stop("Key must be an RObjC object, class, or protocol.", call. = FALSE)
       if (!identical(private$.value, RSNull$null)) {
         stop("Key replacing available only when value is RSNull. RSKeyValuePair")
@@ -142,7 +142,7 @@ RSKeyValuePair <- RSObjectClass(
     #' @param other Another `RSKeyValuePair` instance.
     #' @return `TRUE` if the keys are equal; `FALSE` for other inputs.
     isEqual = function(other) {
-      if (!robjc_isRobjcObject(other) || !other$isMemberOf(self$class()))
+      if (!robjc_isInstance(other) || !other$isMemberOf(self$class()))
         return(FALSE)
       isTRUE(private$.key$isEqual(other$key()))
     },
@@ -165,7 +165,7 @@ RSKeyValuePair <- RSObjectClass(
     #'
     #' @return A list of the RObjC instance key and value, when present.
     objectsForEncoding = function() {
-      Filter(robjc_isRobjcObject, list(private$.key, private$.value))
+      Filter(robjc_isInstance, list(private$.key, private$.value))
     }
   )
 )

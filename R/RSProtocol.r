@@ -10,8 +10,9 @@
 #' Protocols are represented by class generators and cannot be instantiated
 #' with `$new()`. An object's [RSObject] `$conformsTo()` method checks
 #' the protocol relationships recorded at class declaration time. Declaring
-#' conformance does not itself implement or validate the declared methods.
-#' The adopting class must provide the methods needed by each operation it uses.
+#' conformance does not itself implement the declared methods. Class factories
+#' check their presence by default; this can be deferred with
+#' `validate_protocols = FALSE`. The check does not verify signatures or behavior.
 #'
 #' @section Implementation details:
 #' The root generator has no parent protocol and declares no methods.

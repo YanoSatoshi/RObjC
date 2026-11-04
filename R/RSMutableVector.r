@@ -24,7 +24,7 @@ RSMutableVector <- RSObjectClass(
       super$initialize()
       if (!is.atomic(vec) || !is.null(dim(vec)))
         stop("`vec` must be an atomic vector.", call. = FALSE)
-      if (!robjc_isRobjcObject(hash_operator) ||
+      if (!robjc_isInstance(hash_operator) ||
           !hash_operator$respondsTo("hashForScalar"))
         stop("`hash_operator` must provide `hashForScalar()`.", call. = FALSE)
       private$.vec <- vec
@@ -53,7 +53,7 @@ RSMutableVector <- RSObjectClass(
         stop("Decoded vector must be atomic and have no dimensions.", call. = FALSE)
       hash_operator <- coder$decodeObjectForKey("hash_operator")
       if (is.null(hash_operator)) hash_operator <- RSHashOperator$instance
-      if (!robjc_isRobjcObject(hash_operator) ||
+      if (!robjc_isInstance(hash_operator) ||
           !hash_operator$respondsTo("hashForScalar"))
         stop("Decoded hash operator is invalid.", call. = FALSE)
       private$.vec <- vec
@@ -275,7 +275,7 @@ RSMutableVector <- RSObjectClass(
     #' @param other Another vector object to compare with.
     #' @return `TRUE` if the vectors are equal; otherwise `FALSE`.
     isEqual = function(other) {
-      if (!robjc_isRobjcObject(other) || !other$isKindOf(RSMutableVector))
+      if (!robjc_isInstance(other) || !other$isKindOf(RSMutableVector))
         return(FALSE)
       identical(private$.hash_operator, other$hashOperator()) &&
         identical(private$.vec, other$asVector())
@@ -301,7 +301,7 @@ RSMutableVector <- RSObjectClass(
       na.last <- tryCatch(as.logical(na.last), error = function(e) NA)
       if (!is.logical(na.last) || length(na.last) != 1L || is.na(na.last))
         stop("`na.last` must be TRUE or FALSE.")
-      if (!robjc_isRobjcObject(other) || !other$isKindOf(RSMutableVector))
+      if (!robjc_isInstance(other) || !other$isKindOf(RSMutableVector))
         stop("Cannot compare objects of different class.")
       left <- private$.vec
       right <- other$asVector()
@@ -344,7 +344,7 @@ RSMutableVector <- RSObjectClass(
       na.last <- tryCatch(as.logical(na.last), error = function(e) NA)
       if (!is.logical(na.last) || length(na.last) != 1L || is.na(na.last))
         stop("`na.last` must be TRUE or FALSE.", call. = FALSE)
-      if (!robjc_isRobjcObject(other) || !other$isKindOf(RSMutableVector))
+      if (!robjc_isInstance(other) || !other$isKindOf(RSMutableVector))
         stop("`other` must be a vector object.", call. = FALSE)
       left <- private$.vec
       right <- other$asVector()

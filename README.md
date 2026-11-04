@@ -1,5 +1,7 @@
 # Introduction to robjc
 
+Documentation: [English vignette contents](vignettes/contents.Rmd) · [日本語の記事一覧](vignettes_jp/contents.Rmd)
+
 `robjc` grew from a need for a dictionary whose keys could be application
 objects. Such a dictionary needs a clear account of object identity, value
 equality, and hashing. Those requirements led to a small shared object model,
@@ -18,14 +20,15 @@ Class factories create R6 generators with explicit class identity and
 inheritance. `RSObjectClass()` declares an ordinary class;
 `RSProtocolClass()` declares methods that conforming classes must provide;
 `RSSingletonClass()` creates one shared instance; and `RSScalarClass()` creates
-a scalar class with an NA companion. The [class factory guide](robjc_class_factories.Rmd)
-shows each declaration. The [object guide](robjc_object.Rmd) describes class
-introspection, equality, and copying.
+a scalar class with an NA companion. The [class factory guide](vignettes/guide_05_ClassFactory.Rmd)
+shows each declaration. The [classes and objects guide](vignettes/guide_02_Classes_Objects.Rmd)
+introduces class introspection and reference identity.
 
 `RSObject` distinguishes identity from equality. Classes can implement
 `isEqual()` and `hash()` to give objects value semantics. Dictionary keys and
 set members rely on this pair: equal objects must have the same hash, and
-values used for lookup must retain the relevant state while stored.
+values used for lookup must retain the relevant state while stored. See the
+[equality and hashing guide](vignettes/guide_08_Hash_isEqual.Rmd).
 
 ## Values and collections
 
@@ -33,14 +36,13 @@ Built-in scalar classes wrap logical, numeric, complex, character, factor,
 date, and date-time values. Typed NA companions represent missing scalar
 values; `RSNull` represents R's `NULL`. `RSScalar_withValue()` selects a
 wrapper from an R value, while typed `$new()` calls can be used when the type
-is known. The [scalar guide](robjc_scalar_values.Rmd) explains missing values
+is known. The [values and copying guide](vignettes/guide_06_Values_Copying.Rmd) explains missing values
 and the special handling of factor metadata.
 
 Arrays, vectors, sets, dictionaries, and data frames have mutable and
 immutable forms. Dictionaries and sets use native tables behind RObjC
-interfaces. The [collections guide](robjc_collections.Rmd) and
-[dictionary guide](robjc_dictionary.Rmd) describe their behavior and copying
-rules.
+interfaces. The [collections guide](vignettes/guide_07_Collections.Rmd)
+describes their behavior and copying rules.
 
 ## Saving object state
 
@@ -50,10 +52,10 @@ When an archive is loaded, the caller can inspect its class mappings before
 references to the same object remain shared after decoding. Built-in classes
 resolve automatically; extension packages can register their generators in
 `.onLoad()`; classes created in scripts can be mapped manually. See the
-[keyed archive guide](robjc_keyed_coding.Rmd) and the
-[notebook example](robjc_encoding_use_case.Rmd).
+[Archiving Guide](vignettes/guide_10_Archiving.Rmd) and the
+[notebook example](vignettes/appendix_practical_encoding.Rmd).
 
-The current package version is **0.1.0 beta**. The keyed archive format and
+The current package version is **0.1.1**. The keyed archive format and
 public APIs may evolve during beta development. Users extending the class
 system should understand object identity, equality, and hashing, particularly
 when using custom objects as dictionary keys or set members.

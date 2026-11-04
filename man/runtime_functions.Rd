@@ -14,8 +14,8 @@ internal are documented for developers but are not exported.
 \item \code{\link[=robjc_isMetaClass]{robjc_isMetaClass()}} recognizes class and protocol generators.
 \item \code{\link[=robjc_isClass]{robjc_isClass()}} recognizes object class generators.
 \item \code{\link[=robjc_isProtocol]{robjc_isProtocol()}} recognizes protocol generators.
-\item \code{\link[=robjc_isRobjcObject]{robjc_isRobjcObject()}} recognizes instances.
-\item \code{\link[=robjc_isBelongingRobjc]{robjc_isBelongingRobjc()}} recognizes instances or generators.
+\item \code{\link[=robjc_isInstance]{robjc_isInstance()}} recognizes instances.
+\item \code{\link[=robjc_doesBelongToRobjc]{robjc_doesBelongToRobjc()}} recognizes instances or generators.
 \item \code{\link[=robjc_inheritChain]{robjc_inheritChain()}} follows the classes in an ISA record.
 \item \link{R6GENERATOR} documents the runtime's type markers.
 \item RObjC generators expose \verb{$isEqual(other)} for reference identity and

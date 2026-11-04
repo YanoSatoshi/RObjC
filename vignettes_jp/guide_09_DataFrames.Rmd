@@ -1,0 +1,123 @@
+---
+title: "データフレームのガイド"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{データフレームのガイド}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# データフレーム
+
+`RSMutableDataFrame` と `RSDataFrame` は、R の data frame や tibble を robjc オブジェクトとして包みます。
+内部のデータは tibble として保持します。
+表の内容を扱うための薄いラッパーとして使い、独自の行キーや内容に応じたハッシュが必要なら専用クラスを作ることを検討してください。
+この標準ラッパークラスは、あくまで data frame、tibble を robjc の管理機構に適合させるための最低限の機能だけを提供します
+
+## データフレームオブジェクトを作る
+
+data frame または tibble を `df` 引数に渡します。
+`getData()` は内部の tibble を返します。
+
+```{r}
+library(robjc)
+
+people <- data.frame(
+  id = c(1L, 2L),
+  name = c("Ada", "Ben")
+)
+mutable <- RSMutableDataFrame$new(people)
+fixed <- RSDataFrame$new(people)
+
+stopifnot(inherits(mutable$getData(), "tbl_df"))
+stopifnot(identical(mutable$getData(), fixed$getData()))
+stopifnot(mutable$isKindOf(RSDataFrame))
+stopifnot(!fixed$isKindOf(RSMutableDataFrame))
+```
+
+`RSDataFrame` は読み取り専用の親クラスです。
+その子クラスである `RSMutableDataFrame` に、表全体と列を変更するメソッドが加わります。
+
+## 行・列・サイズを読み取る
+
+`nrow()`、`ncol()`、`colnames()`、`rownames()`、`getColumn()` で表の構造と列の値を読めます。
+メソッド名は base R の関数に対応しています。
+
+```{r}
+stopifnot(identical(mutable$nrow(), 2L))
+stopifnot(identical(mutable$ncol(), 2L))
+stopifnot(identical(mutable$colnames(), c("id", "name")))
+stopifnot(identical(mutable$getColumn("name"), c("Ada", "Ben")))
+```
+
+## 編集とコピーを行う
+
+`setColumn()` は列の値を変更し、`setData()` は表全体を置き換えます。
+これらは `RSMutableDataFrame` だけのメソッドで、`RSDataFrame` にはありません。
+
+```{r}
+mutable$setColumn("name", c("Ada", "Bea"))
+stopifnot(identical(mutable$getColumn("name"), c("Ada", "Bea")))
+
+mutable$setData(data.frame(id = 3L, name = "Cal"))
+stopifnot(identical(mutable$nrow(), 1L))
+```
+
+`RSMutableDataFrame` の `copy()` は新しい読み取り専用の `RSDataFrame` を作ります。
+`RSDataFrame` の `copy()` は同じインスタンスを返します。
+どちらの `mutableCopy()` も新しい編集可能な `RSMutableDataFrame` を作ります。
+コピーは浅いコピーで、R のコピーオンライトにより、その後の列の変更は元のオブジェクトの表を書き換えません。
+
+```{r}
+snapshot <- mutable$copy()
+editable <- snapshot$mutableCopy()
+editable$setColumn("name", "Dee")
+
+stopifnot(identical(snapshot$getColumn("name"), "Cal"))
+stopifnot(identical(editable$getColumn("name"), "Dee"))
+```
+
+## 等値性・ハッシュ・アーカイブ
+
+`isEqual()` は内部の tibble 全体を `identical()` で比較します。
+列の値だけでなく、型や属性の違いも区別します。
+ラッパー自身の同一性を判定する `==` とは別の比較です。
+
+```{r}
+left <- RSMutableDataFrame$new(data.frame(id = 1L, name = "Ada"))
+right <- RSDataFrame$new(data.frame(id = 1L, name = "Ada"))
+stopifnot(left$isEqual(right))
+stopifnot(left != right)
+```
+
+> **注意:** DataFrame の `hash()` は、Set の要素や Dictionary のキーとして登録できるようにするための最低限の実装です。
+値をよく分散させるハッシュとしては設計していません。
+
+`hash()` は行数、列名、各列の `typeof()` だけから計算します。
+セルの値を見ないため、同じ構造の異なる表は同じハッシュになります。
+Set や Dictionary はハッシュで候補を絞った後、`isEqual()` で等しさを確認するので、衝突しても等値判定の結果は変わりません。
+ただし、同じ構造の表を大量に登録すると検索の効率は下がります。
+
+data frame の列には通常のベクトルだけでなく、リスト列や独自クラスの値も入ります。
+どの列・属性を識別子とみなすか、ネストした値をどこまで調べるかは用途によって異なります。
+フレームワークだけでは、それらの値について**汎用的で、かつ用途に適したハッシュ**を決められません。
+そのため、この実装はネストした列も `typeof()` までしか見ません。
+内容に応じた検索効率や行キーが必要なら、用途に合わせたクラスを作り、`isEqual()` と整合する `hash()` を定義してください。
+キーとして使うオブジェクトは、登録後に内容が変わらない `RSDataFrame` を選びます。
+
+```{r}
+other <- RSDataFrame$new(data.frame(id = 2L, name = "Bea"))
+stopifnot(!left$isEqual(other))
+stopifnot(identical(left$hash(), other$hash()))
+```
+
+アーカイブには表のデータだけを保存します。
+復元後も列の型や値を保持できます。
+復元操作の全体像は[アーカイブのガイド](guide_10_Archiving.Rmd)を参照してください。
+
+```{r}
+archive <- RSKeyedArchiver$new()$archive(left)
+decoder <- RSKeyedUnarchiver$new(archive)
+restored <- decoder$decode()
+stopifnot(restored$isEqual(left))
+```

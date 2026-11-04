@@ -5,32 +5,32 @@
 \alias{print.RSObject}
 \title{Format an RObjC Instance}
 \usage{
-\method{format}{RSObject}(x, ...)
+\method{format}{RSObject}(x, method = FALSE, ...)
 
 \method{print}{RSObject}(x, ...)
 }
 \arguments{
 \item{x}{An RObjC instance.}
 
-\item{...}{Unused.}
+\item{method}{Whether to include methods among the displayed members.
+Defaults to \code{FALSE}.}
+
+\item{...}{Additional arguments passed by \code{print()} to \code{format()}.}
 }
 \value{
 A character string containing the formatted instance.
 }
 \description{
-Formats an RObjC instance using its generator's \verb{$classname}
-and summarizes public and private members. The instance's \verb{$print()}
-method remains a separate, brief description method.
+Formats an RObjC instance using its generator's \verb{$classname}.
+Public and private data members are shown. Methods are included when
+\code{method = TRUE}. The \code{description()} and \code{debugDescription()} methods
+return the same text for the corresponding \code{method} setting.
 }
 \examples{
 obj <- RSString$new("hello")
 print(obj)
 # <RSString> RObjC instance
 #   Inherits from: <RSScalar>
-#   Public:
-#     class: function ()
-#     ...
-#   Private:
-#     .comparable: function (other)
-#     .val: hello
+format(obj)                # Includes private data members.
+format(obj, method = TRUE) # Also includes methods.
 }

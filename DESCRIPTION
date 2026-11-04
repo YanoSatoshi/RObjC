@@ -1,6 +1,6 @@
 Package: robjc
 Title: Objective-C Inspired OOP Framework for R using 'R6'
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person(
         "Satoshi", "Yano",
@@ -20,6 +20,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Suggests: 
+    jsonlite,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
@@ -53,7 +54,6 @@ Collate:
     'RSHashOperator.r'
     'RSComparable.r'
     'RSMutableCopying.r'
-    'RSMutableArray.r'
     'RSArray.r'
     'RSScalar.r'
     'RSBoolean.r'
@@ -61,11 +61,9 @@ Collate:
     'RSComplex.r'
     'RSConcreteDictionary.r'
     'RSConcreteSet.r'
-    'RSMutableDataFrame.r'
     'RSDataFrame.r'
     'RSDate.r'
     'RSDateTime.r'
-    'RSMutableDictionary.r'
     'RSDictionary.r'
     'RSString.r'
     'RSFactor.r'
@@ -73,12 +71,15 @@ Collate:
     'runtime_class_registry.r'
     'RSKeyedArchiver.r'
     'RSKeyedUnarchiver.r'
+    'RSMutableArray.r'
+    'RSMutableDataFrame.r'
+    'RSMutableDictionary.r'
+    'RSSet.r'
     'RSMutableSet.r'
     'RSMutableVector.r'
     'RSNull.r'
     'RSNumber.r'
     'RSRaw.r'
-    'RSSet.r'
     'RSVector.r'
     'RcppExports.R'
     'api_RSArray.r'

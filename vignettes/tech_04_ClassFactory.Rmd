@@ -1,0 +1,144 @@
+---
+title: "Technical Note: How Class Factories Work"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Technical Note: How Class Factories Work}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# What a class factory does
+
+robjc declares classes through four factories instead of calling `R6::R6Class()` directly.
+Each factory obtains an R6 generator and configures its `isa` identity, protocol contracts, and instance creation path.
+This note (04) follows that implementation sequence.
+For the public arguments and examples, see the [class factory guide](guide_05_ClassFactory.Rmd).
+
+| Factory | Creates | Additional setup |
+|:--|:--|:--|
+| `RSObjectClass()` | Ordinary object class | Parent class, adopted protocols, `$new()` |
+| `RSSingletonClass()` | Class with a shared instance | One `$instance` |
+| `RSScalarClass()` | Scalar and its NA subclass | Shared NA instance, class cluster |
+| `RSProtocolClass()` | Protocol generator | Parent protocols, required methods, no instances |
+
+## Resolve the superclass generator
+
+R evaluates function arguments lazily.
+An R6 generator's `inherit` may therefore retain an expression for its parent.
+The ordinary, Singleton, and Scalar factories first evaluate `super_generator <- force(super_class)` to obtain the actual parent generator.
+They pass this reference to `R6Class()` as `inherit` and store it in `isa$super`, allowing the robjc runtime to traverse parent generators directly.
+
+```{r eval=FALSE}
+super_generator <- force(super_class)
+klass <- do.call(R6::R6Class, list(
+  classname = class_name,
+  inherit = super_generator,
+  class = FALSE,
+  cloneable = FALSE,
+  public = public,
+  private = private,
+  parent_env = parent_env
+))
+```
+
+This excerpt presents the central part of ordinary class creation.
+The actual code also validates arguments, and `RSObjectClass()` passes the class name as a positional argument.
+At the R6 level, a protocol inherits from `RSProtocol`; its potentially multiple parent protocols are recorded in `isa` as `super_protocols`.
+R6's single inheritance and declared protocol inheritance use separate paths.
+
+## The result of `do.call(R6::R6Class, ...)`
+
+`do.call()` returns the R6 class generator as `klass`.
+The factory retains it before calling `robjc_make_isa()`, so it can store the generator itself in `isa$class`.
+It also stores the previously resolved parent generator in `isa$super`.
+Instances refer to this same `isa` environment through their private `.__isa` field.
+See [note 01](tech_01_isa.Rmd) for the reference structure and inheritance chain.
+
+```{r}
+library(robjc)
+
+Parent <- RSObjectClass("Tech04Parent")
+Child <- RSObjectClass("Tech04Child", super_class = Parent)
+child <- Child$new()
+
+stopifnot(identical(Child$robjc_isa$class, Child))
+stopifnot(identical(Child$robjc_isa$super, Parent))
+stopifnot(identical(child$class(), Child))
+stopifnot(child$isKindOf(Parent))
+```
+
+## Options passed to R6
+
+`RSObjectClass()` passes `class = FALSE` and `cloneable = FALSE`.
+With `class = FALSE`, R6 does not add its own `R6` marker to instances; robjc sets S3 classes along the inheritance chain.
+With `cloneable = FALSE`, copying follows robjc's `copy()` and `mutableCopy()` contracts instead of R6's standard `clone()`.
+The factory has no public `active` argument, so its standard declaration path cannot specify R6 active bindings.
+It does not set `portable` explicitly and uses R6's default of `TRUE`.
+Consequently, methods resolve `self`, `private`, and `super` through environments, and `robjc_allocate()` reconstructs the same references.
+
+The Singleton and Scalar factories also pass `class = FALSE` and `cloneable = FALSE` when creating R6 generators.
+The protocol factory passes both options and additionally sets `lock_class = TRUE`.
+
+## `isa`, S3 markers, and protocol contracts
+
+`robjc_make_isa()` creates an environment containing `class`, `super`, `protocols`, `slot`, and `version`.
+It places this environment in the generator's `robjc_isa` binding and in the private `.__isa` field definition.
+It also adds the `RSObjectIsA` or `RSProtocolIsA` S3 marker to `isa`, and the `RobjcClass` marker to the generator.
+See [note 03](tech_03_ObjectType.Rmd) for the type predicates that use these markers.
+
+An ordinary class records adopted protocols, including inherited declarations, in `isa$protocols`.
+When `validate_protocols = TRUE`, `protocol_validateContracts(klass)` finds missing public method names and stops class declaration if any are absent.
+This check does not verify method signatures or behavior.
+
+```{r}
+Runnable <- RSProtocolClass("Tech04Runnable", contract_methods = "run")
+Runner <- RSObjectClass("Tech04Runner",
+  protocols = list(Runnable),
+  public = list(run = function() "done")
+)
+stopifnot(identical(protocol_validateContracts(Runner), character(0)))
+stopifnot(Runner$new()$conformsTo(Runnable))
+```
+
+For `RSScalarClass()`, both the ordinary class and its NA subclass are subject to contract validation.
+`RSProtocolClass()` stores required method names in `isa$slot`, but the protocol itself need not implement them.
+
+## Singleton, Protocol, and Scalar `isa` slots
+
+A Singleton passes through `robjc_make_singleton_isa()`, which first attaches an ordinary `isa` and then creates the shared instance.
+It stores that instance in `Class$instance` and `Class$robjc_isa$slot`, and adds the `RobjcSingleton` marker to the generator.
+
+A Protocol passes through `protocol_make_isa()`, which stores parent protocols in `isa$protocols` and directly required method names in `isa$slot`.
+The factory removes method names already required by parent protocols from the direct requirements.
+Its generator has an `RSProtocolIsA` `isa`, distinguishing it from an ordinary object class.
+
+A Scalar factory creates an ordinary class and then its NA subclass.
+It stores the shared NA instance in the ordinary class's `isa$slot` and `$na`.
+See [note 06](tech_06_Scalars.Rmd) for NA class generation and the class cluster.
+
+```{r}
+Shared <- RSSingletonClass("Tech04Shared")
+stopifnot(identical(Shared$robjc_isa$slot, Shared$instance))
+stopifnot(identical(Runnable$robjc_isa$slot, "run"))
+stopifnot(identical(RSNumber$robjc_isa$slot, RSNumber$na))
+```
+
+## Adjusting `$new()` and locking
+
+The ordinary class factory calls `robjc_install_new(klass)` to replace R6's `$new()`.
+The replacement allocates an instance with `robjc_allocate(klass)`, calls its `initialize(...)`, and returns that result.
+The reason for separating allocation and initialization is explained in [note 02](tech_02_new_initialize.Rmd).
+
+A Singleton is created once during class declaration; later `$new()` calls return that shared instance.
+A Protocol cannot be instantiated, so its R6 `$new` binding is set to `NULL` and locked.
+After creating a shared instance, an NA Singleton class replaces direct `$new()` calls with an error.
+
+Finally, `robjc_freeze_isa()` locks the `isa` environment and the generator's `robjc_isa` binding to protect the established class identity.
+For classes shipped with the package, `.onLoad()` reapplies the necessary locks after lazy loading.
+
+```{r}
+stopifnot(environmentIsLocked(Child$robjc_isa))
+stopifnot(bindingIsLocked("robjc_isa", Child))
+stopifnot(is.null(Runnable$new))
+stopifnot(bindingIsLocked("new", Runnable))
+```

@@ -13,7 +13,8 @@ RSScalarClass(
   private = NULL,
   parent_env = parent.frame(),
   version = "1.0.0",
-  na_singleton = TRUE
+  na_singleton = TRUE,
+  validate_protocols = TRUE
 )
 }
 \arguments{
@@ -42,6 +43,10 @@ is not required.}
 \item{na_singleton}{Whether to mark the NA companion class as a singleton.
 The default is \code{TRUE}; \link{RSFactor} uses \code{FALSE} so each missing factor can
 retain its own levels and ordering.}
+
+\item{validate_protocols}{Whether to check that both the regular class and
+its NA companion provide every method required by their declared and
+inherited protocols. Defaults to \code{TRUE}; set to \code{FALSE} to defer this check.}
 }
 \value{
 The regular class generator, invisibly. Its \code{na} binding and its

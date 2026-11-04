@@ -11,7 +11,8 @@ RSObjectClass(
   public = list(),
   private = NULL,
   parent_env = parent.frame(),
-  version = "1.0.0"
+  version = "1.0.0",
+  validate_protocols = TRUE
 )
 }
 \arguments{
@@ -28,6 +29,10 @@ The child's identity record also lists protocols declared by its ancestors.}
 \item{parent_env}{Parent environment for the generated R6 methods.}
 
 \item{version}{One non-empty, non-missing class version without \verb{_}.}
+
+\item{validate_protocols}{Whether to check that the class provides every
+method required by its declared and inherited protocols. Defaults to
+\code{TRUE}; set to \code{FALSE} to defer this check.}
 }
 \value{
 The class generator, invisibly.

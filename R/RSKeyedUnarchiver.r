@@ -139,7 +139,7 @@ RSKeyedUnarchiver <- RSObjectClass(
       if (!identical(record$kind, "instance") || !robjc_isClass(generator))
         stop("Resolver returned an invalid object class.", call. = FALSE)
       object <- private$.make_instance(generator)
-      if (!robjc_isRobjcObject(object) || !object$isKindOf(generator))
+      if (!robjc_isInstance(object) || !object$isKindOf(generator))
         stop("Instance factory returned an invalid object.", call. = FALSE)
       if (!object$respondsTo("initWithCoder"))
         stop("Decoded class does not implement initWithCoder().", call. = FALSE)
@@ -250,17 +250,17 @@ RSKeyedUnarchiver <- RSObjectClass(
     #' @return `self`, invisibly.
     setClasses = function(mapping) {
       private$.prepare_classes()
-      if (robjc_isRobjcObject(mapping) && mapping$isKindOf(RSMutableDictionary)) {
+      if (robjc_isInstance(mapping) && mapping$isKindOf(RSMutableDictionary)) {
         entries <- mapping$allEntriesAsList()
         keys <- vapply(entries, function(entry) {
           key <- entry$key()
-          if (!robjc_isRobjcObject(key) || !key$isKindOf(RSString))
+          if (!robjc_isInstance(key) || !key$isKindOf(RSString))
             stop("Dictionary keys must be RSString class keys.", call. = FALSE)
           key$value()
         }, character(1))
         classes <- lapply(entries, function(entry) {
           value <- entry$value()
-          if (robjc_isRobjcObject(value) && value$isKindOf(RSNull)) NULL else value
+          if (robjc_isInstance(value) && value$isKindOf(RSNull)) NULL else value
         })
       } else if (inherits(mapping, "tbl_df")) {
         if (!all(c("class_key", "decoder_class") %in% names(mapping)))

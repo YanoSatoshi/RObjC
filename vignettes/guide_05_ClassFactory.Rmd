@@ -1,0 +1,220 @@
+---
+title: "Class Factories Guide"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Class Factories Guide}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Choosing a class factory
+
+robjc provides four factory functions for declaring R6 based classes and protocols.
+Each returns a class generator.
+Ordinary object classes and scalar classes create instances with `$new()`.
+A singleton class also creates its shared instance when declared.
+A protocol declares required method names; it is not a class for creating instances.
+
+| What you need | Factory | What you use after declaration |
+|:--|:--|:--|
+| Ordinary object class | `RSObjectClass()` | `Class$new(...)` |
+| Protocol specifying required methods | `RSProtocolClass()` | Pass `Class` in an adoption declaration |
+| One shared instance | `RSSingletonClass()` | `Class$instance` |
+| Scalar class wrapping an R value | `RSScalarClass()` | `Class$new(value)` and `Class$na` |
+
+This guide explains how to choose a factory, its main arguments, and the behavior of the resulting class.
+For the basics of instances and inheritance, see the [classes and objects guide](guide_02_Classes_Objects.Rmd).
+
+## Shared arguments and class identity
+
+`RSObjectClass()`, `RSSingletonClass()`, and `RSScalarClass()` take a class name in `class_name` and a parent generator in `super_class`.
+Supply public and private fields and methods in `public` and `private`, and a list of adopted protocol generators in `protocols`.
+A member cannot have the same name in both `public` and `private`.
+
+`RSProtocolClass()` takes `protocol_name`, a list of parent protocols in `super_protocols`, and directly required method names in `contract_methods`.
+
+All four factories also accept `parent_env` and `version`.
+The default `parent_env` is usually sufficient.
+
+The default `version` is `"1.0.0"`; the string cannot contain `_`.
+
+The three object class factories also accept `validate_protocols`, which defaults to `TRUE`.
+Class declaration stops if a required protocol method is missing.
+Set it to `FALSE` to defer the check; the [Validate protocol contracts](#validate-protocol-contracts) section explains how to inspect missing methods later.
+
+Class identity is not determined by name alone.
+Declaring the same name twice creates two distinct classes.
+
+```{r}
+library(robjc)
+
+First <- RSObjectClass("GuideSameName")
+Second <- RSObjectClass("GuideSameName")
+stopifnot(!identical(First, Second))
+stopifnot(identical(First$new()$class(), First))
+```
+
+`RSObjectClass()` and `RSScalarClass()` do not accept a singleton as `super_class`.
+For `RSScalarClass()`, the parent must also be `RSScalar` or one of its subclasses.
+The parent of `RSSingletonClass()` must be a robjc object class.
+
+The `version` value is stored in class identity metadata.
+Registering a package class for archiving is separate from the factory arguments; see the [Archiving Guide](guide_10_Archiving.Rmd).
+
+## `RSObjectClass()`
+
+This is the basic factory for an ordinary class.
+With no parent specified, the class inherits from `RSObject`.
+Put public methods and fields in `public`, and internal state in `private`.
+`$new()` allocates an instance, calls `initialize(...)`, and returns its result.
+When defining `initialize()`, **call `super$initialize()` and return `self` when construction succeeds.**
+Unlike ordinary R6 construction, robjc lets the initializer determine what `$new()` returns.
+
+```{r}
+Widget <- RSObjectClass(
+  "GuideWidget",
+  private = list(.label = NULL),
+  public = list(
+    initialize = function(label) {
+      super$initialize()
+      private$.label <- label
+      invisible(self)
+    },
+    label = function() private$.label
+  )
+)
+widget <- Widget$new("widget")
+stopifnot(identical(widget$label(), "widget"))
+stopifnot(identical(widget$class(), Widget))
+```
+
+
+## `RSProtocolClass()`
+
+A protocol records required method names, not implementations.
+It can inherit requirements from parent protocols through `super_protocols`.
+A class declares adoption by passing the protocol generator in `protocols`.
+It must provide the required methods itself or inherit them from a parent class.
+`conformsTo()` checks the instance's adoption declaration; it does not repeat method validation when called.
+
+```{r}
+Labeled <- RSProtocolClass(
+  "GuideLabeled",
+  contract_methods = "label"
+)
+stopifnot(is.null(Labeled$new))
+
+LabeledWidget <- RSObjectClass(
+  "GuideLabeledWidget",
+  protocols = list(Labeled),
+  public = list(label = function() "labeled widget")
+)
+stopifnot(LabeledWidget$new()$conformsTo(Labeled))
+stopifnot(identical(protocol_validateContracts(LabeledWidget), character(0)))
+```
+
+For protocol inheritance and adoption, see the [protocols guide](guide_03_Protocols.Rmd).
+
+## Validate protocol contracts
+
+With `validate_protocols = TRUE`, `RSObjectClass()`, `RSSingletonClass()`, and `RSScalarClass()` call `protocol_validateContracts()` during class declaration.
+If a method is missing, the factory raises an error instead of returning a class. The following declaration fails because `label()` is absent.
+
+```{r}
+failure <- tryCatch(
+  RSObjectClass("Guide05MissingLabel", protocols = list(Labeled)),
+  error = identity
+)
+stopifnot(inherits(failure, "error"))
+stopifnot(grepl("missing protocol methods: label", conditionMessage(failure), fixed = TRUE))
+```
+
+An inherited public method can satisfy a contract.
+If a protocol inherits from another protocol, the parent's requirements are checked as well.
+The validator checks the **names of public instance methods**. It does not verify arguments, return values, or behavior.
+
+```{r}
+LabeledParent <- RSObjectClass(
+  "Guide05LabeledParent",
+  public = list(label = function() "from parent")
+)
+LabeledChild <- RSObjectClass(
+  "Guide05LabeledChild",
+  super_class = LabeledParent,
+  protocols = list(Labeled)
+)
+stopifnot(identical(protocol_validateContracts(LabeledChild), character(0)))
+```
+
+Use `validate_protocols = FALSE` when implementation must be deferred.
+The adoption declaration still remains. Pass the class generator to `protocol_validateContracts(Class)` to get a character vector of missing names, or `character(0)` when none are missing.
+Checking later does not supply the missing methods. Provide a class with those methods before relying on the protocol.
+
+```{r}
+DeferredWidget <- RSObjectClass(
+  "Guide05DeferredWidget",
+  protocols = list(Labeled),
+  validate_protocols = FALSE
+)
+stopifnot(DeferredWidget$new()$conformsTo(Labeled))
+stopifnot(identical(protocol_validateContracts(DeferredWidget), "label"))
+```
+
+All three object class factories perform this validation by default.
+`RSSingletonClass()` checks before creating its shared instance.
+`RSScalarClass()` checks both the regular class and its NA companion.
+`RSProtocolClass()` **declares** contracts and therefore has no `validate_protocols` argument.
+
+## `RSSingletonClass()`
+
+This factory calls `$new()` while declaring the class to create the shared instance.
+Therefore, **a custom `initialize()` must work without arguments and return `self`.**
+
+```{r}
+Registry <- RSSingletonClass("GuideRegistry")
+stopifnot(identical(Registry$instance$class(), Registry))
+stopifnot(identical(Registry$new(), Registry$instance))
+```
+
+After declaration, `$new()` returns the shared instance without running initialization again.
+`robjc_allocate()` also returns that same instance for a singleton.
+Use `Class$instance` to make the shared identity explicit.
+`RSNull` is declared with this factory and also exposes its shared object as `RSNull$null`.
+See the [singletons guide](guide_04_Singleton.Rmd) for its uses and behavior.
+
+## `RSScalarClass()`
+
+This factory creates a subclass of `RSScalar` and a companion subclass for NA values.
+Pass a length-one missing value of the appropriate type in `na_value`.
+The ordinary class exposes a shared NA instance as `Class$na`.
+
+If you define `initialize(val)`, it must also accept `na_value` while the NA companion is being created.
+To make `$new(NA)` return the shared NA instance, return the result of `super$initialize(val)` unchanged.
+
+```{r}
+Count <- RSScalarClass(
+  "GuideCount",
+  na_value = NA_integer_,
+  public = list(initialize = function(val) {
+    if (!is.integer(val)) stop("Expected an integer scalar.")
+    super$initialize(val)
+  })
+)
+stopifnot(identical(Count$new(2L)$value(), 2L))
+stopifnot(identical(Count$new(NA_integer_), Count$na))
+stopifnot(identical(Count$na$value(), NA_integer_))
+stopifnot(identical(Count$na$class()$classname, "GuideCountNA"))
+```
+
+For a class name beginning with `RS`, the NA class is named `RSNA...`; otherwise `NA` is appended to the name.
+By default, the NA class is a singleton whose `$new()` cannot be called.
+Use `Class$na` instead.
+With `na_singleton = FALSE`, an NA instance can retain information such as the levels and ordering of an `RSFactor` value.
+For value wrappers and the difference between `NULL` and typed NA, see the [values and copying guide](guide_06_Values_Copying.Rmd).
+
+## Choosing a factory
+
+Choose `RSProtocolClass()` to declare required methods, or `RSSingletonClass()` for one shared object.
+For a class wrapping a length-one R value, use `RSScalarClass()`; for other ordinary objects, start with `RSObjectClass()`.
+
+The [class factory technical guide](tech_04_ClassFactory.Rmd) discusses how factories attach `isa` metadata and adjust `$new()` internally.

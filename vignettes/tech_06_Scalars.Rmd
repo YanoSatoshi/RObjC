@@ -1,0 +1,128 @@
+---
+title: "Technical Note: RSScalar and Class Clusters"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Technical Note: RSScalar and Class Clusters}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Scalar NA classes and class clusters
+
+robjc represents a missing Scalar with an NA subclass rather than a state of the ordinary value class.
+Users pass values to the ordinary class, but `$new(NA)` returns an instance of the NA subclass.
+This difference between the class called and the class returned is a class cluster.
+This note (06) explains the relevant paths in `RSScalarClass()` and `RSScalar$initialize()`.
+See [note 02](tech_02_new_initialize.Rmd) for why `$new()` uses the result of initialization.
+
+## `RSScalarClass()` creates two classes
+
+`RSScalarClass()` creates an ordinary class from the specified parent Scalar, followed by an NA subclass of that ordinary class.
+For a name starting with `RS`, this produces a pair such as `RSNumber` and `RSNANumber`.
+The NA subclass has `isNAClass = TRUE`, while the ordinary class has `isNAClass = FALSE`.
+They have separate `isa` environments, but an NA instance is also an instance of the ordinary class's lineage.
+
+```{r}
+library(robjc)
+
+stopifnot(identical(RSNumber$na$class(), RSNANumber))
+stopifnot(identical(RSNANumber$robjc_isa$super, RSNumber))
+stopifnot(!RSNumber$isNAClass)
+stopifnot(RSNANumber$isNAClass)
+stopifnot(RSNumber$na$isKindOf(RSNumber))
+```
+
+Once it has created the NA subclass, the factory creates one instance with the supplied `na_value`.
+It stores that instance in the NA subclass's `$instance` and `robjc_isa$slot`, and in the ordinary class's `$na` and `robjc_isa$slot`.
+The default NA instance is thus reachable from either class.
+
+```{r}
+stopifnot(identical(RSNumber$na, RSNumber$robjc_isa$slot))
+stopifnot(identical(RSNumber$na, RSNANumber$instance))
+stopifnot(identical(RSNANumber$instance, RSNANumber$robjc_isa$slot))
+```
+
+## Switch classes through the return value of `initialize()`
+
+`$new(value)` first allocates an instance of the ordinary class and calls `initialize(value)`.
+The type-specific initializer validates its input and passes it to `super$initialize(value)`.
+When `RSScalar$initialize()` receives a valid NA and the current class is not the NA subclass, it returns the NA instance from `isa$slot`.
+Because robjc's `$new()` returns that value, the caller receives the NA subclass instance instead of the instance initially allocated.
+
+```text
+RSNumber$new(NA_real_)
+  → allocate an RSNumber instance
+  → RSNumber$initialize() validates the type
+  → RSScalar$initialize() returns RSNumber$robjc_isa$slot
+  → RSNumber$new() returns the shared RSNANumber instance
+```
+
+```{r}
+stopifnot(identical(RSNumber$new(NA_real_), RSNumber$na))
+stopifnot(RSNumber$new(1L)$isMemberOf(RSNumber))
+stopifnot(!RSNumber$new(1L)$isMemberOf(RSNANumber))
+```
+
+The type-specific `initialize()` must propagate the result of `super$initialize(value)` all the way out.
+Returning `invisible(self)` unconditionally after receiving an NA instance would discard the class switch.
+For example, `RSNumber$initialize()` validates the type and leaves `super$initialize(val)` as its final expression.
+`RSDateTime$initialize()` normalizes the POSIX value and explicitly returns the parent's result if it differs from `self`.
+
+## Initializing the NA subclass itself
+
+Before initializing the newly created NA subclass with `na_value`, the factory sets its `isNAClass` to `TRUE`.
+For an NA subclass, `RSScalar$initialize()` rejects non-NA values and stores a valid NA in the private `.val`.
+It does not switch to another instance, because the current instance already has the correct class.
+
+With the default `na_singleton = TRUE`, the factory replaces the NA subclass's `$new()` with an error after creating its shared instance.
+Use the ordinary class's `$na` or `$new(NA)` to obtain that shared NA.
+See [note 02](tech_02_new_initialize.Rmd) for the rules on direct construction and how `RSNull$new()` differs.
+
+```{r}
+stopifnot(inherits(tryCatch(RSNANumber$new(NA_real_), error = identity), "error"))
+stopifnot(identical(RSNumber$new(NA_real_), RSNumber$na))
+```
+
+## Distinguish NA from NaN
+
+`RSScalar$initialize()` checks `is.nan(value)` as well as `is.na(value)`.
+Although R also considers `is.na(NaN)` true, robjc keeps `NaN` as an ordinary Scalar value.
+Each class validates input type and length before switching to a shared NA.
+
+```{r}
+nan <- RSNumber$new(NaN)
+stopifnot(nan$isMemberOf(RSNumber))
+stopifnot(!nan$isMemberOf(RSNANumber))
+stopifnot(is.nan(nan$value()))
+```
+
+## `RSFactor` does not use one shared NA for every input
+
+A missing factor can retain levels and ordering information.
+One shared instance cannot hold different `levels()` and `is.ordered()` settings for each input.
+`RSFactor` therefore specifies `na_singleton = FALSE`, allowing direct construction of its NA subclass, `RSNAFactor`.
+When `RSFactor$new()` receives a missing factor, it creates and returns a new `RSNAFactor`.
+`RSFactor$na` remains the default NA instance created by the factory.
+
+```{r}
+low_high <- factor(NA_character_, levels = c("low", "high"), ordered = TRUE)
+small_large <- factor(NA_character_, levels = c("small", "large"))
+first <- RSFactor$new(low_high)
+second <- RSFactor$new(small_large)
+
+stopifnot(first$isMemberOf(RSNAFactor))
+stopifnot(second$isMemberOf(RSNAFactor))
+stopifnot(!identical(first, second))
+stopifnot(!identical(first, RSFactor$na))
+stopifnot(identical(first$asFactor(), low_high))
+stopifnot(identical(second$asFactor(), small_large))
+```
+
+## Scalars without an NA subclass
+
+Base R's `raw` type has no NA value.
+`RSRaw` is therefore declared with `RSObjectClass()` rather than `RSScalarClass()` and has no NA subclass.
+`RSNull` is a separate Singleton representing R's `NULL`; its role differs from a Scalar NA class.
+
+A class cluster selects a construction path that preserves type-specific information, in addition to representing missing values with a separate class.
+To inspect the class returned, use `object$class()` or `isKindOf()` as well as the value's `is.na()`.

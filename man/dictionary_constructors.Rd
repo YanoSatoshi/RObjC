@@ -35,16 +35,16 @@ RSMutableDictionary_withObjectsAndKeys(objectsAndKeys)
 RSMutableDictionary_withDictionary(dictionary)
 }
 \arguments{
-\item{object}{An RObjC object, class generator, protocol generator, or \code{NULL}.}
+\item{object}{An RObjC object, class generator, or protocol generator.}
 
 \item{key}{An RObjC object key conforming to \code{RSCopying}, a class or protocol
-generator, or \code{NULL}.}
+generator. Use \code{RSNull$null} for a null key.}
 
 \item{objects}{A list of RObjC objects, class generators, protocol generators,
-or \code{NULL} values.}
+including \code{RSNull$null} for null values.}
 
 \item{keys}{A list of RObjC keys conforming to \code{RSCopying}, class or protocol
-generators, or \code{NULL} keys.}
+generators, including \code{RSNull$null} for null keys.}
 
 \item{objectsAndKeys}{An even-length list alternating value, key, value, key.}
 
@@ -58,5 +58,6 @@ an immutable dictionary may return that same instance.
 Construct dictionaries from RObjC object or generator keys and
 supported values, or an existing dictionary. RObjC object keys must conform
 to \code{RSCopying} because insertion copies them; class and protocol generator
-keys are retained by identity. \code{NULL} keys and values are stored as \link{RSNull}.
+keys are retained by identity. Use \code{RSNull$null} for null keys or values;
+R \code{NULL} is rejected.
 }

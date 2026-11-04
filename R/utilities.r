@@ -14,7 +14,7 @@
 #' @keywords internal
 cast_collections_to_list <- function(collections) {
   if (is.list(collections)) return(collections)
-  if (!robjc_isRobjcObject(collections))
+  if (!robjc_isInstance(collections))
     stop("`collections` must be a list or RObjC instance.", call. = FALSE)
   if (!collections$respondsTo("asList"))
     stop("`collections` must provide `asList()`.", call. = FALSE)
