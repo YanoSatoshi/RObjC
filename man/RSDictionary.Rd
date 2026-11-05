@@ -4,34 +4,63 @@
 \alias{RSDictionary}
 \title{RSDictionary: Native-Backed Immutable Key-Value Store}
 \description{
-\code{RSDictionary} is the immutable counterpart of \link{RSMutableDictionary}. It uses
-the same native-backed storage and lookup behavior, while rejecting every
-public mutation operation.
+\code{RSDictionary} is an immutable, unordered key-value container. Keys and
+values are RObjC objects, class generators, or protocol generators, with
+R \code{NULL} is rejected; use \code{RSNull$null} for a null key or value. \link{RSConcreteDictionary} provides native
+storage and uses each key's \code{hash()} and \code{isEqual()} methods.
 
-\code{copy()} returns the receiver. \code{mutableCopy()} creates independent native
-storage that initially references the same key and value objects.
+Insertion copies an RObjC object key; class and protocol generators are
+retained by identity. A stored key's hash and equality-relevant state must
+remain stable. \code{copy()} returns the receiver, while \code{mutableCopy()} creates
+independent native storage that initially references the same entries.
 }
+\section{Supported Initializations}{
+
+\itemize{
+\item \code{key_value_pairs}: a list of \link{RSKeyValuePair} objects.
+\item \code{objects_and_keys}: alternating values and keys.
+\item \code{keys} and \code{values}: separate collections of equal length.
+}
+}
+
 \section{Convenience Constructor}{
 
 \code{\link[=RSDictionary_withDictionary]{RSDictionary_withDictionary()}} creates an immutable shallow copy from a
 mutable dictionary. An immutable dictionary is returned unchanged.
 }
 
-\section{Super classes}{
-\code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSMutableDictionary]{RSMutableDictionary}} -> \code{RSDictionary}
+\section{Super class}{
+\code{\link[robjc:RSObject]{RSObject}} -> \code{RSDictionary}
 }
 \section{Methods}{
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-RSDictionary-initialize}{\code{RSDictionary$new()}}
-    \item \href{#method-RSDictionary-setObjectForKey}{\code{RSDictionary$setObjectForKey()}}
-    \item \href{#method-RSDictionary-removeObjectForKey}{\code{RSDictionary$removeObjectForKey()}}
-    \item \href{#method-RSDictionary-removeAllObjects}{\code{RSDictionary$removeAllObjects()}}
-    \item \href{#method-RSDictionary-addEntry}{\code{RSDictionary$addEntry()}}
-    \item \href{#method-RSDictionary-removeEntry}{\code{RSDictionary$removeEntry()}}
-    \item \href{#method-RSDictionary-removeAllEntries}{\code{RSDictionary$removeAllEntries()}}
+    \item \href{#method-RSDictionary-objectForKey}{\code{RSDictionary$objectForKey()}}
+    \item \href{#method-RSDictionary-containsKey}{\code{RSDictionary$containsKey()}}
+    \item \href{#method-RSDictionary-asList}{\code{RSDictionary$asList()}}
+    \item \href{#method-RSDictionary-allEntriesAsList}{\code{RSDictionary$allEntriesAsList()}}
+    \item \href{#method-RSDictionary-allEntries}{\code{RSDictionary$allEntries()}}
+    \item \href{#method-RSDictionary-allKeysAsList}{\code{RSDictionary$allKeysAsList()}}
+    \item \href{#method-RSDictionary-allKeys}{\code{RSDictionary$allKeys()}}
+    \item \href{#method-RSDictionary-allKeysForObjectAsList}{\code{RSDictionary$allKeysForObjectAsList()}}
+    \item \href{#method-RSDictionary-allKeysForObject}{\code{RSDictionary$allKeysForObject()}}
+    \item \href{#method-RSDictionary-allValuesAsList}{\code{RSDictionary$allValuesAsList()}}
+    \item \href{#method-RSDictionary-allValues}{\code{RSDictionary$allValues()}}
+    \item \href{#method-RSDictionary-allObjectsAsList}{\code{RSDictionary$allObjectsAsList()}}
+    \item \href{#method-RSDictionary-allObjects}{\code{RSDictionary$allObjects()}}
+    \item \href{#method-RSDictionary-count}{\code{RSDictionary$count()}}
     \item \href{#method-RSDictionary-copy}{\code{RSDictionary$copy()}}
     \item \href{#method-RSDictionary-mutableCopy}{\code{RSDictionary$mutableCopy()}}
+    \item \href{#method-RSDictionary-hash}{\code{RSDictionary$hash()}}
+    \item \href{#method-RSDictionary-isEqual}{\code{RSDictionary$isEqual()}}
+    \item \href{#method-RSDictionary-description}{\code{RSDictionary$description()}}
+    \item \href{#method-RSDictionary-dictionaryByMergingWithDictionary}{\code{RSDictionary$dictionaryByMergingWithDictionary()}}
+    \item \href{#method-RSDictionary-dictionaryByExcludingWithDictionary}{\code{RSDictionary$dictionaryByExcludingWithDictionary()}}
+    \item \href{#method-RSDictionary-objectsForEncoding}{\code{RSDictionary$objectsForEncoding()}}
+    \item \href{#method-RSDictionary-prepareForSerialization}{\code{RSDictionary$prepareForSerialization()}}
+    \item \href{#method-RSDictionary-encodeWithCoder}{\code{RSDictionary$encodeWithCoder()}}
+    \item \href{#method-RSDictionary-initWithCoder}{\code{RSDictionary$initWithCoder()}}
   }
 }
 \if{html}{\out{<details><summary>Inherited methods</summary>
@@ -43,32 +72,8 @@ mutable dictionary. An immutable dictionary is returned unchanged.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>RSObject$isKindOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allEntries"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allEntries'><code>RSMutableDictionary$allEntries()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allEntriesAsList"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allEntriesAsList'><code>RSMutableDictionary$allEntriesAsList()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allKeys"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allKeys'><code>RSMutableDictionary$allKeys()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allKeysAsList"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allKeysAsList'><code>RSMutableDictionary$allKeysAsList()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allKeysForObject"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allKeysForObject'><code>RSMutableDictionary$allKeysForObject()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allKeysForObjectAsList"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allKeysForObjectAsList'><code>RSMutableDictionary$allKeysForObjectAsList()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allObjects"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allObjects'><code>RSMutableDictionary$allObjects()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allObjectsAsList"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allObjectsAsList'><code>RSMutableDictionary$allObjectsAsList()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allValues"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allValues'><code>RSMutableDictionary$allValues()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="allValuesAsList"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-allValuesAsList'><code>RSMutableDictionary$allValuesAsList()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="asList"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-asList'><code>RSMutableDictionary$asList()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="containsKey"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-containsKey'><code>RSMutableDictionary$containsKey()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="count"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-count'><code>RSMutableDictionary$count()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="description"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-description'><code>RSMutableDictionary$description()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="dictionaryByExcludingWithDictionary"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-dictionaryByExcludingWithDictionary'><code>RSMutableDictionary$dictionaryByExcludingWithDictionary()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="dictionaryByMergingWithDictionary"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-dictionaryByMergingWithDictionary'><code>RSMutableDictionary$dictionaryByMergingWithDictionary()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="encodeWithCoder"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-encodeWithCoder'><code>RSMutableDictionary$encodeWithCoder()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="hash"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-hash'><code>RSMutableDictionary$hash()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="initWithCoder"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-initWithCoder'><code>RSMutableDictionary$initWithCoder()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="isEqual"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-isEqual'><code>RSMutableDictionary$isEqual()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="objectForKey"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-objectForKey'><code>RSMutableDictionary$objectForKey()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="objectsForEncoding"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-objectsForEncoding'><code>RSMutableDictionary$objectsForEncoding()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableDictionary" data-id="prepareForSerialization"><a href='../../robjc/html/RSMutableDictionary.html#method-RSMutableDictionary-prepareForSerialization'><code>RSMutableDictionary$prepareForSerialization()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
@@ -76,6 +81,7 @@ mutable dictionary. An immutable dictionary is returned unchanged.
 \if{latex}{\out{\hypertarget{method-RSDictionary-initialize}{}}}
 \subsection{\code{RSDictionary$new()}}{
   Constructs an immutable dictionary from one supported input format.
+With no arguments, constructs an empty dictionary.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSDictionary$new(
@@ -103,103 +109,240 @@ mutable dictionary. An immutable dictionary is returned unchanged.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSDictionary-setObjectForKey"></a>}}
-\if{latex}{\out{\hypertarget{method-RSDictionary-setObjectForKey}{}}}
-\subsection{\code{RSDictionary$setObjectForKey()}}{
-  Disabled because the dictionary is immutable.
+\if{html}{\out{<a id="method-RSDictionary-objectForKey"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-objectForKey}{}}}
+\subsection{\code{RSDictionary$objectForKey()}}{
+  Returns the value associated with a key.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSDictionary$setObjectForKey(value, key)}
+    \preformatted{RSDictionary$objectForKey(key)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{value}}{Ignored.}
-      \item{\code{key}}{Ignored.}
+      \item{\code{key}}{An RObjC object, class or protocol generator. R \code{NULL} is rejected.}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The stored object, or \code{NULL} if the key is absent.
   }
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSDictionary-removeObjectForKey"></a>}}
-\if{latex}{\out{\hypertarget{method-RSDictionary-removeObjectForKey}{}}}
-\subsection{\code{RSDictionary$removeObjectForKey()}}{
-  Disabled because the dictionary is immutable.
+\if{html}{\out{<a id="method-RSDictionary-containsKey"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-containsKey}{}}}
+\subsection{\code{RSDictionary$containsKey()}}{
+  Tests whether a key is present.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSDictionary$removeObjectForKey(key)}
+    \preformatted{RSDictionary$containsKey(key)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{key}}{Ignored.}
+      \item{\code{key}}{An RObjC object, class or protocol generator. R \code{NULL} is rejected.}
     }
     \if{html}{\out{</div>}}
   }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSDictionary-removeAllObjects"></a>}}
-\if{latex}{\out{\hypertarget{method-RSDictionary-removeAllObjects}{}}}
-\subsection{\code{RSDictionary$removeAllObjects()}}{
-  Disabled because the dictionary is immutable.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSDictionary$removeAllObjects()}
-    \if{html}{\out{</div>}}
+  \subsection{Returns}{
+    A logical scalar.
   }
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSDictionary-addEntry"></a>}}
-\if{latex}{\out{\hypertarget{method-RSDictionary-addEntry}{}}}
-\subsection{\code{RSDictionary$addEntry()}}{
-  Disabled because the dictionary is immutable.
+\if{html}{\out{<a id="method-RSDictionary-asList"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-asList}{}}}
+\subsection{\code{RSDictionary$asList()}}{
+  Returns all entries as \link{RSKeyValuePair} objects.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSDictionary$addEntry(entry)}
+    \preformatted{RSDictionary$asList()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list in unspecified order.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-allEntriesAsList"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-allEntriesAsList}{}}}
+\subsection{\code{RSDictionary$allEntriesAsList()}}{
+  Returns all entries as \link{RSKeyValuePair} objects.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSDictionary$allEntriesAsList()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list in unspecified order.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-allEntries"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-allEntries}{}}}
+\subsection{\code{RSDictionary$allEntries()}}{
+  Returns all entries as an \link{RSArray}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSDictionary$allEntries()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An \code{RSArray}.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-allKeysAsList"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-allKeysAsList}{}}}
+\subsection{\code{RSDictionary$allKeysAsList()}}{
+  Returns all keys as a list.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSDictionary$allKeysAsList()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list in unspecified order.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-allKeys"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-allKeys}{}}}
+\subsection{\code{RSDictionary$allKeys()}}{
+  Returns all keys as an \link{RSArray}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSDictionary$allKeys()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An \code{RSArray}.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-allKeysForObjectAsList"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-allKeysForObjectAsList}{}}}
+\subsection{\code{RSDictionary$allKeysForObjectAsList()}}{
+  Returns every key whose value is equal to \code{object}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSDictionary$allKeysForObjectAsList(object)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{entry}}{Ignored.}
+      \item{\code{object}}{An RObjC object, class or protocol generator. Use \code{RSNull$null} for null.}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of matching keys in unspecified order.
   }
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSDictionary-removeEntry"></a>}}
-\if{latex}{\out{\hypertarget{method-RSDictionary-removeEntry}{}}}
-\subsection{\code{RSDictionary$removeEntry()}}{
-  Disabled because the dictionary is immutable.
+\if{html}{\out{<a id="method-RSDictionary-allKeysForObject"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-allKeysForObject}{}}}
+\subsection{\code{RSDictionary$allKeysForObject()}}{
+  Returns every key whose value is equal to \code{object}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSDictionary$removeEntry(entry)}
+    \preformatted{RSDictionary$allKeysForObject(object)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{entry}}{Ignored.}
+      \item{\code{object}}{An RObjC object, class or protocol generator. Use \code{RSNull$null} for null.}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An \link{RSArray} of matching keys in unspecified order.
   }
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSDictionary-removeAllEntries"></a>}}
-\if{latex}{\out{\hypertarget{method-RSDictionary-removeAllEntries}{}}}
-\subsection{\code{RSDictionary$removeAllEntries()}}{
-  Disabled because the dictionary is immutable.
+\if{html}{\out{<a id="method-RSDictionary-allValuesAsList"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-allValuesAsList}{}}}
+\subsection{\code{RSDictionary$allValuesAsList()}}{
+  Returns all values as a list.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSDictionary$removeAllEntries()}
+    \preformatted{RSDictionary$allValuesAsList()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list corresponding to \code{allKeysAsList()} when unmodified.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-allValues"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-allValues}{}}}
+\subsection{\code{RSDictionary$allValues()}}{
+  Returns all values as an \link{RSArray}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSDictionary$allValues()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An \code{RSArray}.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-allObjectsAsList"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-allObjectsAsList}{}}}
+\subsection{\code{RSDictionary$allObjectsAsList()}}{
+  Alias for \code{allValuesAsList()}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSDictionary$allObjectsAsList()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of values.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-allObjects"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-allObjects}{}}}
+\subsection{\code{RSDictionary$allObjects()}}{
+  Alias for \code{allValues()}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSDictionary$allObjects()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An \code{RSArray} of values.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-count"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-count}{}}}
+\subsection{\code{RSDictionary$count()}}{
+  Returns the number of entries.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSDictionary$count()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A non-negative numeric scalar.
   }
 }
 
@@ -229,7 +372,187 @@ mutable dictionary. An immutable dictionary is returned unchanged.
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A new \link{RSMutableDictionary}.
+    A new \code{RSMutableDictionary}.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-hash"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-hash}{}}}
+\subsection{\code{RSDictionary$hash()}}{
+  Computes an order-independent hash from the dictionary keys.
+The final result passes through \code{\link[=robjc_normalize_hash]{robjc_normalize_hash()}}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSDictionary$hash()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    One non-missing integer hash value.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-isEqual"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-isEqual}{}}}
+\subsection{\code{RSDictionary$isEqual()}}{
+  Compares two dictionaries by keys and values.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSDictionary$isEqual(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another dictionary.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} when both mappings are equal.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-description"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-description}{}}}
+\subsection{\code{RSDictionary$description()}}{
+  Returns a concise textual representation.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSDictionary$description(...)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{...}}{Ignored.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A character scalar.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-dictionaryByMergingWithDictionary"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-dictionaryByMergingWithDictionary}{}}}
+\subsection{\code{RSDictionary$dictionaryByMergingWithDictionary()}}{
+  Returns an immutable merge; values from \code{other} win.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSDictionary$dictionaryByMergingWithDictionary(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another dictionary.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \link{RSDictionary}.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-dictionaryByExcludingWithDictionary"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-dictionaryByExcludingWithDictionary}{}}}
+\subsection{\code{RSDictionary$dictionaryByExcludingWithDictionary()}}{
+  Returns an immutable copy excluding keys found in \code{other}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSDictionary$dictionaryByExcludingWithDictionary(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another dictionary.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \link{RSDictionary}.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-objectsForEncoding"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-objectsForEncoding}{}}}
+\subsection{\code{RSDictionary$objectsForEncoding()}}{
+  Returns entry objects for legacy serialization hooks.
+Keyed archives use \code{encodeWithCoder()} for stored pairs.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSDictionary$objectsForEncoding()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of \link{RSKeyValuePair} objects.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-prepareForSerialization"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-prepareForSerialization}{}}}
+\subsection{\code{RSDictionary$prepareForSerialization()}}{
+  Captures native storage for R serialization.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSDictionary$prepareForSerialization()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-encodeWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-encodeWithCoder}{}}}
+\subsection{\code{RSDictionary$encodeWithCoder()}}{
+  Encodes the stored key and value references as pairs.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSDictionary$encodeWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedArchiver} recording keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSDictionary-initWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-initWithCoder}{}}}
+\subsection{\code{RSDictionary$initWithCoder()}}{
+  Restores native storage from saved pairs without copying
+keys again. This preserves their references for both dictionary classes.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSDictionary$initWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedUnarchiver} reading keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
   }
 }
 

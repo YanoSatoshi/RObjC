@@ -113,3 +113,41 @@ protocol_getAllContracts <- function(protocol) {
   merged    <- unique(c(domestic, inherits))
   return(merged)
 }
+
+
+#' @title Find Missing Protocol Contract Methods
+#' @description Checks whether an RObjC class provides the public instance
+#'   methods required by its declared protocols and those of its parent
+#'   classes. Requirements inherited from parent protocols and methods
+#'   inherited from parent classes are included.
+#'
+#'   This checks method names only. It does not check method signatures,
+#'   return values, or behavior.
+#' @param klass An RObjC object class generator.
+#' @return A character vector of unique missing method names. Returns
+#'   `character(0)` when all required methods are present.
+#' @examples
+#' Named <- RSProtocolClass("ValidateNamed", contract_methods = "name")
+#' Item <- RSObjectClass("ValidateItem", protocols = list(Named),
+#'                       validate_protocols = FALSE)
+#' protocol_validateContracts(Item)  # "name"
+#' @export
+protocol_validateContracts <- function(klass) {
+  if (!robjc_isClass(klass))
+    stop("`klass` must be an RObjC object class generator.", call. = FALSE)
+  protocols <- class_getWholeProtocols(klass)
+  if (!all(vapply(protocols, robjc_isProtocol, logical(1))))
+    stop("The class's declared protocols must be RObjC protocols.", call. = FALSE)
+
+  required <- unique(unlist(
+    lapply(protocols, protocol_getAllContracts),
+    use.names = FALSE
+  ))
+  if (!length(required)) return(character(0))
+  has <- vapply(
+    required,
+    function(method) is.function(class_getInstanceMethod(klass, method)),
+    logical(1)
+  )
+  required[!has]
+}

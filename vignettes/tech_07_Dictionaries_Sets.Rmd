@@ -1,0 +1,109 @@
+---
+title: "Technical Note: The C++ Implementation of Dictionary and Set"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Technical Note: The C++ Implementation of Dictionary and Set}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# C++ hash tables and R methods
+
+`RSSet` and `RSDictionary` are public classes for storing RObjC objects.
+They use C++ hash tables to find elements and keys, while each object's `hash()` and `isEqual()` determine the meaning of hashes and equality.
+This note (07) follows the path from the R classes to C++ storage and the callbacks from C++ to R methods.
+For the public API, see the [collections guide](guide_07_Collections.Rmd); for the method contracts, see the [equality and hashing guide](guide_08_Hash_isEqual.Rmd).
+
+## Three implementation layers
+
+The public classes `RSSet`, `RSMutableSet`, `RSDictionary`, and `RSMutableDictionary` handle input validation, mutable and immutable operations, copying, and coding.
+The internal `RSConcreteSet` and `RSConcreteDictionary` classes call Rcpp functions and hold external pointers to C++ objects.
+`NativeSet` and `NativeDictionary` perform the actual insertion, lookup, and removal.
+
+```text
+Public class method
+    → RSConcreteSet / RSConcreteDictionary
+    → Rcpp set_* / dictionary_* function
+    → C++ unordered_set / unordered_map
+    → RSObjectHash / RSObjectEqual
+    → RObjC object's hash() / isEqual()
+```
+
+`NativeSet` uses `std::unordered_set<SEXP, RSObjectHash, RSObjectEqual>`.
+`NativeDictionary` uses `std::unordered_map<SEXP, SEXP, RSObjectHash, RSObjectEqual>`, with only the key participating in hash lookup.
+The value is stored in the same entry, but its `hash()` does not determine the entry's location.
+
+## `hash()` and `isEqual()` callbacks
+
+In `src/RSObjectHash.cpp`, `RSObjectHash` treats the received `SEXP` as an R environment and calls its `hash` method.
+`RSObjectEqual` calls `isEqual` on one of two `SEXP` values, passing the other as an argument.
+Rcpp converts the results to C++ `std::size_t` and `bool`, respectively.
+
+```cpp
+std::size_t RSObjectHash::operator()(SEXP key) const {
+  Rcpp::Environment env(key);
+  Rcpp::Function fn = env["hash"];
+  return Rcpp::as<std::size_t>(fn());
+}
+
+bool RSObjectEqual::operator()(SEXP a, SEXP b) const {
+  Rcpp::Environment env(a);
+  Rcpp::Function fn = env["isEqual"];
+  return Rcpp::as<bool>(fn(b));
+}
+```
+
+On the R side, the public classes validate a `hash()` result as a single, nonmissing integer before insertion.
+End a custom `hash()` implementation with `robjc_normalize_hash()` to avoid the `NA_integer_` bit pattern.
+Equal objects must produce equal hash values.
+The table uses `isEqual()` to distinguish candidates whose hash values collide.
+
+```{r}
+library(robjc)
+
+stored <- RSString$new("id")
+lookup <- RSString$new("id")
+stopifnot(!identical(stored, lookup))
+stopifnot(stored$isEqual(lookup))
+stopifnot(identical(stored$hash(), lookup$hash()))
+
+set <- RSSet$new(list(stored))
+stopifnot(identical(set$member(lookup), stored))
+
+value <- RSNumber$new(7L)
+dictionary <- RSMutableDictionary$new()
+dictionary$setObjectForKey(value, stored)
+stopifnot(identical(dictionary$objectForKey(lookup), value))
+```
+
+`lookup` is a different instance from the stored `stored`, yet the hash and equality contract lets the tables find the same element or key.
+A hash table typically examines fewer candidates than a linear search, but collisions and the cost of callbacks to R methods require separate performance assessment.
+Avoid implementations that depend on the number or order of C++ calls to `hash()` or `isEqual()`.
+
+## Copying and retaining at insertion
+
+Set retains a reference to an inserted object without copying it.
+For an RObjC instance used as a Dictionary key, the public class calls `key$copy()` before passing it to C++.
+For class or protocol generators used as keys, it keeps the same generator reference.
+Dictionary values are stored by reference without copying.
+These rules belong to the public classes, not to `RSConcreteSet` or the C++ hash table.
+
+To keep stored R objects alive as C++ `SEXP` values, `NativeSet` and `NativeDictionary` register elements or key-value pairs in an R precious multi-set.
+They release obsolete references on removal or replacement and release the multi-set when native storage is destroyed.
+This prevents R's garbage collector from reclaiming an object that remains only in a C++ table.
+
+## Keep hash-relevant state stable
+
+Set elements and Dictionary keys must retain stable state relevant to hashing and equality after insertion.
+If a changed `hash()` result directs lookup to another location, an existing entry may no longer be found.
+Changing only the outcome of `isEqual()` can also invalidate duplicate checks and lookup results.
+Dictionary calls `copy()` to separate key state, but users still need to preserve stability if a custom `copy()` returns `self` or the copied object remains mutable.
+
+```{r}
+stopifnot(identical(dictionary$objectForKey(RSString$new("id")), value))
+```
+
+The hash tables are not ordered collections.
+Do not assume an order for Set elements or Dictionary keys; use an Array alongside them when insertion order matters.
+Keyed Archive does not save an external pointer directly.
+Instead, the public class's `encodeWithCoder()` writes logical elements or key-value pairs, as described in [note 08](tech_08_Archiving.Rmd).

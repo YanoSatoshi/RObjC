@@ -31,7 +31,7 @@ RSString_withValue <- function(val) {
 #' @rdname string_constructors
 #' @export
 RSString_withString <- function(string) {
-  if (robjc_isRobjcObject(string) && string$isKindOf(RSString)) {
+  if (robjc_isInstance(string) && string$isKindOf(RSString)) {
     return(RSString_withValue(as.character(string$value())))
   }
   if (!is.character(string) || length(string) != 1L) {

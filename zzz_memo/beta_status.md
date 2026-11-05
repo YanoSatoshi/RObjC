@@ -1,10 +1,10 @@
 # robjc beta status
 
-更新日: 2026-10-30
+更新日: 2026-11-04
 
-対象ブランチ: `0.0.5_alpha`
+対象ブランチ: `0.1.1-restruct-collections`
 
-パッケージバージョン: `0.1.0`（起動メッセージと組み込みクラスの表記は `0.1.0 beta`）
+パッケージバージョン: `0.1.1`（起動メッセージと組み込みクラスの表記は `0.1.0 beta`）
 
 ## 現在の位置づけ
 
@@ -22,9 +22,18 @@
 - `RSKeyedUnarchiver$new(archive)` はデータを読み込み、復元は `$decode()` まで行わない。`$showAllClasses()` は自動解決済みのクラスを既定で除いた tibble を返す。`$showAllClasses(remove_default = FALSE)` と `$dictionaryWithAllClasses()` で全クラスを見られる。必要な対応を `$setClasses()` に渡し、`$decode()` で復元する。`$unarchive()` は互換用の別名。
 - 組み込みクラスは `.onLoad()` で登録する。拡張パッケージも `.onLoad()` から `robjc_register_class()` / `robjc_register_protocol()` を呼べる。登録表には generator 自体を保持せず、package・固定 ID・namespace binding を記録する。スクリプト内のクラスは手動対応または resolver を使う。拡張パッケージの `.onLoad()` 登録から resolver なしで復元する統合テストがある。
 
+## main からの主な変更（0.1.1 作業中）
+
+- Collection の継承を逆転し、`RSSet` → `RSMutableSet`、`RSDictionary` → `RSMutableDictionary`、`RSArray` → `RSMutableArray`、`RSDataFrame` → `RSMutableDataFrame` とした。共通の読み取り処理を親に置き、変更操作を子に置く構成に移した。関連テスト、クラス文書、ガイドも更新した。
+- `RSDataFrame` のキー列指定を廃止し、`isEqual()` は包んだ data.frame の `identical()` に合わせた。`hash()` は列名・型・行数に基づく簡易値であり、任意のデータ内容に適したハッシュを保証するものではない。
+- `RSNull` に S3 の `$` dispatch を追加した。存在しないメソッド名に対する呼び出しは共有 `RSNull$null` を返す。Collection に R の `NULL` を保存する場合は自動変換せず、`RSNull$null` または公開関数 `robjc_wrap_null()` で明示する。
+- `RSObject` の `==` / `!=` は `identical()` による同一インスタンス判定とした。`description()` と `debugDescription()`、S3 表示の構成も見直した。
+- `protocol_validateContracts()` で宣言済みプロトコルの不足メソッド名を取得できる。クラスファクトリーは既定で契約を検証し、不足があればクラス宣言を停止する。
+- パッケージ版を `0.1.1` にした。組み込みクラスの版は個別のメタデータなので一律には変更していない。
+
 ## 文書
 
-プロジェクト直下の `README.md` は英語・日本語を併記する。英語 vignette の `introduction.Rmd`、`robjc_encoding_strategy.Rmd`、`robjc_encoding_use_case.Rmd` は現行 API に合わせた。`robjc_keyed_coding.Rmd` はクラス登録と手動対応の例を含む。日本語版は `vignettes_jp/` にある。
+プロジェクト直下の `README.md` は英語・日本語を併記する。日英の `introduction.Rmd`、目次 `contents.Rmd`、`guide_01`〜`guide_10`、`appendix_practical_encoding.Rmd`、`tech_01`〜`tech_08` を整備した。英語版は `vignettes/`、日本語版は `vignettes_jp/` にある。旧 `robjc_encoding_strategy.Rmd` などの重複記事は整理した。英語版 Tech Notes 8 件は R.app の R で全件レンダリング済み。
 
 `man/*.Rd` と `NAMESPACE` は roxygen2 の生成物。`html/00Index.html` 以下のローカル HTML ヘルプは `tools/build_html.R` で再生成する。`html/` と `vignettes_jp/`、`zzz_memo/` は `.Rbuildignore` でパッケージのソース配布から除外している。
 
@@ -38,7 +47,7 @@
 1. archive 形式 `robjc-keyed-1` と class ID の長期互換性、異なるクラス版での移行手順を確定する。現時点で旧 alpha 形式との互換性はない。
 2. 循環参照、複雑な list、singleton、外部パッケージの更新やアンロードを含む復元経路を継続して検証する。
 3. Dictionary/Set の mutable key・member の契約、列挙順、hash/equality の性能を利用者向けに整理する。
-4. 公開前に README、英語・日本語 vignette、生成済み HTML ヘルプの整合性を再確認する。
+4. 現在の変更一式に対してテストと `R CMD check` を再実行し、生成済み HTML ヘルプも更新する。上記の 2026-10-30 の結果は 0.1.0 時点の記録である。
 
 ## 開発時の確認
 
@@ -47,7 +56,7 @@ R.app の R を使用する。ソースを変更した場合の基本的な確�
 ```sh
 /Library/Frameworks/R.framework/Versions/Current/Resources/bin/Rscript --vanilla -e 'roxygen2::roxygenise(); devtools::test()'
 /Library/Frameworks/R.framework/Versions/Current/Resources/bin/R CMD build .
-/Library/Frameworks/R.framework/Versions/Current/Resources/bin/R CMD check --as-cran robjc_0.1.0.tar.gz
+/Library/Frameworks/R.framework/Versions/Current/Resources/bin/R CMD check --as-cran robjc_0.1.1.tar.gz
 ```
 
 HTML ヘルプの再生成は次の通り。

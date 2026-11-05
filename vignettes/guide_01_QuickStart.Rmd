@@ -1,0 +1,195 @@
+---
+title: "Quick Start Guide"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Quick Start Guide}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Features
+
+The robjc package is a framework built on `R6`, a reference based object-oriented system for R.
+Its main features are:
+
+- **Collection classes:** Array, Set, and Dictionary each have mutable and immutable variants.
+Use `copy()` and `mutableCopy()` to move between them.
+- **Customizable equality:** Compare robjc objects with `isEqual()`.
+Implement this method to define what equality means for your class.
+- **Object archiving:** Save an object graph and restore its reference relationships.
+Classes can also be mapped to different classes when an archive is decoded.
+
+# Creating a class
+
+Use one of four factory APIs to create a robjc class generator.
+You can also use `R6Class()` directly, but the factory APIs cover most class definitions.
+
+- `RSObjectClass()` creates a subclass of `RSObject`.
+This is the most commonly used factory; its parent class must not be a singleton.
+- `RSSingletonClass()` creates a singleton class.
+Access its shared instance through `Class$instance`. `Class$new()` always returns that instance.
+- `RSScalarClass()` creates a custom wrapper for an R value, such as a logical, numeric, character, factor, or complex value.
+Use it when the standard scalar wrappers do not express the distinction your class needs.
+- `RSProtocolClass()` creates a subclass of `RSProtocol`.
+Protocol classes cannot be instantiated.
+
+Here is a custom class.
+The first argument is its name as a character string, and `super_class` specifies its parent.
+Instance variables and methods are inherited from the parent, as in other object-oriented systems.
+See the [class factory guide](guide_05_ClassFactory.Rmd) for details.
+
+```{r}
+library(robjc)
+
+CustomClass <- RSObjectClass(
+  "CustomClass",
+  super_class = RSObject,
+  private = list(var = NULL),
+  public = list(
+    initialize = function(var) {
+      super$initialize()
+      if (!is.character(var)) return(NULL)
+      self$setVar(var)
+      return(self)
+    },
+    getVar = function() private$var,
+    setVar = function(var) private$var <- var
+  )
+)
+```
+
+## Creating and initializing an instance
+
+Call `new(...)` to create an instance.
+It allocates the instance, calls `initialize(...)`, and returns **the value returned by `initialize(...)`**.
+The initializer sets up instance variables and any other instance state.
+
+Always call `super$initialize()` in your initializer so the parent class can initialize its state.
+Return `self` when initialization succeeds.
+On failure, you can return another value, such as `NULL`.
+
+```{r}
+object <- CustomClass$new("foo")
+if (!is.null(object)) print(object$getVar())
+failure <- CustomClass$new(1L)
+stopifnot(is.null(failure))
+```
+
+## Instance variables and methods
+
+Every robjc instance has the basic methods supplied by `RSObject`.
+Some of them are listed below; see the [classes and objects guide](guide_02_Classes_Objects.Rmd) for more.
+
+- `class()` returns the instance's class generator.
+- `superClass()` returns the parent generator of the instance's class.
+- `isKindOf(Class)` checks whether the instance belongs to `Class` or one of its subclasses.
+- `isMemberOf(Class)` checks whether the instance belongs directly to `Class`.
+
+## Inspecting an instance
+
+You can inspect an object's class and inheritance.
+`class()` and `superClass()` return class generator objects, rather than class names.
+`isMemberOf()` checks the direct class; `isKindOf()` includes its ancestors.
+
+```{r}
+number <- RSNumber$new(42L)
+stopifnot(identical(number$class(), RSNumber))
+stopifnot(number$isMemberOf(RSNumber))
+stopifnot(number$isKindOf(RSScalar))
+stopifnot(identical(number$value(), 42L))
+```
+
+# Collections
+
+robjc has three collection families: Array, Set, and Dictionary.
+Each family has mutable and immutable classes.
+Collections hold robjc objects, so wrap ordinary R values such as integers and character strings in `RSScalar` objects before inserting them.
+
+## Wrapping R values
+
+`RSNumber` and `RSString` are scalar classes that hold R values of length one.
+When you know the type, call the corresponding class's `$new()`.
+`RSScalar_withValue()` selects a suitable wrapper based on the input value.
+
+```{r}
+label <- RSScalar_withValue("Apple")
+quantity <- RSNumber$new(3L)
+stopifnot(label$isKindOf(RSString))
+stopifnot(identical(label$value(), "Apple"))
+stopifnot(identical(quantity$value(), 3L))
+```
+
+Each scalar class provides a shared NA instance for missing values.
+Use `RSNull$null` to represent R's `NULL` as an object.
+
+```{r}
+stopifnot(identical(RSNumber$new(NA_integer_), RSNumber$na))
+stopifnot(identical(RSScalar_withValue(NULL), RSNull$null))
+```
+
+## Using collections
+
+An Array stores values in order, a Dictionary associates values with keys, and a Set stores unique values.
+Mutable collection class names contain `Mutable`: for example, `RSMutableArray` is the mutable counterpart of `RSArray`.
+Mutable collections let you add and remove elements; immutable collections do not.
+
+Call `copy()` to create an immutable collection from a mutable one.
+Call `mutableCopy()` to create a mutable collection from an immutable one.
+
+```{r}
+items <- RSMutableArray$new()
+items$addObject(label)
+items$addObject(quantity)
+stopifnot(items$count() == 2L)
+stopifnot(identical(items$objectAtIndex(1L), label))
+
+saved_items <- items$copy()  # RSArray
+stopifnot(saved_items$isEqual(items))
+
+items$addObject(RSString$new("adding item"))
+stopifnot(saved_items$count() == 2L)
+```
+
+Dictionary keys and values, and Set elements, must also be robjc objects.
+Dictionary and Set use `hash()` and `isEqual()` to find objects.
+
+```{r}
+lookup <- RSMutableDictionary$new()
+lookup$setObjectForKey(quantity, RSString$new("quantity"))
+stopifnot(identical(lookup$objectForKey(RSString$new("quantity"))$value(), 3L))
+
+unique_items <- RSMutableSet$new()
+unique_items$addObject(RSString$new("A"))
+unique_items$addObject(RSString$new("A"))
+stopifnot(unique_items$count() == 1L)
+```
+
+When using a custom class as a Dictionary key or Set element, make equal objects return `TRUE` from `isEqual()` and the same value from `hash()`.
+Pass the calculated hash through `robjc_normalize_hash()` before returning it so the result is never a missing integer.
+
+To store a null value in a collection, insert `RSNull$null` explicitly.
+Collections do not automatically wrap R's `NULL`.
+
+## Saving and restoring objects
+
+`RSKeyedArchiver` creates an archive as an ordinary R list, including the reference relationships among objects.
+You can save that list as an RDS file. `RSKeyedUnarchiver$new()` loads the archive; `decode()` restores its objects.
+
+```{r}
+shared <- RSString$new("shared value")
+archive <- RSKeyedArchiver$new()$archive(list(shared, shared))
+path <- tempfile(fileext = ".rds")
+saveRDS(archive, path)
+
+decoder <- RSKeyedUnarchiver$new(readRDS(path))
+decoder$showAllClasses()  # Inspect classes that need manual resolution.
+restored <- decoder$decode()
+unlink(path)
+
+stopifnot(identical(restored[[1L]], restored[[2L]]))
+stopifnot(identical(restored[[1L]]$value(), "shared value"))
+```
+
+This example uses only standard robjc classes, so no class mapping is needed.
+To restore custom classes, inspect unresolved classes with `showAllClasses()`, assign their target classes with `setClasses()`, and then call `decode()`.
+See the [archiving guide](guide_10_Archiving.Rmd) for the full procedure.

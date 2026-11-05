@@ -18,6 +18,9 @@
 #' @param public,private R6 public and private members passed to [R6::R6Class()].
 #' @param parent_env Parent environment for the generated R6 methods.
 #' @param version One non-empty, non-missing class version without `_`.
+#' @param validate_protocols Whether to check that the class provides every
+#'   method required by its declared and inherited protocols. Defaults to
+#'   `TRUE`; set to `FALSE` to defer this check.
 #'
 #' @return The class generator, invisibly.
 #'
@@ -42,7 +45,8 @@ RSObjectClass <- function(
   public      = list(),   # list()
   private     = NULL,     # list()
   parent_env  = parent.frame(),
-  version     = "1.0.0"   # character
+  version     = "1.0.0",  # character
+  validate_protocols = TRUE
 ) {
   # Get real-super-meta-class
   super_generator <- force(super_class)
@@ -53,7 +57,10 @@ RSObjectClass <- function(
     "`super_class` must be a kind of RSObject." =
       robjc_isClass(super_generator),
     "Use `RSSingletonClass()` to declare a singleton subclass." =
-      !inherits(super_class, ROBJC_SINGLETON)
+      !inherits(super_class, ROBJC_SINGLETON),
+    "`validate_protocols` must be TRUE or FALSE." =
+      is.logical(validate_protocols) && length(validate_protocols) == 1L &&
+      !is.na(validate_protocols)
   )
   klass <- do.call(
     R6::R6Class,
@@ -75,6 +82,12 @@ RSObjectClass <- function(
     slot      = NULL,
     version   = version
   )
+  if (validate_protocols) {
+    missing <- protocol_validateContracts(klass)
+    if (length(missing))
+      stop(sprintf("Class `%s` is missing protocol methods: %s.",
+                   class_name, paste(missing, collapse = ", ")), call. = FALSE)
+  }
   robjc_install_new(klass)
   robjc_freeze_isa(klass)
   invisible(klass)

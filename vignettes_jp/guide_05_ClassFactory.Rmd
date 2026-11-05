@@ -1,0 +1,218 @@
+---
+title: "robjc クラスファクトリーのガイド"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{robjc クラスファクトリーのガイド}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# クラスファクトリーを選ぶ
+
+robjc は、R6 を基盤とするクラスとプロトコルを宣言するために、四つのファクトリー関数を用意しています。
+各関数はクラスのジェネレータを返します。
+通常のオブジェクトクラスとスカラークラスは `$new()` でインスタンスを作ります。
+シングルトンクラスは、宣言時に共有インスタンスも作ります。
+プロトコルは、クラスに求めるメソッド名を宣言するもので、インスタンスを作るためのクラスではありません。
+
+| 作りたいもの | ファクトリー | 宣言後に使うもの |
+|:--|:--|:--|
+| 通常のオブジェクトクラス | `RSObjectClass()` | `Class$new(...)` |
+| メソッドの要件を示すプロトコル | `RSProtocolClass()` | `Class` を準拠宣言に渡す |
+| 一つの共有インスタンス | `RSSingletonClass()` | `Class$instance` |
+| R の値を包むスカラークラス | `RSScalarClass()` | `Class$new(value)` と `Class$na` |
+
+このガイドでは、選択の目安、主な引数、生成されたクラスの振る舞いを順に説明します。
+インスタンスと継承の基礎は[クラスとオブジェクトのガイド](guide_02_Classes_Objects.Rmd)を参照してください。
+
+## 共通の引数とクラス識別
+
+`RSObjectClass()`、`RSSingletonClass()`、`RSScalarClass()` は、クラス名を `class_name`、親のジェネレータを `super_class` で受け取ります。
+`public` と `private` にはそれぞれのメンバー（変数・メソッド）を、`protocols` には準拠を宣言するプロトコルのジェネレータをリストで指定します。
+同名のメンバーを `public` と `private` の両方に置くことはできません。
+
+`RSProtocolClass()` は `protocol_name`、親プロトコルのリスト `super_protocols`、直接要求するメソッド名 `contract_methods` を受け取ります。
+
+四つのファクトリーには `parent_env` と `version` もあります。
+`parent_env` は通常、既定値のままで十分です。
+
+`version` の既定値は `"1.0.0"` で、文字列に `_` は使えません。
+
+インスタンスを作る三つのファクトリーには `validate_protocols` もあり、既定値は `TRUE` です。
+宣言したプロトコルの要求メソッドが不足すると、クラス宣言を停止します。
+検証を後回しにする場合は `FALSE` を指定します。詳しくは後の「プロトコル契約を検証する」で扱います。
+
+クラスの同一性は名前だけで決まらないため、同じ名前で二度宣言しても別のクラスとして扱われます。
+
+```{r}
+library(robjc)
+
+First <- RSObjectClass("GuideSameName")
+Second <- RSObjectClass("GuideSameName")
+stopifnot(!identical(First, Second))
+stopifnot(identical(First$new()$class(), First))
+```
+
+`RSObjectClass()` と `RSScalarClass()` の `super_class` にシングルトンクラスは指定できません。
+`RSScalarClass()` ではさらに、親が `RSScalar` またはそのサブクラスである必要があります。
+`RSSingletonClass()` の親には robjc のオブジェクトクラスを指定します。
+
+ここでの `version` はクラス識別情報に保存されます。
+パッケージからアーカイブ用にクラスを登録する仕組みは、ファクトリーの引数とは別です。[アーカイブのガイド](guide_10_Archiving.Rmd)を参照してください。
+
+## `RSObjectClass()`
+
+通常のクラスを作る最も基本的なファクトリーです。
+親を省略すると `RSObject` を継承します。
+`public` に公開メソッドと公開変数、`private` に内部状態を置きます。
+`$new()` は、まずインスタンスを生成し、次に `initialize(...)` を呼んで初期化し、その返り値を返します。
+`initialize()` を定義する場合は、**`super$initialize()` を呼び、利用できるインスタンスを返すときは `self` を返します。**
+R6 は `new()` が返り値を決定しているのに対し、robjc では `initialize()` が決定する点が異なります。
+
+```{r}
+Widget <- RSObjectClass(
+  "GuideWidget",
+  private = list(.label = NULL),
+  public = list(
+    initialize = function(label) {
+      super$initialize()
+      private$.label <- label
+      invisible(self)
+    },
+    label = function() private$.label
+  )
+)
+widget <- Widget$new("widget")
+stopifnot(identical(widget$label(), "widget"))
+stopifnot(identical(widget$class(), Widget))
+```
+
+
+## `RSProtocolClass()`
+
+プロトコルに記録するのは要求メソッド名であり、その実装ではありません。
+`super_protocols` で親プロトコルから要件を継承できます。
+クラスは `protocols` にプロトコルのジェネレータを渡して準拠を宣言します。
+必要なメソッドは、そのクラスか親クラスで実装します。
+`conformsTo()` はインスタンスが準拠を宣言しているかを調べるもので、呼び出し時に実装を再検証しません。
+
+```{r}
+Labeled <- RSProtocolClass(
+  "GuideLabeled",
+  contract_methods = "label"
+)
+stopifnot(is.null(Labeled$new))
+
+LabeledWidget <- RSObjectClass(
+  "GuideLabeledWidget",
+  protocols = list(Labeled),
+  public = list(label = function() "labeled widget")
+)
+stopifnot(LabeledWidget$new()$conformsTo(Labeled))
+stopifnot(identical(protocol_validateContracts(LabeledWidget), character(0)))
+```
+
+プロトコルの継承や準拠宣言は[プロトコルのガイド](guide_03_Protocols.Rmd)で扱います。
+
+## プロトコル契約を検証する
+
+`RSObjectClass()`、`RSSingletonClass()`、`RSScalarClass()` は、`validate_protocols = TRUE` のとき、クラス宣言中に `protocol_validateContracts()` で要求メソッドの有無を調べます。
+不足があれば、クラスを返さずエラーにします。次の例では `label()` がないため宣言に失敗します。
+
+```{r}
+failure <- tryCatch(
+  RSObjectClass("Guide05MissingLabel", protocols = list(Labeled)),
+  error = identity
+)
+stopifnot(inherits(failure, "error"))
+stopifnot(grepl("missing protocol methods: label", conditionMessage(failure), fixed = TRUE))
+```
+
+親クラスにある公開メソッドも契約の履行に使えます。
+また、プロトコルが別のプロトコルを継承している場合は、その親の要求も検証します。
+検査するのは**公開インスタンスメソッドの名前**で、引数、返り値、実際の振る舞いまでは確かめません。
+
+```{r}
+LabeledParent <- RSObjectClass(
+  "Guide05LabeledParent",
+  public = list(label = function() "from parent")
+)
+LabeledChild <- RSObjectClass(
+  "Guide05LabeledChild",
+  super_class = LabeledParent,
+  protocols = list(Labeled)
+)
+stopifnot(identical(protocol_validateContracts(LabeledChild), character(0)))
+```
+
+`validate_protocols = FALSE` は、実装を後回しにする場合の指定です。
+この設定でも準拠宣言は残ります。`protocol_validateContracts(Class)` にクラスジェネレータを渡すと、不足するメソッド名の文字ベクトルが返り、揃っていれば `character(0)` になります。
+検証するだけでは不足は解消しないため、利用前に必要なメソッドを備えたクラスを用意します。
+
+```{r}
+DeferredWidget <- RSObjectClass(
+  "Guide05DeferredWidget",
+  protocols = list(Labeled),
+  validate_protocols = FALSE
+)
+stopifnot(DeferredWidget$new()$conformsTo(Labeled))
+stopifnot(identical(protocol_validateContracts(DeferredWidget), "label"))
+```
+
+三つのオブジェクトクラスファクトリーはいずれも、この検証を既定で行います。
+`RSSingletonClass()` では共有インスタンスの作成前に確認します。
+`RSScalarClass()` では通常クラスと NA 用の子クラスを確認します。
+`RSProtocolClass()` は契約を**宣言する側**のファクトリーなので、`validate_protocols` 引数を持ちません。
+
+## `RSSingletonClass()`
+
+クラスの宣言中に `$new()` を呼び、共有インスタンスを作ります。
+このため、**独自の `initialize()` を定義するなら引数なしで呼べて、`self` を返せる必要があります。**
+
+```{r}
+Registry <- RSSingletonClass("GuideRegistry")
+stopifnot(identical(Registry$instance$class(), Registry))
+stopifnot(identical(Registry$new(), Registry$instance))
+```
+
+宣言後の `$new()` は初期化を再実行せず、共有インスタンスを返します。
+シングルトンに対する `robjc_allocate()` も同じインスタンスを返します。
+通常は `Class$instance` を使って共有する意図を明示します。
+`RSNull` もこのファクトリーで宣言され、共有オブジェクトを `RSNull$null` として公開しています。
+共有インスタンスの用途と振る舞いは[シングルトンのガイド](guide_04_Singleton.Rmd)を参照してください。
+
+## `RSScalarClass()`
+
+`RSScalar` を継承するクラスと、その NA 用の子クラスを作ります。
+対象の型に合った長さ 1 の欠損値を `na_value` に指定します。
+通常クラスには共有 NA インスタンスが `Class$na` として用意されます。
+
+独自の `initialize(val)` を定義する場合、NA 子クラスの生成時にも `na_value` を受け取れるようにします。
+通常クラスの `$new(NA)` から共有 NA インスタンスを返すには、`super$initialize(val)` の返り値をそのまま返します。
+
+```{r}
+Count <- RSScalarClass(
+  "GuideCount",
+  na_value = NA_integer_,
+  public = list(initialize = function(val) {
+    if (!is.integer(val)) stop("Expected an integer scalar.")
+    super$initialize(val)
+  })
+)
+stopifnot(identical(Count$new(2L)$value(), 2L))
+stopifnot(identical(Count$new(NA_integer_), Count$na))
+stopifnot(identical(Count$na$value(), NA_integer_))
+stopifnot(identical(Count$na$class()$classname, "GuideCountNA"))
+```
+
+名前が `RS` で始まるクラスの NA 子クラスは `RSNA...`、それ以外は名前の末尾に `NA` を付けます。
+既定では NA 子クラスはシングルトンで、その `$new()` は使えません。`Class$na` を利用します。
+`na_singleton = FALSE` にすると、`RSFactor` のように欠損値ごとにレベルや順序などの情報を保持できます。
+値の包み方と `NULL`・型付き NA の違いは[値とコピーのガイド](guide_06_Values_Copying.Rmd)を参照してください。
+
+## ファクトリー選択の確認項目
+
+必要なものが「要求メソッドの宣言」なら `RSProtocolClass()`、「一つの共有オブジェクト」なら `RSSingletonClass()` を選びます。
+R の長さ 1 の値を包むクラスなら `RSScalarClass()`、それ以外の通常のオブジェクトなら `RSObjectClass()` が出発点です。
+
+ファクトリーが内部で `isa` を付けたり、`$new()` を調整したりする仕組みは、[クラスファクトリーの技術ガイド](tech_04_ClassFactory.Rmd)で扱います。

@@ -1,0 +1,164 @@
+---
+title: "Technical Note: isa and Class Identity"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Technical Note: isa and Class Identity}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# What `isa` represents
+
+This note (01) explains how `isa` records class identity and inheritance.
+Later technical notes cover the allocation path and factory implementation.
+
+In robjc, `isa` is an internal environment recording a class's identity and what it inherits.
+It also stores protocol declarations, versions, and singleton information that are difficult to express with an R6 generator alone.
+`isa` does not replace R6 inheritance. It records metadata about that inheritance for the robjc runtime to inspect.
+
+Despite the similar name, `isa` is not R's `class()` attribute.
+It refers to the `robjc_isa` environment attached to a generator.
+Application code normally obtains class information through instance methods such as `class()`, `isKindOf()`, and `conformsTo()` instead of accessing or changing this environment directly.
+
+## Why attach `isa`?
+
+An R6 instance has an S3 `class()` value, but that value does not give robjc the generator object itself.
+R's lazy evaluation also means a newly defined R6 generator may hold its parent as an unevaluated expression rather than a reference to the parent generator.
+This makes reference based identification of parent and abstract classes difficult.
+
+```{r}
+R6Parent <- R6::R6Class("Parent", inherit = NULL)
+R6Child  <- R6::R6Class("Child",  inherit = R6Parent)
+class(R6Child)          # R6ClassGenerator
+class(R6Child$inherit)  # "name"
+typeof(R6Child$inherit) # "symbol"
+```
+
+robjc calls `R6Class()` through its factory APIs so it can capture the returned generator.
+The factory also calls `force(super_class)` to identify the parent generator.
+`robjc_isa$class` holds the new generator, and `robjc_isa$super` holds its parent.
+The factory therefore establishes the inheritance relationship at class declaration time, with `robjc_make_isa()` recording it.
+
+## Share one record between generator and instances
+
+A class generator has `Class$robjc_isa`.
+Its R6 `private_fields$.__isa` holds the **same environment**, which instances created from the class access through `instance$.__enclos_env__$private$.__isa`.
+The record is shared rather than copied, as `identical()` confirms.
+
+```{r}
+library(robjc)
+
+Example <- RSObjectClass("IsaGuideExample",
+  public = list(
+    initialize = function() {
+      super$initialize()
+      invisible(self)
+    }
+  )
+)
+object <- Example$new()
+
+stopifnot(identical(Example$robjc_isa, Example$private_fields$.__isa))
+stopifnot(identical(
+  object$.__enclos_env__$private$.__isa,
+  Example$robjc_isa
+))
+stopifnot(identical(object$class(), Example))
+```
+
+This guide accesses `.__isa` and `.__enclos_env__` to explain the implementation.
+Application code should use public methods instead of following the internal structure.
+
+## The five fields of an `isa` record
+
+`robjc_isa` has bindings with the following names.
+For an ordinary class, `slot` is `NULL`; other kinds of classes store different values there.
+
+| Field | Stored information |
+|:--|:--|
+| `class` | Generator that owns this record |
+| `super` | Parent generator, or `NULL` for a root class |
+| `protocols` | Declared protocols; object classes also record parent declarations |
+| `slot` | Additional information according to class kind |
+| `version` | Class or protocol version string |
+
+```{r}
+isa <- Example$robjc_isa
+stopifnot(identical(isa$class, Example))
+stopifnot(identical(isa$super, RSObject))
+stopifnot(is.list(isa$protocols))
+stopifnot(is.null(isa$slot))
+stopifnot(identical(isa$version, "1.0.0"))
+stopifnot(identical(robjc_inheritChain(isa), list(Example, RSObject)))
+```
+
+`super` records only the immediate parent.
+`robjc_inheritChain()` follows parent links and returns generators from the current class through the root.
+
+## Fields that differ by class kind
+
+The `isa` of an ordinary object class has the S3 markers `RSObjectIsA` and `RSIsA`.
+A protocol's `isa` has `RSProtocolIsA` and `RSIsA`.
+These markers differ from the S3 class of the generator itself.
+
+```{r}
+Drawable <- RSProtocolClass("IsaGuideDrawable", contract_methods = "draw")
+stopifnot(inherits(Example$robjc_isa, "RSObjectIsA"))
+stopifnot(inherits(Drawable$robjc_isa, "RSProtocolIsA"))
+stopifnot(identical(Drawable$robjc_isa$slot, "draw"))
+stopifnot(identical(Drawable$robjc_isa$super, RSProtocol))
+```
+
+The meaning of `slot` depends on the factory.
+
+| Kind | Contents of `slot` |
+|:--|:--|
+| Ordinary `RSObjectClass()` | `NULL` |
+| `RSProtocolClass()` | Method names required directly by that protocol |
+| `RSSingletonClass()` | Shared instance |
+| `RSScalarClass()` | Corresponding shared NA instance |
+
+```{r}
+Shared <- RSSingletonClass("IsaGuideShared")
+stopifnot(identical(Shared$robjc_isa$slot, Shared$instance))
+stopifnot(identical(RSNumber$robjc_isa$slot, RSNumber$na))
+```
+
+A scalar's NA companion class also has its own `isa`.
+Because an NA companion need not be a singleton, as with `RSFactor`, storing a shared instance in `slot` and always returning one instance from `$new()` are distinct behaviors.
+
+## How the runtime uses `isa`
+
+`isa` supports the following operations:
+
+- `robjc_isMetaClass()`, `robjc_isClass()`, and `robjc_isProtocol()` classify generators using their markers and `isa`.
+- `robjc_isInstance()` inspects an instance's private `.__isa` to identify robjc objects.
+- `object$class()` returns `isa$class`, while `isKindOf()` follows parents with `robjc_inheritChain()`.
+- `conformsTo()` inspects protocol declarations along the inheritance chain; it does not check method implementations.
+- Archiving uses class and version information to map saved classes during restoration.
+
+```{r}
+stopifnot(robjc_isMetaClass(Example))
+stopifnot(robjc_isClass(Example))
+stopifnot(robjc_isProtocol(Drawable))
+stopifnot(robjc_isInstance(object))
+stopifnot(object$isKindOf(RSObject))
+stopifnot(!object$conformsTo(Drawable))
+```
+
+## Creation and locking
+
+For an ordinary class, the factory creates the R6 generator, attaches its record with `robjc_make_isa()`, and locks the environment and generator bindings with `robjc_freeze_isa()`.
+`robjc_make_singleton_isa()` performs additional setup for singletons, while `protocol_make_isa()` does so for protocols.
+Root generators such as `RSObject` and `RSProtocol` are configured during package initialization.
+
+```{r}
+stopifnot(environmentIsLocked(Example$robjc_isa))
+stopifnot(bindingIsLocked("robjc_isa", Example))
+stopifnot(bindingIsLocked("class", Example$robjc_isa))
+```
+
+For package defined classes, binding locks may be lost after loading from R's lazy-load database; `.onLoad()` reapplies them.
+These locks protect class identity metadata at runtime. They do not write to an archive or other persistent storage.
+
+This guide covers the internal design. For public API usage, see the [classes and objects guide](guide_02_Classes_Objects.Rmd) and the [protocols guide](guide_03_Protocols.Rmd).

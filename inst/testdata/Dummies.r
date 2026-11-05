@@ -7,7 +7,7 @@ NestedDummy <- RSObjectClass(
   version = "1.0",
   public = list(
     initialize = function(child) {
-      stopifnot(robjc_isRobjcObject(child))
+      stopifnot(robjc_isInstance(child))
       super$initialize()
       private$.child <- child
       invisible(self)

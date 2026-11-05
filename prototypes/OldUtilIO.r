@@ -167,7 +167,7 @@ robjc_encode_and_save <- function(objects,
   #todo RObjC object を通常の list 内に入れて保存すると、このループは list を root と見なさず、内側の object を登録しない。復元後は isKindOf(現行クラス) が FALSE になる。対応するコンテナ範囲を決める。
   #? # 対応範囲を通常の list に広げるなら、入れ子の RObjC object を探索して encodeObject() に渡す。広げないなら保存前に検出して拒否し、制約を文書化する。
   for (obj in objects)
-    if (robjc_isRobjcObject(obj))
+    if (robjc_isInstance(obj))
       encoder$encodeObject(obj)
   metadata <- encoder$lockInstance()
   .prepare_native_collections_for_serialization(metadata)
@@ -381,7 +381,7 @@ robjc_read_rds <- function(file,
   std_map <- .standard_robjc_class_dictionary()
   # --- STEP 2: Merge std_map and class_map ---
   if (!is.null(class_map)) {
-    if (!robjc_isRobjcObject(class_map) || !class_map$isKindOf(RSMutableDictionary))
+    if (!robjc_isInstance(class_map) || !class_map$isKindOf(RSMutableDictionary))
       stop("`class_map` must be a dictionary.", call. = FALSE)
     std_map <- std_map$dictionaryByMergingWithDictionary(class_map)
   }
@@ -454,7 +454,7 @@ robjc_load <- function(file,
     std_map <- .standard_robjc_class_dictionary()
     # Custom class dictionary
     if (!is.null(class_map)) {
-      if (!robjc_isRobjcObject(class_map) || !class_map$isKindOf(RSMutableDictionary))
+      if (!robjc_isInstance(class_map) || !class_map$isKindOf(RSMutableDictionary))
         stop("`class_map` must be a dictionary.", call. = FALSE)
       std_map <- std_map$dictionaryByMergingWithDictionary(class_map)
     }

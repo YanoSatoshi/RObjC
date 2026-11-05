@@ -2,48 +2,24 @@
 % Please edit documentation in R/RSMutableDataFrame.r
 \name{RSMutableDataFrame}
 \alias{RSMutableDataFrame}
-\title{RSMutableDataFrame: Mutable Data Frame Object with Key Column Semantics}
+\title{RSMutableDataFrame: Mutable Data Frame Wrapper}
 \description{
-\code{RSMutableDataFrame} wraps a \code{tibble::tibble} as an \code{RSObject}, providing controlled access
-to its columns, rows, and key structure. It allows for safe manipulation and hashing of
-tabular data within the RS framework, especially in environments that require
-immutable tracking or serialization of row-keyed structures.
+\code{RSMutableDataFrame} extends \link{RSDataFrame} with methods to replace its stored
+tibble or a column. It inherits read access, exact equality, coarse
+structure-based hashing, and keyed archive support from its parent.
 
-The internal data frame is always stored as a \code{tibble}, and key columns are used for
-hashing and equality comparisons.
+\code{copy()} creates an immutable \link{RSDataFrame}; \code{mutableCopy()} is inherited
+and creates a separate mutable wrapper.
 }
-\section{Core Features}{
-
-\itemize{
-\item Column access and mutation
-\item Customizable key columns
-\item Structural equality and hash support
-\item Conversion to immutable \code{RSDataFrame}
-}
-}
-
-\section{Super class}{
-\code{\link[robjc:RSObject]{RSObject}} -> \code{RSMutableDataFrame}
+\section{Super classes}{
+\code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSDataFrame]{RSDataFrame}} -> \code{RSMutableDataFrame}
 }
 \section{Methods}{
 \subsection{Public methods}{
   \itemize{
-    \item \href{#method-RSMutableDataFrame-initialize}{\code{RSMutableDataFrame$new()}}
-    \item \href{#method-RSMutableDataFrame-encodeWithCoder}{\code{RSMutableDataFrame$encodeWithCoder()}}
-    \item \href{#method-RSMutableDataFrame-initWithCoder}{\code{RSMutableDataFrame$initWithCoder()}}
-    \item \href{#method-RSMutableDataFrame-getData}{\code{RSMutableDataFrame$getData()}}
     \item \href{#method-RSMutableDataFrame-setData}{\code{RSMutableDataFrame$setData()}}
-    \item \href{#method-RSMutableDataFrame-getColumn}{\code{RSMutableDataFrame$getColumn()}}
     \item \href{#method-RSMutableDataFrame-setColumn}{\code{RSMutableDataFrame$setColumn()}}
-    \item \href{#method-RSMutableDataFrame-nrow}{\code{RSMutableDataFrame$nrow()}}
-    \item \href{#method-RSMutableDataFrame-ncol}{\code{RSMutableDataFrame$ncol()}}
-    \item \href{#method-RSMutableDataFrame-colnames}{\code{RSMutableDataFrame$colnames()}}
-    \item \href{#method-RSMutableDataFrame-rownames}{\code{RSMutableDataFrame$rownames()}}
-    \item \href{#method-RSMutableDataFrame-keyColumns}{\code{RSMutableDataFrame$keyColumns()}}
-    \item \href{#method-RSMutableDataFrame-isEqual}{\code{RSMutableDataFrame$isEqual()}}
-    \item \href{#method-RSMutableDataFrame-hash}{\code{RSMutableDataFrame$hash()}}
     \item \href{#method-RSMutableDataFrame-copy}{\code{RSMutableDataFrame$copy()}}
-    \item \href{#method-RSMutableDataFrame-mutableCopy}{\code{RSMutableDataFrame$mutableCopy()}}
   }
 }
 \if{html}{\out{<details><summary>Inherited methods</summary>
@@ -57,98 +33,27 @@ hashing and equality comparisons.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="colnames"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-colnames'><code>RSDataFrame$colnames()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="encodeWithCoder"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-encodeWithCoder'><code>RSDataFrame$encodeWithCoder()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="getColumn"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-getColumn'><code>RSDataFrame$getColumn()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="getData"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-getData'><code>RSDataFrame$getData()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="hash"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-hash'><code>RSDataFrame$hash()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="initWithCoder"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-initWithCoder'><code>RSDataFrame$initWithCoder()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="initialize"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-initialize'><code>RSDataFrame$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="isEqual"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-isEqual'><code>RSDataFrame$isEqual()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="mutableCopy"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-mutableCopy'><code>RSDataFrame$mutableCopy()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="ncol"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-ncol'><code>RSDataFrame$ncol()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="nrow"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-nrow'><code>RSDataFrame$nrow()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="rownames"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-rownames'><code>RSDataFrame$rownames()</code></a></span></li>
 </ul>
 </details>}}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDataFrame-initialize"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-initialize}{}}}
-\subsection{\code{RSMutableDataFrame$new()}}{
-  Initializes the object with a tibble and a vector of key column names.
-If \code{key_columns} is empty, all atomic columns are selected as keys.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableDataFrame$new(df = data.frame(), key_columns = character())}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{df}}{A \code{data.frame} or \code{tibble}.}
-      \item{\code{key_columns}}{Character vector of key column names.}
-    }
-    \if{html}{\out{</div>}}
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDataFrame-encodeWithCoder"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-encodeWithCoder}{}}}
-\subsection{\code{RSMutableDataFrame$encodeWithCoder()}}{
-  Encodes the tibble and its chosen key columns. The tibble
-is a base R serialization value.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableDataFrame$encodeWithCoder(coder)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{coder}}{An \link{RSKeyedArchiver} recording keyed values.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    \code{self}, invisibly.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDataFrame-initWithCoder"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-initWithCoder}{}}}
-\subsection{\code{RSMutableDataFrame$initWithCoder()}}{
-  Restores the tibble and key columns without calling
-\code{initialize()}. Also serves immutable \link{RSDataFrame} subclasses.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableDataFrame$initWithCoder(coder)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{coder}}{An \link{RSKeyedUnarchiver} reading keyed values.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    \code{self}, invisibly.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDataFrame-getData"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-getData}{}}}
-\subsection{\code{RSMutableDataFrame$getData()}}{
-  Returns the internal tibble object.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableDataFrame$getData()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A \code{tibble::tibble} object.
-  }
-}
-
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableDataFrame-setData"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableDataFrame-setData}{}}}
 \subsection{\code{RSMutableDataFrame$setData()}}{
-  Replaces the entire data frame. The input is converted to a tibble.
+  Replaces the entire data frame, converting it to a tibble.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableDataFrame$setData(df)}
@@ -164,32 +69,10 @@ is a base R serialization value.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDataFrame-getColumn"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-getColumn}{}}}
-\subsection{\code{RSMutableDataFrame$getColumn()}}{
-  Returns the values stored in the specified column.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableDataFrame$getColumn(name)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{name}}{Column name.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A vector of column values.
-  }
-}
-
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableDataFrame-setColumn"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableDataFrame-setColumn}{}}}
 \subsection{\code{RSMutableDataFrame$setColumn()}}{
-  Replaces a column's contents with a new vector of values.
+  Replaces a column's contents with new values.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableDataFrame$setColumn(name, values)}
@@ -206,155 +89,18 @@ is a base R serialization value.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDataFrame-nrow"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-nrow}{}}}
-\subsection{\code{RSMutableDataFrame$nrow()}}{
-  Returns the number of rows in the data frame.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableDataFrame$nrow()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    Integer.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDataFrame-ncol"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-ncol}{}}}
-\subsection{\code{RSMutableDataFrame$ncol()}}{
-  Returns the number of columns.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableDataFrame$ncol()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    Integer.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDataFrame-colnames"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-colnames}{}}}
-\subsection{\code{RSMutableDataFrame$colnames()}}{
-  Returns the column names of the data frame.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableDataFrame$colnames()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    Character vector.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDataFrame-rownames"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-rownames}{}}}
-\subsection{\code{RSMutableDataFrame$rownames()}}{
-  Returns the row names of the data frame.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableDataFrame$rownames()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    Character vector.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDataFrame-keyColumns"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-keyColumns}{}}}
-\subsection{\code{RSMutableDataFrame$keyColumns()}}{
-  Returns the names of the key columns used for hashing and comparison.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableDataFrame$keyColumns()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    Character vector.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDataFrame-isEqual"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-isEqual}{}}}
-\subsection{\code{RSMutableDataFrame$isEqual()}}{
-  Compares this object to another \code{RSMutableDataFrame}.
-The comparison checks column names, row count, and full data equality including attributes.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableDataFrame$isEqual(other)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{other}}{Another \code{RSMutableDataFrame}.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    \code{TRUE} if equal; \code{FALSE} for unequal or incompatible inputs.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDataFrame-hash"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-hash}{}}}
-\subsection{\code{RSMutableDataFrame$hash()}}{
-  Computes a hash based on the contents of the key columns and metadata such as row count and column names.
-The final result passes through \code{\link[=robjc_normalize_hash]{robjc_normalize_hash()}}.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableDataFrame$hash()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    One non-missing integer hash value.
-  }
-}
-
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableDataFrame-copy"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableDataFrame-copy}{}}}
 \subsection{\code{RSMutableDataFrame$copy()}}{
-  Returns an immutable copy of the data frame as an \code{RSDataFrame}.
-
-This performs a shallow copy: the underlying tibble is shared,
-while the wrapper class is replaced with its immutable counterpart.
-
-This method is typically used to convert a mutable data frame to its immutable form.
+  Returns a new immutable wrapper around the same tibble.
+R's copy-on-modify semantics separate the stored data on later edits.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableDataFrame$copy()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A new \code{RSDataFrame} instance.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDataFrame-mutableCopy"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-mutableCopy}{}}}
-\subsection{\code{RSMutableDataFrame$mutableCopy()}}{
-  Returns a mutable copy of the data frame as an \code{RSMutableDataFrame}.
-
-This performs a shallow copy: the underlying tibble is reused,
-while the wrapper is recreated. If the original is already mutable,
-returning \code{self} would be acceptable depending on context.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableDataFrame$mutableCopy()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A new \code{RSMutableDataFrame} instance.
+    A new \link{RSDataFrame} instance.
   }
 }
 

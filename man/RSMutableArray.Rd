@@ -4,41 +4,26 @@
 \alias{RSMutableArray}
 \title{RSMutableArray: Ordered, Mutable Object Container}
 \description{
-\code{RSMutableArray} is a dynamically resizable, ordered container that stores
-RObjC objects, class generators, and protocol generators. It allows indexed access and supports
-addition, insertion, replacement, and removal of elements.
-Added, inserted, and replacement elements follow the same value rule.
-Names on an input list are discarded; elements are addressed by position.
-A supplied hash operator must hash equal element sequences consistently and
-remain stable while the array is used as a key or set member.
+\code{RSMutableArray} extends \link{RSArray} with addition, insertion, replacement,
+and removal of elements. It shares the parent's list storage, validation,
+searching, comparison, hashing, and keyed coding methods.
 
-Elements are retained by reference. \code{copy()} and \code{mutableCopy()} create new
-containers that share their element objects with the source array.
+Elements are retained by reference. \code{copy()} creates an independent
+immutable \link{RSArray} container with the same element references and hash
+operator. \code{mutableCopy()} creates an independent mutable container.
 }
 \section{Core Methods}{
 
 \itemize{
-\item \code{addObject(obj)} — Append an object
-\item \code{insertObjectAtIndex(obj, index)} — Insert at specific position
-\item \code{replaceObjectAtIndex(obj, index)} — Overwrite an element
-\item \code{removeObjectAtIndex(index)} — Delete element at index
-\item \code{removeAllObjects()} — Clear entire array
-\item \code{objectAtIndex(index)} — Retrieve object by index
-\item \code{asList()} — Return list of elements
-\item \code{copy()} — Return immutable copy (RSArray)
-\item \code{mutableCopy()} — Return new mutable copy
+\item \code{addObject(obj)} — Append an object.
+\item \code{insertObjectAtIndex(obj, index)} — Insert at a one-based position.
+\item \code{replaceObjectAtIndex(obj, index)} — Replace an element.
+\item \code{removeObjectAtIndex(index)} and \code{removeAllObjects()} — Remove elements.
 }
 }
 
-\examples{
-arr <- RSMutableArray$new()
-arr$addObject(RSString_withValue("a"))
-arr$insertObjectAtIndex(RSString_withValue("b"), 1)
-arr$objectAtIndex(1)$value()  # "b"
-
-}
-\section{Super class}{
-\code{\link[robjc:RSObject]{RSObject}} -> \code{RSMutableArray}
+\section{Super classes}{
+\code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSArray]{RSArray}} -> \code{RSMutableArray}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -49,25 +34,7 @@ arr$objectAtIndex(1)$value()  # "b"
     \item \href{#method-RSMutableArray-replaceObjectAtIndex}{\code{RSMutableArray$replaceObjectAtIndex()}}
     \item \href{#method-RSMutableArray-removeObjectAtIndex}{\code{RSMutableArray$removeObjectAtIndex()}}
     \item \href{#method-RSMutableArray-removeAllObjects}{\code{RSMutableArray$removeAllObjects()}}
-    \item \href{#method-RSMutableArray-objectAtIndex}{\code{RSMutableArray$objectAtIndex()}}
-    \item \href{#method-RSMutableArray-containsObject}{\code{RSMutableArray$containsObject()}}
-    \item \href{#method-RSMutableArray-indexOfObject}{\code{RSMutableArray$indexOfObject()}}
-    \item \href{#method-RSMutableArray-allObjects}{\code{RSMutableArray$allObjects()}}
-    \item \href{#method-RSMutableArray-asList}{\code{RSMutableArray$asList()}}
-    \item \href{#method-RSMutableArray-allObjectsAsList}{\code{RSMutableArray$allObjectsAsList()}}
-    \item \href{#method-RSMutableArray-objectsForEncoding}{\code{RSMutableArray$objectsForEncoding()}}
-    \item \href{#method-RSMutableArray-encodeWithCoder}{\code{RSMutableArray$encodeWithCoder()}}
-    \item \href{#method-RSMutableArray-initWithCoder}{\code{RSMutableArray$initWithCoder()}}
-    \item \href{#method-RSMutableArray-count}{\code{RSMutableArray$count()}}
     \item \href{#method-RSMutableArray-copy}{\code{RSMutableArray$copy()}}
-    \item \href{#method-RSMutableArray-mutableCopy}{\code{RSMutableArray$mutableCopy()}}
-    \item \href{#method-RSMutableArray-hash}{\code{RSMutableArray$hash()}}
-    \item \href{#method-RSMutableArray-hashesOfObjects}{\code{RSMutableArray$hashesOfObjects()}}
-    \item \href{#method-RSMutableArray-hashOperator}{\code{RSMutableArray$hashOperator()}}
-    \item \href{#method-RSMutableArray-description}{\code{RSMutableArray$description()}}
-    \item \href{#method-RSMutableArray-print}{\code{RSMutableArray$print()}}
-    \item \href{#method-RSMutableArray-isEqual}{\code{RSMutableArray$isEqual()}}
-    \item \href{#method-RSMutableArray-compare}{\code{RSMutableArray$compare()}}
   }
 }
 \if{html}{\out{<details><summary>Inherited methods</summary>
@@ -79,17 +46,33 @@ arr$objectAtIndex(1)$value()  # "b"
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isKindOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isKindOf'><code>RSObject$isKindOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="allObjects"><a href='../../robjc/html/RSArray.html#method-RSArray-allObjects'><code>RSArray$allObjects()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="allObjectsAsList"><a href='../../robjc/html/RSArray.html#method-RSArray-allObjectsAsList'><code>RSArray$allObjectsAsList()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="asList"><a href='../../robjc/html/RSArray.html#method-RSArray-asList'><code>RSArray$asList()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="compare"><a href='../../robjc/html/RSArray.html#method-RSArray-compare'><code>RSArray$compare()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="containsObject"><a href='../../robjc/html/RSArray.html#method-RSArray-containsObject'><code>RSArray$containsObject()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="count"><a href='../../robjc/html/RSArray.html#method-RSArray-count'><code>RSArray$count()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="description"><a href='../../robjc/html/RSArray.html#method-RSArray-description'><code>RSArray$description()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="encodeWithCoder"><a href='../../robjc/html/RSArray.html#method-RSArray-encodeWithCoder'><code>RSArray$encodeWithCoder()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="hash"><a href='../../robjc/html/RSArray.html#method-RSArray-hash'><code>RSArray$hash()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="hashOperator"><a href='../../robjc/html/RSArray.html#method-RSArray-hashOperator'><code>RSArray$hashOperator()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="hashesOfObjects"><a href='../../robjc/html/RSArray.html#method-RSArray-hashesOfObjects'><code>RSArray$hashesOfObjects()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="indexOfObject"><a href='../../robjc/html/RSArray.html#method-RSArray-indexOfObject'><code>RSArray$indexOfObject()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="initWithCoder"><a href='../../robjc/html/RSArray.html#method-RSArray-initWithCoder'><code>RSArray$initWithCoder()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="isEqual"><a href='../../robjc/html/RSArray.html#method-RSArray-isEqual'><code>RSArray$isEqual()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="mutableCopy"><a href='../../robjc/html/RSArray.html#method-RSArray-mutableCopy'><code>RSArray$mutableCopy()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="objectAtIndex"><a href='../../robjc/html/RSArray.html#method-RSArray-objectAtIndex'><code>RSArray$objectAtIndex()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="objectsForEncoding"><a href='../../robjc/html/RSArray.html#method-RSArray-objectsForEncoding'><code>RSArray$objectsForEncoding()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="print"><a href='../../robjc/html/RSArray.html#method-RSArray-print'><code>RSArray$print()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableArray-initialize"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableArray-initialize}{}}}
 \subsection{\code{RSMutableArray$new()}}{
-  Constructs a new mutable array instance. Optionally takes a list of RObjC values
-to initialize the array.
+  Constructs a mutable array from an optional list of RObjC values.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableArray$new(objects = list(), hash_operator = RSHashOperator$instance)}
@@ -98,8 +81,7 @@ to initialize the array.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{objects}}{A list of RObjC objects, class generators, or protocol generators
-(default: empty). List names are discarded.}
+      \item{\code{objects}}{A list of RObjC objects, class generators, or protocol generators.}
       \item{\code{hash_operator}}{An RObjC object providing \code{hashFromObjects()} and
 \code{hashesOfEachObject()}.}
     }
@@ -217,377 +199,17 @@ The remaining elements are shifted to fill the gap.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-objectAtIndex"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-objectAtIndex}{}}}
-\subsection{\code{RSMutableArray$objectAtIndex()}}{
-  Returns the object stored at the specified index.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$objectAtIndex(index)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{index}}{One-based, finite whole-number position to read.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    The stored RObjC object, class generator, or protocol generator.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-containsObject"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-containsObject}{}}}
-\subsection{\code{RSMutableArray$containsObject()}}{
-  Checks whether the specified object is present in the array.
-Matching is performed using the \code{isEqual()} method.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$containsObject(obj)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{obj}}{An RObjC object, class generator, or protocol generator to search for.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    \code{TRUE} if the object is found; otherwise \code{FALSE}.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-indexOfObject"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-indexOfObject}{}}}
-\subsection{\code{RSMutableArray$indexOfObject()}}{
-  Returns the 1-based index of the first occurrence of the given object.
-Comparison is done via \code{isEqual()}.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$indexOfObject(obj)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{obj}}{An RObjC object, class generator, or protocol generator to locate.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    An integer index if found; otherwise \code{as.integer(NA)}.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-allObjects"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-allObjects}{}}}
-\subsection{\code{RSMutableArray$allObjects()}}{
-  Returns an immutable \link{RSArray} containing the same element references.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$allObjects()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    An \code{RSArray}.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-asList"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-asList}{}}}
-\subsection{\code{RSMutableArray$asList()}}{
-  Returns the contents of the array as a standard R list of stored elements.
-Elements remain RObjC objects, class generators, or protocol generators.
-Used for inspection, serialization, or iteration.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$asList()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A list of stored elements.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-allObjectsAsList"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-allObjectsAsList}{}}}
-\subsection{\code{RSMutableArray$allObjectsAsList()}}{
-  Returns the same element references as \code{asList()} in a standard R list.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$allObjectsAsList()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A list of stored elements.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-objectsForEncoding"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-objectsForEncoding}{}}}
-\subsection{\code{RSMutableArray$objectsForEncoding()}}{
-  Returns the RObjC instance elements for encoding.
-Class and protocol generators remain R values and are not traversed as
-child objects by the encoder.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$objectsForEncoding()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A list of RObjC instance elements in array order.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-encodeWithCoder"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-encodeWithCoder}{}}}
-\subsection{\code{RSMutableArray$encodeWithCoder()}}{
-  Encodes the ordered elements and, when non-default, the
-hash operator. The coder preserves repeated element references.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$encodeWithCoder(coder)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{coder}}{An \link{RSKeyedArchiver} recording keyed values.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    \code{self}, invisibly.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-initWithCoder"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-initWithCoder}{}}}
-\subsection{\code{RSMutableArray$initWithCoder()}}{
-  Restores the ordered elements and hash operator without
-calling \code{initialize()}. Also serves immutable \link{RSArray} subclasses.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$initWithCoder(coder)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{coder}}{An \link{RSKeyedUnarchiver} reading keyed values.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    \code{self}, invisibly.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-count"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-count}{}}}
-\subsection{\code{RSMutableArray$count()}}{
-  Returns the number of objects currently stored in the array.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$count()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    An integer count.
-  }
-}
-
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableArray-copy"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableArray-copy}{}}}
 \subsection{\code{RSMutableArray$copy()}}{
-  Returns an immutable copy of the array (i.e., an \code{RSArray} instance).
-This performs a shallow copy: the container is newly created,
-but the elements are shared (not deeply duplicated).
-
-This method is typically used to convert a mutable array to its immutable form.
+  Returns an independent immutable shallow copy.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableArray$copy()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    An \code{RSArray} object.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-mutableCopy"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-mutableCopy}{}}}
-\subsection{\code{RSMutableArray$mutableCopy()}}{
-  Returns a mutable copy of the array (i.e., an \code{RSMutableArray} instance).
-This performs a shallow copy: the container is recreated,
-but the elements are shared as-is without deep duplication.
-
-It always returns a separate mutable container that shares the original
-element references.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$mutableCopy()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    An \code{RSMutableArray} object.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-hash"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-hash}{}}}
-\subsection{\code{RSMutableArray$hash()}}{
-  Computes an aggregate hash for the array by combining the hash values of all contained elements.
-This supports dictionary keys; array ordering uses element comparisons.
-The final result passes through \code{\link[=robjc_normalize_hash]{robjc_normalize_hash()}}.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$hash()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    One non-missing integer hash value.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-hashesOfObjects"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-hashesOfObjects}{}}}
-\subsection{\code{RSMutableArray$hashesOfObjects()}}{
-  Computes a hash code for each object in the array.
-Each object must implement \code{hash()}.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$hashesOfObjects()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    An integer vector of hashes.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-hashOperator"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-hashOperator}{}}}
-\subsection{\code{RSMutableArray$hashOperator()}}{
-  Returns the hash operator supplied at initialization, or the default
-\link{RSHashOperator} instance when none was supplied.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$hashOperator()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    The stored hash operator. The default is \code{RSHashOperator$instance}.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-description"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-description}{}}}
-\subsection{\code{RSMutableArray$description()}}{
-  Returns a concise textual summary of the data container,
-including its class name and the current number of stored objects.
-This is primarily used for human-readable identification and logging.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$description()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A character string in the form \code{"<ClassName: N objects>"},
-where \code{ClassName} is the actual class of the object and \code{N} is the number of elements it contains.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-print"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-print}{}}}
-\subsection{\code{RSMutableArray$print()}}{
-  Prints a concise, human-readable summary of the object to the console,
-including its class name and element count as returned by \code{description()}.
-Any additional arguments are ignored.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$print(...)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{...}}{Ignored. Included for compatibility with the generic \code{print()} signature.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    The object itself, invisibly.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-isEqual"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-isEqual}{}}}
-\subsection{\code{RSMutableArray$isEqual()}}{
-  Compares this array to another for equality.
-Two arrays are equal if they use the same hash operator instance, have the
-same length, and corresponding elements are equal according to \code{isEqual()}.
-Mutable and immutable arrays satisfying these conditions are equal.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$isEqual(other)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{other}}{Another array object to compare with.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    \code{TRUE} if the arrays are equal; otherwise \code{FALSE}.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableArray-compare"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableArray-compare}{}}}
-\subsection{\code{RSMutableArray$compare()}}{
-  Compares this array to another for ordering.
-The comparison is lexicographic. Equal elements are skipped using
-\code{isEqual()}. Differing elements must conform to \link{RSComparable} and are
-ordered using \code{compare()}; otherwise comparison raises an error. If all
-shared elements are equal, the shorter array is considered smaller.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$compare(other, na.last = TRUE)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{other}}{Another \code{RSArray} or \code{RSMutableArray} to compare.}
-      \item{\code{na.last}}{Logical; if \code{TRUE}, NA values are treated as greater.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    -1 if less than, 0 if equal, 1 if greater.
+    A new \link{RSArray} containing the same element references.
   }
 }
 

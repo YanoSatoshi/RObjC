@@ -53,22 +53,17 @@ test_that("dictionary equality compares values for each matching key", {
   expect_identical(RSDictionary$new()$isEqual(RSDictionary$new()), TRUE)
 })
 
-test_that("RSDictionary: mutation methods are prohibited", {
+test_that("RSDictionary: immutable API does not expose mutation methods", {
   d <- RSDictionary$new(objects_and_keys = list(
     RSString_withValue("v"), RSString_withValue("k")
   ))
-  expect_error(
-    d$setObjectForKey(RSString_withValue("v2"), RSString_withValue("k")),
-    msg_immutable_try_mutate(d$class())
-  )
-  expect_error(
-    d$removeObjectForKey(RSString_withValue("k")),
-    msg_immutable_try_mutate(d$class())
-  )
-  expect_error(
-    d$removeAllObjects(),
-    msg_immutable_try_mutate(d$class())
-  )
+  expect_false(d$respondsTo("setObjectForKey"))
+  expect_false(d$respondsTo("removeObjectForKey"))
+  expect_false(d$respondsTo("removeAllObjects"))
+  expect_false(d$isKindOf(RSMutableDictionary))
+  mutable <- RSMutableDictionary$new()
+  expect_true(mutable$isKindOf(RSDictionary))
+  expect_true(mutable$respondsTo("setObjectForKey"))
 })
 
 test_that("RSDictionary: copy returns identical", {
@@ -87,15 +82,13 @@ test_that("RSDictionary: mutableCopy returns RSMutableDictionary", {
   expect_equal(mcopy$objectForKey(RSString_withValue("k"))$value(), "v")
 })
 
-test_that("RSDictionary: entry mutation aliases are prohibited", {
+test_that("RSDictionary: entry mutation aliases are absent", {
   key <- RSString_withValue("k")
   entry <- RSKeyValuePair$new(key, RSString_withValue("v"))
   dictionary <- RSDictionary$new(key_value_pairs = list(entry))
-  expected <- msg_immutable_try_mutate(dictionary$class())
-
-  expect_error(dictionary$addEntry(entry), expected, fixed = TRUE)
-  expect_error(dictionary$removeEntry(entry), expected, fixed = TRUE)
-  expect_error(dictionary$removeAllEntries(), expected, fixed = TRUE)
+  expect_false(dictionary$respondsTo("addEntry"))
+  expect_false(dictionary$respondsTo("removeEntry"))
+  expect_false(dictionary$respondsTo("removeAllEntries"))
 })
 
 test_that("RSDictionary_withDictionary clones native storage", {
@@ -109,4 +102,18 @@ test_that("RSDictionary_withDictionary clones native storage", {
 
   expect_true(dictionary$isMemberOf(RSDictionary))
   expect_equal(dictionary$objectForKey(key)$value(), "before")
+})
+test_that("RSDictionary rejects R NULL keys and values", {
+  key <- RSString$new("key")
+  expect_error(RSDictionary$new(keys = list(key), values = list(NULL)),
+               "robjc_wrap_null", fixed = TRUE)
+  expect_error(RSDictionary$new(keys = list(NULL), values = list(RSNull$null)),
+               "robjc_wrap_null", fixed = TRUE)
+  expect_error(RSDictionary$new(objects_and_keys = list(NULL, key)),
+               "robjc_wrap_null", fixed = TRUE)
+  dictionary <- RSDictionary$new(keys = list(key), values = list(RSNull$null))
+  expect_identical(dictionary$objectForKey(key), RSNull$null)
+  expect_error(dictionary$objectForKey(NULL), "robjc_wrap_null", fixed = TRUE)
+  expect_error(dictionary$containsKey(NULL), "robjc_wrap_null", fixed = TRUE)
+  expect_error(dictionary$allKeysForObject(NULL), "robjc_wrap_null", fixed = TRUE)
 })

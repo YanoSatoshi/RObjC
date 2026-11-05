@@ -1,0 +1,44 @@
+---
+title: "robjc 記事の目次"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{robjc 記事の目次}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# robjc 記事の目次
+
+最初に紹介を読み、番号順にガイドを進めてください。付録には応用例、技術ノートには実装の解説をまとめています。
+
+## 紹介
+
+- [robjc の紹介](introduction.html)
+
+## ガイド
+
+1. [クイックスタート](guide_01_QuickStart.html)
+2. [クラスとオブジェクト](guide_02_Classes_Objects.html)
+3. [プロトコル](guide_03_Protocols.html)
+4. [シングルトン](guide_04_Singleton.html)
+5. [クラスファクトリー](guide_05_ClassFactory.html)
+6. [値とコピー](guide_06_Values_Copying.html)
+7. [コレクション](guide_07_Collections.html)
+8. [同一性、同値性、ハッシュ](guide_08_Hash_isEqual.html)
+9. [データフレーム](guide_09_DataFrames.html)
+10. [アーカイブ](guide_10_Archiving.html)
+
+## 付録
+
+- [ノートブックの保存と復元](appendix_practical_encoding.html)
+
+## 技術ノート
+
+- [isa とクラス識別](tech_01_isa.html)
+- [new() と initialize()](tech_02_new_initialize.html)
+- [オブジェクト種別の判定](tech_03_ObjectType.html)
+- [クラスファクトリーの内部構造](tech_04_ClassFactory.html)
+- [RSNull と未定義メソッドへのメッセージ](tech_05_RSNull.html)
+- [RSScalar とクラスクラスタ](tech_06_Scalars.html)
+- [Dictionary と Set の C++ 実装](tech_07_Dictionaries_Sets.html)
+- [グラフアーカイブの実装](tech_08_Archiving.html)

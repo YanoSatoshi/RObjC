@@ -1,0 +1,260 @@
+---
+title: "Archiving Guide"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Archiving Guide}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Archiving object graphs
+
+An archive is an ordinary R list that stores the state of robjc objects and the relationships between their references.
+`RSKeyedArchiver` creates this list, and `RSKeyedUnarchiver` restores it.
+Use R's `saveRDS()` and `readRDS()` to write it to a file and read it back.
+We start with a built-in class, then move to shared references and a graph containing custom classes.
+
+## Archive and restore built-in classes
+
+`RSKeyedArchiver$new()$archive(root)` creates an archive from the supplied root value.
+To restore it, pass the archive to `RSKeyedUnarchiver$new()` and call `decode()`.
+Built-in robjc classes resolve automatically, so they need no manual class mapping.
+
+```{r}
+library(robjc)
+
+original <- RSString$new("saved text")
+archive <- RSKeyedArchiver$new()$archive(original)
+stopifnot(is.list(archive))
+
+path <- tempfile(fileext = ".rds")
+saveRDS(archive, path)
+saved <- readRDS(path)
+unlink(path)
+
+decoder <- RSKeyedUnarchiver$new(saved)
+restored <- decoder$decode()
+stopifnot(restored$isMemberOf(RSString))
+stopifnot(identical(restored$value(), "saved text"))
+```
+
+The archive includes information about the saved class, but `decode()` uses its currently loaded class generator.
+It does not take the original RObjC instance directly from the RDS file.
+
+## Preserve shared references
+
+The archive records when multiple locations refer to the same instance.
+Both elements of the following list point to `shared`. After restoration, they point to the same new instance.
+
+```{r}
+shared <- RSString$new("shared")
+shared_archive <- RSKeyedArchiver$new()$archive(list(shared, shared))
+shared_decoder <- RSKeyedUnarchiver$new(shared_archive)
+loaded <- shared_decoder$decode()
+
+stopifnot(identical(loaded[[1L]], loaded[[2L]]))
+stopifnot(!identical(loaded[[1L]], shared))
+stopifnot(identical(loaded[[1L]]$value(), "shared"))
+```
+
+`isEqual()` could check whether the values match. Here, `identical()` verifies that the **reference remains shared**.
+robjc objects inside ordinary lists are also processed recursively.
+
+## Archive several root objects together
+
+`archive()` accepts one argument.
+To save several independent objects in one archive, put them in a named R `list` and pass that list as the root value.
+Decoding returns a list with the same names.
+
+```{r}
+first <- RSString$new("first")
+second <- RSNumber$new(2L)
+roots <- list(first = first, second = second, first_again = first)
+
+roots_archive <- RSKeyedArchiver$new()$archive(roots)
+restored_roots <- RSKeyedUnarchiver$new(roots_archive)$decode()
+
+stopifnot(identical(names(restored_roots), names(roots)))
+stopifnot(identical(restored_roots$first$value(), "first"))
+stopifnot(identical(restored_roots$second$value(), 2L))
+stopifnot(identical(restored_roots$first, restored_roots$first_again))
+stopifnot(!identical(restored_roots$first, first))
+```
+
+`first` and `second` are restored as separate objects.
+Because `first_again` refers to the same source object as `first`, both entries refer to the same restored instance.
+
+## Inspect archived classes before decoding
+
+`RSKeyedUnarchiver$new(archive)` loads the data but does not yet restore instances.
+Follow its prompt to inspect or adjust class mappings, if needed, before calling `decode()`.
+`showAllClasses()` returns a tibble of classes that need attention. By default, it omits classes that resolved automatically.
+
+```{r}
+stopifnot(nrow(decoder$showAllClasses()) == 0L)
+all_classes <- decoder$showAllClasses(remove_default = FALSE)
+stopifnot(identical(all_classes$class_name, "RSString"))
+stopifnot(identical(all_classes$status, "automatic"))
+stopifnot(identical(all_classes$decoder_class[[1L]], RSString))
+stopifnot(identical(decoder$showClass(all_classes$class_key[[1L]])$status, "automatic"))
+```
+
+For this example, selected columns of `showAllClasses(remove_default = FALSE)` look like this.
+The default `showAllClasses()` view is a zero-row tibble because it omits this automatically resolved row.
+
+| `class_key` | `class_name` | `version` | `decoder_name` | `status` |
+|:--|:--|:--|:--|:--|
+| C1 | RSString | 0.1.0 beta | RSString | automatic |
+
+The actual tibble also includes `package`, `class_id`, `kind`, and `decoder_class`, which are omitted here.
+`decoder_name` is for display; `decoder_class` holds the generator used to restore the object.
+
+`class_name` and `version` describe the saved class. `decoder_class` is a list column of destination generators.
+`class_key` identifies a class mapping within this archive when you edit it.
+Use `remove_default = FALSE` to display all classes.
+`dictionaryWithAllClasses()` always returns every class as an `RSMutableDictionary`. Its keys are `RSString` objects wrapping `class_key` values, and its values are destination generators.
+
+```{r}
+class_dictionary <- decoder$dictionaryWithAllClasses()
+stopifnot(class_dictionary$isKindOf(RSMutableDictionary))
+stopifnot(identical(
+  class_dictionary$objectForKey(RSString$new(all_classes$class_key[[1L]])),
+  RSString
+))
+```
+
+## Map custom classes
+
+A class defined only in a script cannot resolve through package registration.
+For such a class, put its current generator in the `showAllClasses()` result and pass the edited table to `setClasses()`.
+The saved class name and destination class name need not match.
+The destination's `initWithCoder()` must, however, understand the saved fields.
+**`setClasses()` selects a destination class; it does not transform the fields.**
+Implement migration between versions or classes in the destination's `initWithCoder()`.
+The next example moves an old `text` field to a new `title` field.
+During restoration, `savedClassVersion()` returns the saved class version.
+
+```{r}
+LegacyNote <- RSObjectClass(
+  "Guide10LegacyNote", version = "1.0",
+  protocols = list(RSCoding),
+  public = list(
+    text = NULL,
+    initialize = function(text) {
+      super$initialize()
+      self$text <- text
+      invisible(self)
+    },
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(self$text, "text")
+      invisible(self)
+    },
+    initWithCoder = function(coder) {
+      self$text <- coder$decodeObjectForKey("text")
+      invisible(self)
+    }
+  )
+)
+
+CurrentNote <- RSObjectClass(
+  "Guide10CurrentNote", version = "2.0",
+  protocols = list(RSCoding),
+  public = list(
+    title = NULL,
+    initialize = function(title) {
+      super$initialize()
+      self$title <- title
+      invisible(self)
+    },
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(self$title, "title")
+      invisible(self)
+    },
+    initWithCoder = function(coder) {
+      saved_key <- if (identical(coder$savedClassVersion(), "1.0")) "text" else "title"
+      self$title <- coder$decodeObjectForKey(saved_key)
+      invisible(self)
+    }
+  )
+)
+```
+
+The old archive appears as unresolved. Set its `decoder_class` to `CurrentNote` before restoring it.
+`setClasses()` accepts a tibble with `class_key` and `decoder_class` columns.
+Use `showClass()` to inspect one mapping.
+
+```{r}
+legacy_archive <- RSKeyedArchiver$new()$archive(LegacyNote$new("draft"))
+custom_decoder <- RSKeyedUnarchiver$new(legacy_archive)
+classes <- custom_decoder$showAllClasses()
+stopifnot(identical(classes$class_name, "Guide10LegacyNote"))
+stopifnot(identical(classes$status, "unresolved"))
+
+classes$decoder_class[1L] <- list(CurrentNote)
+custom_decoder$setClasses(classes)
+stopifnot(identical(custom_decoder$showClass(classes$class_key[[1L]])$status, "manual"))
+
+current <- custom_decoder$decode()
+stopifnot(current$isMemberOf(CurrentNote))
+stopifnot(identical(current$title, "draft"))
+```
+
+Before mapping, selected columns of `custom_decoder$showAllClasses()` contain this row.
+`NA` in `decoder_name` means that no destination has been selected.
+
+| `class_key` | `class_name` | `version` | `decoder_name` | `status` |
+|:--|:--|:--|:--|:--|
+| C1 | Guide10LegacyNote | 1.0 | NA | unresolved |
+
+After `setClasses(classes)`, `decoder_name` becomes `Guide10CurrentNote` and `status` becomes `manual`.
+`class_name` and `version` retain their saved values.
+
+You can also supply an `RSMutableDictionary` mapping.
+An unresolved class has `RSNull$null` as its value. The returned dictionary is an independent mapping snapshot, so call `setClasses()` after editing it.
+
+```{r}
+other_decoder <- RSKeyedUnarchiver$new(legacy_archive)
+mapping <- other_decoder$dictionaryWithAllClasses()
+key <- RSString$new(classes$class_key[[1L]])
+stopifnot(identical(mapping$objectForKey(key), RSNull$null))
+
+mapping$setObjectForKey(CurrentNote, key)
+other_decoder$setClasses(mapping)
+stopifnot(identical(other_decoder$decode()$title, "draft"))
+```
+
+## Implement class coding methods
+
+To archive a custom class, assign keys to fields in `encodeWithCoder(coder)` and read them back in `initWithCoder(coder)`.
+Declaring adoption of `RSCoding` checks that both methods exist when the class is created.
+The archiver records references so that the same object is not encoded twice.
+
+The decoder uses `robjc_allocate()` to create a destination instance without calling its normal `initialize()`, then passes it to `initWithCoder()`.
+The arguments needed for ordinary construction may no longer be available, and the fields may have changed since the archive was saved.
+Implement migration in `initWithCoder()`, as shown above.
+
+An extension package can register a class with `robjc_register_class()` in its `.onLoad()` function.
+Registered classes generally need no manual `setClasses()` call. Keep the registration `id` stable independently of the class name and version.
+See `?robjc_register_class` for the registration arguments and procedure.
+
+## Handle unresolved classes and invalid archives
+
+Calling `decode()` with an unresolved class raises an error listing its unresolved `class_key`.
+Inspect the row with `showAllClasses()` and assign an appropriate generator.
+An archive with an unsupported format fails when the Unarchiver is created; a broken reference or field can fail during restoration.
+
+```{r}
+unresolved_decoder <- RSKeyedUnarchiver$new(legacy_archive)
+unresolved_error <- tryCatch(unresolved_decoder$decode(), error = identity)
+stopifnot(inherits(unresolved_error, "error"))
+stopifnot(grepl("Unresolved archive classes", conditionMessage(unresolved_error), fixed = TRUE))
+
+invalid_archive <- legacy_archive
+invalid_archive$format <- "unknown-format"
+invalid_error <- tryCatch(RSKeyedUnarchiver$new(invalid_archive), error = identity)
+stopifnot(inherits(invalid_error, "error"))
+```
+
+For a round-trip test, verify shared references as well as values and classes.
+When implementing migration, test the destination state using an archive from an older version.
+For a graph with several custom classes, see the [Practical Encoding Appendix](appendix_practical_encoding.Rmd).

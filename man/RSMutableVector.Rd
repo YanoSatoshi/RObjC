@@ -55,7 +55,6 @@ remain stable while the vector is used as a key or set member.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="resolveClassWith"><a href='../../robjc/html/RSObject.html#method-RSObject-resolveClassWith'><code>RSObject$resolveClassWith()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
 </ul>

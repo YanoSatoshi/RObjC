@@ -164,8 +164,9 @@ test_that("RSMutableDictionary: reverse lookup finds every equal value", {
   expect_length(dictionary$allKeysForObjectAsList(RSString_withValue("missing")), 0)
   expect_length(dictionary$allKeysForObjectAsList(RSNumber_withValue(1)), 0)
 
-  dictionary$setObjectForKey(NULL, RSString_withValue("nullable"))
-  null_keys <- dictionary$allKeysForObjectAsList(NULL)
+  dictionary$setObjectForKey(RSNull$null, RSString_withValue("nullable"))
+  expect_error(dictionary$allKeysForObjectAsList(NULL), "robjc_wrap_null", fixed = TRUE)
+  null_keys <- dictionary$allKeysForObjectAsList(RSNull$null)
   expect_equal(vapply(null_keys, function(key) key$value(), character(1)), "nullable")
 
   dictionary$setObjectForKey(RSString_withValue("changed"), RSString_withValue("a"))
@@ -227,17 +228,21 @@ test_that("RSMutableDictionary: supported initializers use native storage", {
   expect_equal(RSMutableDictionary$new(objects_and_keys = list())$count(), 0)
 })
 
-test_that("RSMutableDictionary: stored NULL differs from an absent key", {
+test_that("RSMutableDictionary: explicit RSNull differs from an absent key", {
   dictionary <- RSMutableDictionary$new()
   key <- RSString_withValue("nullable")
   missing <- RSString_withValue("missing")
 
-  dictionary$setObjectForKey(NULL, key)
+  expect_error(dictionary$setObjectForKey(NULL, key), "robjc_wrap_null", fixed = TRUE)
+  expect_error(dictionary$setObjectForKey(RSNull$null, NULL), "robjc_wrap_null", fixed = TRUE)
+  dictionary$setObjectForKey(RSNull$null, key)
 
   expect_true(dictionary$containsKey(key))
   expect_identical(dictionary$objectForKey(key), RSNull$null)
   expect_false(dictionary$containsKey(missing))
   expect_null(dictionary$objectForKey(missing))
+  expect_error(dictionary$objectForKey(NULL), "robjc_wrap_null", fixed = TRUE)
+  expect_error(dictionary$removeObjectForKey(NULL), "robjc_wrap_null", fixed = TRUE)
 })
 
 test_that("RSMutableDictionary: copies own independent native tables", {

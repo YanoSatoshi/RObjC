@@ -1,0 +1,45 @@
+---
+title: "robjc Vignettes"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{robjc Vignettes}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# robjc Vignettes
+
+Read the introduction first, then follow the numbered guides. The appendix
+provides a longer example; the technical notes explain implementation details.
+
+## Introduction
+
+- [Introduction to robjc](introduction.html)
+
+## Guides
+
+1. [Quick Start](guide_01_QuickStart.html)
+2. [Classes & Objects](guide_02_Classes_Objects.html)
+3. [Protocols](guide_03_Protocols.html)
+4. [Singletons](guide_04_Singleton.html)
+5. [Class Factories](guide_05_ClassFactory.html)
+6. [Values & Copying](guide_06_Values_Copying.html)
+7. [Collections](guide_07_Collections.html)
+8. [Identity, Equality, and Hashing](guide_08_Hash_isEqual.html)
+9. [DataFrames](guide_09_DataFrames.html)
+10. [Archiving](guide_10_Archiving.html)
+
+## Appendices
+
+- [Practical encoding: save and restore a notebook](appendix_practical_encoding.html)
+
+## Technical notes
+
+- [isa and Class Identity](tech_01_isa.html)
+- [new() and initialize()](tech_02_new_initialize.html)
+- [Runtime object classification](tech_03_ObjectType.html)
+- [Class Factory API](tech_04_ClassFactory.html)
+- [RSNull and Undefined Methods](tech_05_RSNull.html)
+- [Scalar NA classes and class clusters](tech_06_Scalars.html)
+- [C++ Dictionaries and Sets](tech_07_Dictionaries_Sets.html)
+- [Graph archiving](tech_08_Archiving.html)

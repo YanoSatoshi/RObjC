@@ -20,6 +20,9 @@
 #' @param public,private R6 public and private members passed to [R6::R6Class()].
 #' @param parent_env Parent environment for the generated R6 methods.
 #' @param version One non-empty, non-missing class version without `_`.
+#' @param validate_protocols Whether to check that the class provides every
+#'   method required by its declared and inherited protocols. Defaults to
+#'   `TRUE`; set to `FALSE` to defer this check.
 #'
 #' @return The singleton class generator, invisibly.
 #'
@@ -41,7 +44,8 @@ RSSingletonClass <- function(
   public      = list(),    # list()
   private     = NULL,      # list()
   parent_env  = parent.frame(),
-  version     = "1.0.0"    # character
+  version     = "1.0.0",   # character
+  validate_protocols = TRUE
 ) {
   super_generator <- force(super_class)
   stopifnot(
@@ -49,7 +53,10 @@ RSSingletonClass <- function(
       is.character(class_name) && length(class_name) == 1L &&
       !is.na(class_name) && nzchar(class_name),
     "`super_class` must be a kind of RSObject." =
-      robjc_isClass(super_generator)
+      robjc_isClass(super_generator),
+    "`validate_protocols` must be TRUE or FALSE." =
+      is.logical(validate_protocols) && length(validate_protocols) == 1L &&
+      !is.na(validate_protocols)
   )
   klass <- do.call(
     R6::R6Class,
@@ -68,7 +75,8 @@ RSSingletonClass <- function(
     klass,
     super_generator,
     protocols = protocols,
-    version   = version
+    version   = version,
+    validate_protocols = validate_protocols
   )
   robjc_freeze_isa(klass)
   # .onLoad() restores this lock for package-defined singleton generators.

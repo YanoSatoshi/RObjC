@@ -16,7 +16,7 @@ NULL
 .rs_api_array_objects <- function(objects) {
   if (!is.list(objects) || !all(vapply(
     objects,
-    function(object) robjc_isRobjcObject(object) ||
+    function(object) robjc_isInstance(object) ||
       robjc_isClass(object) || robjc_isProtocol(object),
     logical(1)
   )))
@@ -26,8 +26,8 @@ NULL
 }
 
 .rs_api_array <- function(array) {
-  if (!robjc_isRobjcObject(array) ||
-      !array$isKindOf(RSMutableArray))
+  if (!robjc_isInstance(array) ||
+      !array$isKindOf(RSArray))
     stop("`array` must be an RSArray or RSMutableArray.", call. = FALSE)
   array
 }

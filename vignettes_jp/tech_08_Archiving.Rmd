@@ -1,0 +1,158 @@
+---
+title: "技術ノート: グラフアーカイブの実装"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{技術ノート: グラフアーカイブの実装}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# オブジェクトグラフを保存・復元する
+
+単に各オブジェクトの値を保存するだけでは、同じオブジェクトを二か所から参照する関係や、オブジェクトが自分自身を指す循環参照を復元できません。
+`RSKeyedArchiver` はオブジェクトを一度だけレコード化し、以後は参照 ID を保存します。
+`RSKeyedUnarchiver` は復元先を先に確保して参照表へ登録し、そのあとでフィールドを埋めます。
+このノート（08）は、その二つの処理を自己参照するオブジェクトで追います。
+使い方の全体像は[アーカイブのガイド](guide_10_Archiving.Rmd)、確保と初期化の分離は[ノート 02](tech_02_new_initialize.Rmd)を参照してください。
+
+## 例に使う循環グラフ
+
+次の `Node` は文字列の `value` と、別の `Node` を指す `next_node` を持ちます。
+ここでは `next_node` に自分自身を代入し、同じ `Node` をルートの R リストに二回入れます。
+`encodeWithCoder()` は保存するフィールドにキーを付け、`initWithCoder()` はそれらを読み戻します。
+
+```{r}
+library(robjc)
+
+Node <- RSObjectClass("Tech08Node",
+  version = "1.0.0",
+  protocols = list(RSCoding),
+  public = list(
+    value = NULL,
+    next_node = NULL,
+    initialize = function(value) {
+      super$initialize()
+      self$value <- value
+      invisible(self)
+    },
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(self$value, "value")
+      coder$encodeObjectForKey(self$next_node, "next")
+      invisible(self)
+    },
+    initWithCoder = function(coder) {
+      self$value <- coder$decodeObjectForKey("value")
+      self$next_node <- coder$decodeObjectForKey("next")
+      invisible(self)
+    }
+  )
+)
+
+source <- Node$new("hello")
+source$next_node <- source
+root <- list(source, source)
+stopifnot(identical(root[[1L]], root[[2L]]))
+stopifnot(identical(source$next_node, source))
+```
+
+## アーカイブの三種類のノード
+
+`archive(root)` が返すのは、R の普通のリストで表したレコードグラフです。
+ルートの `root` ノードと、ID をキーに持つ `records` が含まれます。
+値を表すノードには、RObjC オブジェクトを指す `ref`、通常の R リストをたどる `list`、R のシリアライズへ渡す値を保持する `r` の三種類があります。
+RObjC のインスタンス、クラスジェネレータ、プロトコルジェネレータは `ref` と対応するレコードを使います。
+
+```{r}
+archive <- RSKeyedArchiver$new()$archive(root)
+stopifnot(identical(archive$format, "robjc-keyed-1"))
+stopifnot(identical(archive$root$type, "list"))
+stopifnot(identical(archive$root$values[[1L]]$type, "ref"))
+stopifnot(identical(archive$root$values[[2L]]$type, "ref"))
+
+id <- archive$root$values[[1L]]$id
+stopifnot(identical(id, archive$root$values[[2L]]$id))
+stopifnot(identical(archive$records[[id]]$fields[["next"]]$id, id))
+stopifnot(identical(archive$records[[id]]$fields$value$type, "r"))
+stopifnot(length(archive$records) == 1L)
+```
+
+この例では `Node` は一つしかないので、同じ ID が二つのルート要素と `next` フィールドに現れます。
+`value` の文字列は `r` ノードに入り、最終的にはアーカイブ全体の `saveRDS()` などで R がシリアライズします。
+通常の R リストは要素ごとにたどりますが、任意の base R オブジェクト内の参照構造まで robjc が解釈するわけではありません。
+
+## エンコード時は先に記録する
+
+`RSKeyedArchiver` は RObjC オブジェクトを見つけると、`robjc_get_pointer()` で得たポインター文字列を参照 ID に使います。
+初めて見る ID なら、対象を `.retained` に保持し、`fields = NULL` のレコードを `.records` に先に置きます。
+その後、インスタンスの `encodeWithCoder()` を呼んでフィールドを埋めます。
+同じ ID に再び出会ったら `encodeWithCoder()` を繰り返さず、`ref` ノードだけを返します。
+
+```text
+Node を最初に発見
+  → ID を作り、Node を保持し、未完成のレコードを登録
+  → encodeWithCoder() で value と next をたどる
+  → next は登録済みの同じ ID なので ref だけを返す
+  → レコードの fields を完成させる
+```
+
+最初のレコードをフィールド探索より先に登録することが、自己参照で無限に再帰しないための要点です。
+`.retained` はアーカイブ操作中の元オブジェクトを保持し、途中で GC に回収されてポインター ID が別のオブジェクトに再利用されることを防ぎます。
+アーカイブ処理が終わると、この保持表は解放されます。
+保存された ID はデコード側では不透明な文字列として扱い、復元したオブジェクトのポインターとは解釈しません。
+
+## クラス情報を解決してから復元する
+
+各レコードには `kind`、クラス名、保存時のバージョン、登録済みならパッケージとクラス ID が記録されます。
+組み込みクラスや登録済みのパッケージクラスは自動解決でき、スクリプトで定義したクラスには復元先のジェネレータを指定できます。
+`RSKeyedUnarchiver$new(archive)` はデータを読み込む段階であり、オブジェクトの復元はまだ始めません。
+`showAllClasses()` で対応候補を確認し、必要なら `setClasses()` に tibble または `RSMutableDictionary` を渡してから `decode()` を呼びます。
+
+```{r}
+decoder <- RSKeyedUnarchiver$new(unserialize(serialize(archive, NULL)))
+mapping <- decoder$showAllClasses(remove_default = FALSE)
+stopifnot(identical(mapping$class_name, "Tech08Node"))
+stopifnot(is.null(mapping$decoder_class[[1L]]))
+
+mapping$decoder_class[1L] <- list(Node)
+decoder$setClasses(mapping)
+stopifnot(identical(decoder$showAllClasses(remove_default = FALSE)$decoder_name,
+                    "Tech08Node"))
+```
+
+`decode()` は未解決クラスと必要な `initWithCoder()` の有無を調べてから、ルートの復元を始めます。
+保存時のバージョンは `initWithCoder()` の実行中に `savedClassVersion()` から参照でき、旧形式からの移行に利用できます。
+クラスの対応方法そのものはアーカイブの保存形式と分かれているため、保存時の名前と現在のジェネレータが異なっても明示的に対応づけられます。
+
+## デコード時も先に参照表へ入れる
+
+デコード側の `.object_map` は、保存された ID から復元先のオブジェクトへの対応表です。
+`ref` を読むと、まずその ID が表にあるかを確認します。
+初出なら対応するジェネレータを求め、既定では `robjc_allocate()` で `initialize()` を呼ばずにインスタンスを確保します。
+そのインスタンスを `.object_map` に登録してから、レコードのフィールドを読める状態にし、`initWithCoder()` を実行します。
+
+```text
+最初の ref(id) を復元
+  → Node の空のインスタンスを確保
+  → .object_map[id] に登録
+  → initWithCoder() で value と next を読む
+  → next の ref(id) は .object_map[id] の同じインスタンスを返す
+  → 元の Node が完成する
+```
+
+ここで登録と `initWithCoder()` の順序を逆にすると、`next` を読んだときに同じ ID の復元が再び始まってしまいます。
+先行登録によって、まだフィールドが完成していない相手への参照も張れるため、循環と共有参照の両方を維持できます。
+
+```{r}
+restored <- decoder$decode()
+stopifnot(identical(restored[[1L]], restored[[2L]]))
+stopifnot(identical(restored[[1L]]$next_node, restored[[1L]]))
+stopifnot(identical(restored[[1L]]$value, "hello"))
+stopifnot(!identical(restored[[1L]], source))
+```
+
+クラスやプロトコルのジェネレータを指すレコードは、復元先のジェネレータを参照表へ入れて返します。
+インスタンスのように `initWithCoder()` を呼ぶことはありません。
+Singleton は既定の `robjc_allocate()` が既存の共有インスタンスを返すため、通常の新規インスタンスと同じ方法で複製しません。
+
+この順序を固定することで、保存対象のグラフ構造と、現在のクラスで状態をどう解釈するかを分離できます。
+復元時の `initWithCoder()` はフィールドを検証し、必要な状態を埋める責任を持ちます。

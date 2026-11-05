@@ -25,6 +25,9 @@
 #' @param na_singleton Whether to mark the NA companion class as a singleton.
 #'   The default is `TRUE`; [RSFactor] uses `FALSE` so each missing factor can
 #'   retain its own levels and ordering.
+#' @param validate_protocols Whether to check that both the regular class and
+#'   its NA companion provide every method required by their declared and
+#'   inherited protocols. Defaults to `TRUE`; set to `FALSE` to defer this check.
 #'
 #' @return The regular class generator, invisibly. Its `na` binding and its
 #'   `robjc_isa$slot` both reference the shared NA instance. The NA class
@@ -62,11 +65,15 @@ RSScalarClass <- function(
   private     = NULL,
   parent_env  = parent.frame(),
   version     = "1.0.0",
-  na_singleton = TRUE
+  na_singleton = TRUE,
+  validate_protocols = TRUE
 ) {
   super_generator <- force(super_class)
   if (!is.logical(na_singleton) || length(na_singleton) != 1L || is.na(na_singleton))
     stop("`na_singleton` must be TRUE or FALSE.", call. = FALSE)
+  if (!is.logical(validate_protocols) || length(validate_protocols) != 1L ||
+      is.na(validate_protocols))
+    stop("`validate_protocols` must be TRUE or FALSE.", call. = FALSE)
   stopifnot(
     "`class_name` must be one nonempty character string." =
       is.character(class_name) && length(class_name) == 1L &&
@@ -106,6 +113,12 @@ RSScalarClass <- function(
     protocols = protocols,
     version = version
   )
+  if (validate_protocols) {
+    missing <- protocol_validateContracts(klass)
+    if (length(missing))
+      stop(sprintf("Class `%s` is missing protocol methods: %s.",
+                   class_name, paste(missing, collapse = ", ")), call. = FALSE)
+  }
   robjc_install_new(klass)
   na_class_name <- if (startsWith(class_name, "RS"))
     sub("^RS", "RSNA", class_name)
@@ -118,7 +131,8 @@ RSScalarClass <- function(
     parent_env,
     protocols = protocols,
     version   = version,
-    na_singleton = na_singleton
+    na_singleton = na_singleton,
+    validate_protocols = validate_protocols
   )
 
   # The normal class slot holds the shared NA instance, matching the NA
@@ -142,7 +156,8 @@ rsscalar_make_na_class <- function(
   parent_env,
   protocols = list(),
   version   = "0.1.0 beta",
-  na_singleton = TRUE
+  na_singleton = TRUE,
+  validate_protocols = TRUE
 ) {
   r6generator <- do.call(
     R6::R6Class,
@@ -162,6 +177,12 @@ rsscalar_make_na_class <- function(
     slot      = NULL,
     version   = version
   )
+  if (validate_protocols) {
+    missing <- protocol_validateContracts(r6generator)
+    if (length(missing))
+      stop(sprintf("Class `%s` is missing protocol methods: %s.",
+                   na_class_name, paste(missing, collapse = ", ")), call. = FALSE)
+  }
   robjc_install_new(r6generator)
   r6generator$robjc_isa$slot <- r6generator$new(na_value)
   r6generator$instance <- r6generator$robjc_isa$slot

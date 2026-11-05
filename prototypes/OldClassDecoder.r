@@ -49,7 +49,7 @@ OldClassDecoder <- RSSingletonClass(
     #' @param encoded_data A dictionary produced by OldClassEncoder$lockInstance()
     loadEncodedData = function(encoded_data) {
       # A restored generator differs by reference from the current generator.
-      if (!robjc_isRobjcObject(encoded_data) || !inherits(encoded_data, "RSMutableDictionary"))
+      if (!robjc_isInstance(encoded_data) || !inherits(encoded_data, "RSMutableDictionary"))
         stop("`encoded_data` must be a dictionary.", call. = FALSE)
       self$class_store <- encoded_data
       self$unresolved <- character(0)
@@ -104,13 +104,13 @@ OldClassDecoder <- RSSingletonClass(
     #'
     #' @return The decoder object (invisible).
     resolveClassesWithDictionary = function(class_map) {
-      if (!robjc_isRobjcObject(class_map) || !class_map$isKindOf(RSMutableDictionary))
+      if (!robjc_isInstance(class_map) || !class_map$isKindOf(RSMutableDictionary))
         stop("`class_map` must be a dictionary.", call. = FALSE)
       for (mapping in class_map$allEntriesAsList()) {
         key <- mapping$key()
         value <- mapping$value()
-        if (!robjc_isRobjcObject(key) || !key$isKindOf(RSString) ||
-            !robjc_isRobjcObject(value) || !value$isKindOf(RSWrappedClass) ||
+        if (!robjc_isInstance(key) || !key$isKindOf(RSString) ||
+            !robjc_isInstance(value) || !value$isKindOf(RSWrappedClass) ||
             !robjc_isClass(value$classObject()) ||
             !identical(key$value(), value$classID()$value())) {
           stop(

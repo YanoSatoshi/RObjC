@@ -42,15 +42,15 @@ test_that("vector keeps a custom hash operator reference", {
   expect_identical(restored[[1L]]$hashesOfValues(), c(1L, 1L))
 })
 
-test_that("mutable and immutable data frames restore data and keys", {
+test_that("mutable and immutable data frames restore their data", {
   data <- tibble::tibble(
     id = c(1L, 2L),
     category = factor(c("b", "a"), levels = c("b", "a")),
     date = as.Date(c("2026-10-29", "2026-10-30"))
   )
   sources <- list(
-    RSMutableDataFrame$new(data, key_columns = "id"),
-    RSDataFrame$new(data, key_columns = c("id", "date"))
+    RSMutableDataFrame$new(data),
+    RSDataFrame$new(data)
   )
   archive <- RSKeyedArchiver$new()$archive(sources)
   restored <- RSKeyedUnarchiver$new(
@@ -64,9 +64,10 @@ test_that("mutable and immutable data frames restore data and keys", {
   for (i in seq_along(sources)) {
     expect_identical(restored[[i]]$class(), sources[[i]]$class())
     expect_identical(restored[[i]]$getData(), sources[[i]]$getData())
-    expect_identical(restored[[i]]$keyColumns(), sources[[i]]$keyColumns())
+    expect_identical(restored[[i]]$hash(), sources[[i]]$hash())
   }
   restored[[1L]]$setColumn("id", c(3L, 4L))
   expect_identical(restored[[1L]]$getColumn("id"), c(3L, 4L))
-  expect_error(restored[[2L]]$setData(data), "immutable")
+  expect_false(restored[[2L]]$respondsTo("setData"))
+  expect_false(restored[[2L]]$respondsTo("setColumn"))
 })

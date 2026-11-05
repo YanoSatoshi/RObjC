@@ -1,0 +1,248 @@
+---
+title: "ハッシュと同値性のガイド"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ハッシュと同値性のガイド}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# 同一性・同値性・ハッシュ
+
+robjc には、オブジェクトを比べるための方法が複数あります。
+どの問いに答えたいかで使い分けます。
+
+| 知りたいこと | 方法 | 判定の基準 |
+|:--|:--|:--|
+| 二つの参照が同じインスタンスを指すか | `identical()`、`==`、`!=` | オブジェクトの同一性 |
+| 二つのオブジェクトを等しい値として扱うか | `$isEqual(other)` | クラスが定めた同値性 |
+| Set の要素や Dictionary のキーをどこで探すか | `$hash()` と `$isEqual(other)` | ハッシュで候補を絞り、同値性で確認 |
+
+`hash()` は等しさを直接判定する関数ではありません。
+同じハッシュを持つ異なるオブジェクトもあり得ます。
+このガイドでは、まず同一性と同値性を分けて確認し、最後に独自クラスで両方のメソッドを実装します。
+
+## `identical()`、`==`、`!=` で同一性を比較する
+
+robjc のインスタンスは参照型のオブジェクトです。
+別の変数に代入しても、元の変数と代入先変数は同じインスタンスを指しています。
+一方、同じ値で新たに作った別のインスタンスは、元々のインスタンスとは**別の存在**です。
+robjc の比較は、**値として同じことと（同値性）、存在として同じこと（同一性）を明確に区別しています。**
+
+robjc の `==` と `!=` は `identical()` に基づく**同一性**の演算子です。
+
+```{r}
+library(robjc)
+
+first   <- RSNumber$new(7L)
+alias   <- first
+another <- RSNumber$new(7L)
+
+stopifnot(identical(first, alias))
+stopifnot(first == alias)
+stopifnot(first != another)
+stopifnot(!identical(first, another))
+```
+
+`first` と `another` は同じ整数を包みますから**同値**である一方、別々に生成されたインスタンスです。
+**`==` は包んだ値を比較せず、同一性を判定する**ので、ここでは `FALSE` になります。
+
+## `isEqual()` で同値性を比較する
+
+`isEqual()` は、各クラスが「値として等しい」条件を決めるメソッドです。
+たとえば `RSNumber` は `RSScalar` から値の比較方法を継承しており、別のインスタンスでも包んだ値が等しければ `TRUE` を返します。
+
+```{r}
+stopifnot(first$isEqual(another))
+stopifnot(another$isEqual(first))
+stopifnot(first == alias)
+stopifnot(!(first == another))
+```
+
+独自クラスで値として比較したい場合は、`isEqual()` を新たに定義します。
+次の `Label` クラスは、別々に作ったインスタンスでも、保持する文字列が同じなら等しいと判定します。
+
+```{r}
+Label <- RSObjectClass(
+  "GuideEqualLabel",
+  private = list(.text = NULL),
+  public = list(
+    initialize = function(text) {
+      super$initialize()
+      if (!is.character(text) || length(text) != 1L || is.na(text))
+        stop("`text` must be one non-missing string.")
+      private$.text <- text
+      invisible(self)
+    },
+    text = function() private$.text,
+    isEqual = function(other) {
+      if (!robjc_isInstance(other) || !other$isMemberOf(self$class()))
+        return(FALSE)
+      identical(private$.text, other$text())
+    }
+  )
+)
+
+label_a <- Label$new("ready")
+label_b <- Label$new("ready")
+label_c <- Label$new("done")
+stopifnot(label_a$isEqual(label_b))
+stopifnot(!label_a$isEqual(label_c))
+stopifnot(!label_a$isEqual(RSString$new("ready")))
+stopifnot(label_a != label_b)
+```
+
+このサンプルコードでは、まず `other` が robjc のインスタンスで、`self` の所属するクラスと同種であるかを確認します。
+これにより、`NULL` や別種のオブジェクトに対して `other$text()` を呼ばずに `FALSE` を返せます。
+`other` が同種のクラスであることが確認できたら、`text()` メソッドを持っていることは確実です。
+そこで、`other` の持つ文字列と、`self` の持つ文字列を `identical()` で比べます。
+`label_a$isEqual(label_b)` は `TRUE` ですが、二つは別のインスタンスなので `label_a == label_b` は `FALSE` です。
+
+独自クラスで `isEqual()` を定義するときは、
+少なくとも自分自身と等しいこと、
+`a` が `b` と等しければ `b` も `a` と等しいこと、
+`a` と `b`、`b` と `c` が等しければ `a` と `c` も等しいことを保ちます。
+Set や Dictionary に使う場合、この一貫性が検索の前提になります。
+
+## `RSObject` の標準メソッドを理解する
+
+`RSObject` の `isEqual()` は `identical(self, other)` に基づきます。
+したがって、`isEqual()` をオーバーライドしていないオブジェクトは、比較対象が自分自身の場合のみ等しいと判定します。
+
+```{r}
+left <- RSObject$new()
+right <- RSObject$new()
+stopifnot(left$isEqual(left))
+stopifnot(!left$isEqual(right))
+stopifnot(is.integer(left$hash()), length(left$hash()) == 1L)
+stopifnot(!is.na(left$hash()))
+```
+
+標準の `hash()` はそのインスタンスの環境アドレスから整数を作りますが、その整数が `NA_integer_` になる可能性があります。
+そこで、その整数を `robjc_normalize_hash()` に通して、 `NA_integer_` を `0L` に正規化したものをハッシュ値としています。
+
+アドレス由来のハッシュは、現在の R セッション内でオブジェクトを探すための値です。
+保存して別のセッションで同じ値になることや、すべてのインスタンスで異なる値になることは保証しません。
+`RSScalar` など、値で比較するクラスは `isEqual()` と `hash()` の両方を上書きしています。
+
+## Set と Dictionary でオブジェクトを探す
+
+Set は重複判定と所属判定に、Dictionary はキーの検索に、オブジェクトの `hash()` と `isEqual()` を使います。
+格納時と検索時で別のインスタンスを使っても、両者が等しく、ハッシュも同じなら検索できます。
+
+線型探索なら、先頭から要素を一つずつ取り出して `isEqual()` で比較します。
+要素が増えるほど比較回数も増え、探す対象が最後にある場合や存在しない場合は全要素を調べます。
+robjc の Set と Dictionary はハッシュテーブルを使い、格納時に `hash()` の値に応じて要素やキーを配置します。
+検索時にも探すオブジェクトの `hash()` を計算し、対応する場所にある候補だけを `isEqual()` で確認します。
+
+ハッシュが適切に分散すれば、要素数が増えても平均的な検索時間はほぼ一定です。
+ただし、同じハッシュに多くのオブジェクトが集中すると、その候補同士を比較する回数は増えます。
+ハッシュは検索範囲を絞るための値であり、オブジェクト固有の識別番号ではありません。
+
+等しいオブジェクトは、必ず同じハッシュを返す必要があります。
+逆に、同じハッシュを返すだけでは等しいとは限りません。
+ハッシュが衝突した候補同士を区別するのが `isEqual()` です。
+
+```{r}
+set <- RSMutableSet$new()
+set$addObject(RSString$new("apple"))
+set$addObject(RSString$new("apple"))
+stopifnot(set$count() == 1L)
+stopifnot(set$containsObject(RSString$new("apple")))
+
+dictionary <- RSMutableDictionary$new()
+dictionary$setObjectForKey(RSNumber$new(3L), RSString$new("quantity"))
+stopifnot(identical(
+  dictionary$objectForKey(RSString$new("quantity"))$value(), 3L
+))
+```
+
+## 独自の同値性とハッシュを実装する
+
+次のクラスは、一つの整数をキーとして保持します。
+同じ整数を持つインスタンスを等しいとみなし、その整数からハッシュを計算します。
+`value()` は読み取り専用にし、Set や Dictionary に入れた後でキーの値が変わらないようにします。
+
+通常のハッシュ計算には、共有インスタンス `RSHashOperator$instance` を利用できます。
+`hashForScalar()` は `integer` や `character` などの長さ 1 の R の値からハッシュを計算し、文字列専用の `computeHashCodeWithString()` も用意されています。
+詳しい引数と計算方法は、`help("RSHashOperator", package = "robjc")` で開くクラスドキュメントを参照してください。
+
+```{r}
+operator <- RSHashOperator$instance
+stopifnot(is.integer(operator$hashForScalar(12L)))
+stopifnot(identical(
+  operator$hashForScalar("apple"),
+  operator$computeHashCodeWithString("apple")
+))
+```
+
+以下の `NumberKey` では、ハッシュの衝突と `isEqual()` の役割を見せるため、あえて簡単な剰余計算を使います。
+実際のクラスでは、値に応じて `RSHashOperator` の利用を検討してください。
+
+```{r}
+NumberKey <- RSObjectClass(
+  "GuideNumberKey",
+  private = list(.value = NULL),
+  public = list(
+    initialize = function(value) {
+      super$initialize()
+      if (!is.integer(value) || length(value) != 1L)
+        stop("`value` must be one integer.")
+      private$.value <- value
+      invisible(self)
+    },
+    value = function() private$.value,
+    isEqual = function(other) {
+      robjc_isInstance(other) &&
+        other$isMemberOf(self$class()) &&
+        identical(private$.value, other$value())
+    },
+    hash = function() {
+      computed_hash <- as.integer(private$.value %% 10L)
+      robjc_normalize_hash(computed_hash)
+    }
+  )
+)
+
+a <- NumberKey$new(12L)
+b <- NumberKey$new(12L)
+c <- NumberKey$new(22L)
+stopifnot(a$isEqual(b), identical(a$hash(), b$hash()))
+stopifnot(!a$isEqual(c), identical(a$hash(), c$hash()))
+```
+
+この例では `12L` と `22L` のハッシュが意図的に衝突します。
+それでも `isEqual()` が値全体を比較するため、Set と Dictionary は両者を別の要素・キーとして扱えます。
+
+```{r}
+keys <- RSMutableSet$new()
+keys$addObject(a)
+keys$addObject(b)
+keys$addObject(c)
+stopifnot(keys$count() == 2L)
+stopifnot(keys$containsObject(NumberKey$new(12L)))
+stopifnot(keys$containsObject(NumberKey$new(22L)))
+
+lookup <- RSMutableDictionary$new()
+lookup$setObjectForKey(RSString$new("twelve"), a)
+lookup$setObjectForKey(RSString$new("twenty-two"), c)
+stopifnot(identical(lookup$objectForKey(b)$value(), "twelve"))
+stopifnot(identical(
+  lookup$objectForKey(NumberKey$new(22L))$value(), "twenty-two"
+))
+```
+
+独自の `hash()` は、計算の**最後**に `robjc_normalize_hash(computed_hash)` を返します。
+整数演算の結果が `NA_integer_` になった場合、この関数は `0L` に置き換えます。
+`NA_integer_` をそのまま返すと Collection の検索に使えません。
+
+```{r}
+stopifnot(identical(robjc_normalize_hash(NA_integer_), 0L))
+stopifnot(identical(robjc_normalize_hash(42L), 42L))
+```
+
+この正規化は、同値性とハッシュの整合性を自動で作るものではありません。
+**`a$isEqual(b)` が `TRUE` なら `a$hash()` と `b$hash()` は同じ値**という条件を、実装側で守ります。
+また、Set の要素や Dictionary のキーとして格納されている間は、比較とハッシュを決める状態を変えないでください。
+Dictionary は挿入時にキーの `copy()` を呼びます。
+Dictionary の使い方は[コレクションのガイド](guide_07_Collections.Rmd)を参照してください。

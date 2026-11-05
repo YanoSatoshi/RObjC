@@ -53,7 +53,7 @@ RSScalar <- RSObjectClass(
           !isTRUE(is.nan(val)) &&
           !isTRUE(self$class()$isNAClass)) {
         na_slot <- self$class()$robjc_isa$slot
-        if (robjc_isRobjcObject(na_slot))
+        if (robjc_isInstance(na_slot))
           return(invisible(na_slot))
         stop("This scalar class has no NA companion.", call. = FALSE)
       }
@@ -174,7 +174,7 @@ RSScalar <- RSObjectClass(
       na.last <- tryCatch(as.logical(na.last), error = function(e) NA)
       if (!is.logical(na.last) || length(na.last) != 1L || is.na(na.last))
         stop("`na.last` must be TRUE or FALSE.", call. = FALSE)
-      if (!robjc_isRobjcObject(other) || !other$isKindOf(RSScalar))
+      if (!robjc_isInstance(other) || !other$isKindOf(RSScalar))
         stop("`other` must be an RSScalar object.", call. = FALSE)
       left <- self$nativeValue()
       right <- other$nativeValue()
@@ -215,7 +215,7 @@ RSScalar <- RSObjectClass(
   private = list(
     .val = NULL,
     .comparable = function(other) {
-      robjc_isRobjcObject(other) && other$isKindOf(RSScalar) &&
+      robjc_isInstance(other) && other$isKindOf(RSScalar) &&
         (self$isKindOf(other$class()) || other$isKindOf(self$class()))
     }
   )

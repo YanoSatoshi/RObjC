@@ -82,19 +82,19 @@ test_that("RSObject respondsTo reports only public methods", {
   expect_false(scalar$respondsTo(".comparable"))
 })
 
-test_that("robjc_isRobjcObject rejects malformed R6-like environments", {
+test_that("robjc_isInstance rejects malformed R6-like environments", {
   fake <- new.env(parent = emptyenv())
   fake$.__enclos_env__ <- 1L
-  expect_false(robjc_isRobjcObject(fake))
+  expect_false(robjc_isInstance(fake))
 
   fake$.__enclos_env__ <- new.env(parent = emptyenv())
   fake$.__enclos_env__$private <- 1L
-  expect_false(robjc_isRobjcObject(fake))
+  expect_false(robjc_isInstance(fake))
 
   fake$.__enclos_env__$private <- new.env(parent = emptyenv())
   fake$.__enclos_env__$private$.__isa <- structure(list(), class = "RSObjectIsA")
-  expect_false(robjc_isRobjcObject(fake))
-  expect_true(robjc_isRobjcObject(RSObject$new()))
+  expect_false(robjc_isInstance(fake))
+  expect_true(robjc_isInstance(RSObject$new()))
 })
 
 test_that("RObjC generators have identity equality and pointer hashes", {
