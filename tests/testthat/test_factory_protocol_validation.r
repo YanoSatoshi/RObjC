@@ -47,7 +47,7 @@ test_that("validation accepts inherited methods and can be deferred", {
     super_class = Parent,
     protocols = list(Named)
   )
-  expect_identical(protocol_validateContracts(Child), character(0))
+  expect_identical(protocol_getMissingContracts(Child), character(0))
 
   Object <- RSObjectClass(
     "FactoryValidationDeferredObject",
@@ -66,7 +66,7 @@ test_that("validation accepts inherited methods and can be deferred", {
     validate_protocols = FALSE
   )
   for (klass in list(Object, Singleton, Scalar, Scalar$na$class()))
-    expect_identical(protocol_validateContracts(klass), "name")
+    expect_identical(protocol_getMissingContracts(klass), "name")
 })
 
 test_that("class factories validate the validation flag", {

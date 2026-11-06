@@ -75,7 +75,7 @@ See the [equality and hashing guide](guide_08_Hash_isEqual.Rmd) for key stabilit
 A Set keeps one representative of each group of equal elements.
 Its iteration order is undefined.
 Membership checks use each object's `hash()` and `isEqual()`.
-A mutable Set lets you add and remove elements. `uniteSet()`, `intersectSet()`, and `subtractSet()` return new read-only Sets.
+A mutable Set lets you add and remove elements. `setByUnitingSet()`, `setByIntersectingSet()`, and `setBySubtractingSet()` return new read-only Sets.
 A custom element class should also return the result of `robjc_normalize_hash()` at the end of its `hash()` method.
 
 ```{r}

@@ -14,6 +14,15 @@ Use a custom class when content-sensitive hashing is needed.
 \code{copy()} returns the immutable receiver, while \code{mutableCopy()} creates a
 mutable wrapper around the same data.
 }
+\section{Protocols}{
+
+\itemize{
+\item \link{RSCopying}
+\item \link{RSMutableCopying}
+\item \link{RSCoding}
+}
+}
+
 \section{Super class}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{RSDataFrame}
 }
@@ -23,7 +32,7 @@ mutable wrapper around the same data.
     \item \href{#method-RSDataFrame-initialize}{\code{RSDataFrame$new()}}
     \item \href{#method-RSDataFrame-encodeWithCoder}{\code{RSDataFrame$encodeWithCoder()}}
     \item \href{#method-RSDataFrame-initWithCoder}{\code{RSDataFrame$initWithCoder()}}
-    \item \href{#method-RSDataFrame-getData}{\code{RSDataFrame$getData()}}
+    \item \href{#method-RSDataFrame-getDataFrame}{\code{RSDataFrame$getDataFrame()}}
     \item \href{#method-RSDataFrame-getColumn}{\code{RSDataFrame$getColumn()}}
     \item \href{#method-RSDataFrame-nrow}{\code{RSDataFrame$nrow()}}
     \item \href{#method-RSDataFrame-ncol}{\code{RSDataFrame$ncol()}}
@@ -47,7 +56,7 @@ mutable wrapper around the same data.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superclass"><a href='../../robjc/html/RSObject.html#method-RSObject-superclass'><code>RSObject$superclass()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
@@ -116,13 +125,13 @@ unused \code{key_columns} field.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSDataFrame-getData"></a>}}
-\if{latex}{\out{\hypertarget{method-RSDataFrame-getData}{}}}
-\subsection{\code{RSDataFrame$getData()}}{
+\if{html}{\out{<a id="method-RSDataFrame-getDataFrame"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDataFrame-getDataFrame}{}}}
+\subsection{\code{RSDataFrame$getDataFrame()}}{
   Returns the internal tibble object.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSDataFrame$getData()}
+    \preformatted{RSDataFrame$getDataFrame()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{

@@ -16,7 +16,7 @@ vignette: >
 
 ## 標準クラスを保存・復元する
 
-`RSKeyedArchiver$new()$archive(root)` は、指定したルート値からアーカイブを作ります。
+`RSKeyedArchiver$new()$encode(root)` は、指定したルート値からアーカイブを作ります。
 復元時はアーカイブを `RSKeyedUnarchiver$new()` に渡し、`decode()` を呼びます。
 robjc の標準クラスは自動的に解決されるため、クラス対応表を指定する必要はありません。
 
@@ -24,7 +24,7 @@ robjc の標準クラスは自動的に解決されるため、クラス対応�
 library(robjc)
 
 original <- RSString$new("saved text")
-archive <- RSKeyedArchiver$new()$archive(original)
+archive <- RSKeyedArchiver$new()$encode(original)
 stopifnot(is.list(archive))
 
 path <- tempfile(fileext = ".rds")
@@ -48,7 +48,7 @@ stopifnot(identical(restored$value(), "saved text"))
 
 ```{r}
 shared <- RSString$new("shared")
-shared_archive <- RSKeyedArchiver$new()$archive(list(shared, shared))
+shared_archive <- RSKeyedArchiver$new()$encode(list(shared, shared))
 shared_decoder <- RSKeyedUnarchiver$new(shared_archive)
 loaded <- shared_decoder$decode()
 
@@ -71,7 +71,7 @@ first <- RSString$new("first")
 second <- RSNumber$new(2L)
 roots <- list(first = first, second = second, first_again = first)
 
-roots_archive <- RSKeyedArchiver$new()$archive(roots)
+roots_archive <- RSKeyedArchiver$new()$encode(roots)
 restored_roots <- RSKeyedUnarchiver$new(roots_archive)$decode()
 
 stopifnot(identical(names(restored_roots), names(roots)))
@@ -88,19 +88,19 @@ stopifnot(!identical(restored_roots$first, first))
 
 `RSKeyedUnarchiver$new(archive)` はデータを読み込むだけで、まだインスタンスを復元しません。
 表示される案内に従い、必要ならクラスの対応を確認・変更してから `decode()` を呼びます。
-`showAllClasses()` は対応を要するクラスを tibble で返します。既定では自動解決できるクラスを除きます。
+`classMappings()` は対応を要するクラスを tibble で返します。既定では自動解決できるクラスを除きます。
 
 ```{r}
-stopifnot(nrow(decoder$showAllClasses()) == 0L)
-all_classes <- decoder$showAllClasses(remove_default = FALSE)
+stopifnot(nrow(decoder$classMappings()) == 0L)
+all_classes <- decoder$classMappings(remove_default = FALSE)
 stopifnot(identical(all_classes$class_name, "RSString"))
 stopifnot(identical(all_classes$status, "automatic"))
 stopifnot(identical(all_classes$decoder_class[[1L]], RSString))
-stopifnot(identical(decoder$showClass(all_classes$class_key[[1L]])$status, "automatic"))
+stopifnot(identical(decoder$classMappingForKey(all_classes$class_key[[1L]])$status, "automatic"))
 ```
 
-この例で `showAllClasses(remove_default = FALSE)` を表示すると、主な列は次のようになります。
-既定の `showAllClasses()` は、この自動解決済みの行を除いた 0 行の tibble です。
+この例で `classMappings(remove_default = FALSE)` を表示すると、主な列は次のようになります。
+既定の `classMappings()` は、この自動解決済みの行を除いた 0 行の tibble です。
 
 | `class_key` | `class_name` | `version` | `decoder_name` | `status` |
 |:--|:--|:--|:--|:--|
@@ -112,10 +112,10 @@ stopifnot(identical(decoder$showClass(all_classes$class_key[[1L]])$status, "auto
 表の `class_name` と `version` は保存時の情報、`decoder_class` は復元先のジェネレータを保持する list 列です。
 `class_key` は対応を編集するときに使う、このアーカイブ内の識別子です。
 `remove_default = FALSE` で全件を表示できます。
-`dictionaryWithAllClasses()` は常に全件を `RSMutableDictionary` で返します。キーは `class_key` を包む `RSString`、値は復元先のジェネレータです。
+`classMappingsAsDictionary()` は常に全件を `RSMutableDictionary` で返します。キーは `class_key` を包む `RSString`、値は復元先のジェネレータです。
 
 ```{r}
-class_dictionary <- decoder$dictionaryWithAllClasses()
+class_dictionary <- decoder$classMappingsAsDictionary()
 stopifnot(class_dictionary$isKindOf(RSMutableDictionary))
 stopifnot(identical(
   class_dictionary$objectForKey(RSString$new(all_classes$class_key[[1L]])),
@@ -126,10 +126,10 @@ stopifnot(identical(
 ## 独自クラスを対応付ける
 
 スクリプト内だけで定義したクラスは、パッケージに登録されたクラスとして自動解決できません。
-この場合は `showAllClasses()` の結果に現在のジェネレータを入れ、`setClasses()` に渡します。
+この場合は `classMappings()` の結果に現在のジェネレータを入れ、`setClassMappings()` に渡します。
 保存時のクラス名と復元先のクラス名は同じである必要はありません。
 ただし、復元先の `initWithCoder()` が保存済みフィールドを解釈できる必要があります。
-**`setClasses()` は復元先のクラスを指定するだけで、フィールド構造の変換は行いません。**
+**`setClassMappings()` は復元先のクラスを指定するだけで、フィールド構造の変換は行いません。**
 異なるバージョンやクラスへの移行処理は、復元先の `initWithCoder()` に実装します。
 次の例では旧版の `text` フィールドを、新版の `title` に移します。
 `savedClassVersion()` は復元中に保存時のクラスバージョンを返します。
@@ -180,46 +180,46 @@ CurrentNote <- RSObjectClass(
 ```
 
 古いアーカイブは未解決として表示されます。`decoder_class` に `CurrentNote` を設定してから復元します。
-`setClasses()` には `class_key` と `decoder_class` の列を持つ tibble を渡します。
-`showClass()` で個別の対応を確認できます。
+`setClassMappings()` には `class_key` と `decoder_class` の列を持つ tibble を渡します。
+`classMappingForKey()` で個別の対応を確認できます。
 
 ```{r}
-legacy_archive <- RSKeyedArchiver$new()$archive(LegacyNote$new("draft"))
+legacy_archive <- RSKeyedArchiver$new()$encode(LegacyNote$new("draft"))
 custom_decoder <- RSKeyedUnarchiver$new(legacy_archive)
-classes <- custom_decoder$showAllClasses()
+classes <- custom_decoder$classMappings()
 stopifnot(identical(classes$class_name, "Guide10LegacyNote"))
 stopifnot(identical(classes$status, "unresolved"))
 
 classes$decoder_class[1L] <- list(CurrentNote)
-custom_decoder$setClasses(classes)
-stopifnot(identical(custom_decoder$showClass(classes$class_key[[1L]])$status, "manual"))
+custom_decoder$setClassMappings(classes)
+stopifnot(identical(custom_decoder$classMappingForKey(classes$class_key[[1L]])$status, "manual"))
 
 current <- custom_decoder$decode()
 stopifnot(current$isMemberOf(CurrentNote))
 stopifnot(identical(current$title, "draft"))
 ```
 
-対応付け前の `custom_decoder$showAllClasses()` は、主な列を抜き出すと次の 1 行です。
+対応付け前の `custom_decoder$classMappings()` は、主な列を抜き出すと次の 1 行です。
 `decoder_name` の `NA` は、復元先がまだ決まっていないことを示します。
 
 | `class_key` | `class_name` | `version` | `decoder_name` | `status` |
 |:--|:--|:--|:--|:--|
 | C1 | Guide10LegacyNote | 1.0 | NA | unresolved |
 
-`setClasses(classes)` の後は、この行の `decoder_name` が `Guide10CurrentNote`、`status` が `manual` になります。
+`setClassMappings(classes)` の後は、この行の `decoder_name` が `Guide10CurrentNote`、`status` が `manual` になります。
 `class_name` と `version` は保存時の値のままです。
 
 同じ対応は `RSMutableDictionary` でも渡せます。
-未解決クラスの値は `RSNull$null` です。取得した辞書は独立した対応表なので、変更後は `setClasses()` を呼びます。
+未解決クラスの値は `RSNull$null` です。取得した辞書は独立した対応表なので、変更後は `setClassMappings()` を呼びます。
 
 ```{r}
 other_decoder <- RSKeyedUnarchiver$new(legacy_archive)
-mapping <- other_decoder$dictionaryWithAllClasses()
+mapping <- other_decoder$classMappingsAsDictionary()
 key <- RSString$new(classes$class_key[[1L]])
 stopifnot(identical(mapping$objectForKey(key), RSNull$null))
 
 mapping$setObjectForKey(CurrentNote, key)
-other_decoder$setClasses(mapping)
+other_decoder$setClassMappings(mapping)
 stopifnot(identical(other_decoder$decode()$title, "draft"))
 ```
 
@@ -234,13 +234,13 @@ stopifnot(identical(other_decoder$decode()$title, "draft"))
 旧版からの移行は上例のように `initWithCoder()` に実装します。
 
 拡張パッケージのクラスは、そのパッケージの `.onLoad()` で `robjc_register_class()` に登録できます。
-登録済みなら通常は手動の `setClasses()` を省けます。登録用の `id` は、クラス名やバージョンとは別の安定した識別子として維持します。
+登録済みなら通常は手動の `setClassMappings()` を省けます。登録用の `id` は、クラス名やバージョンとは別の安定した識別子として維持します。
 登録時の引数と手順は `?robjc_register_class` を参照してください。
 
 ## 未解決クラスと不正なアーカイブに対処する
 
 対応付けがないクラスを残したまま `decode()` すると、未解決の `class_key` を示すエラーになります。
-`showAllClasses()` で該当行を調べ、適切なジェネレータを指定します。
+`classMappings()` で該当行を調べ、適切なジェネレータを指定します。
 形式が違うアーカイブは Unarchiver の生成時に、壊れた参照やフィールドは復元時にエラーとなることがあります。
 
 ```{r}

@@ -86,7 +86,7 @@ Singleton と Scalar のファクトリーも R6 ジェネレータの生成時�
 これらのマーカーを使う種別判定は[ノート 03](tech_03_ObjectType.Rmd)で扱います。
 
 通常クラスは、親から受け継ぐ宣言も含めてプロトコルを `isa$protocols` に記録します。
-`validate_protocols = TRUE` なら、`protocol_validateContracts(klass)` が要求する公開メソッド名の不足を調べ、欠けていればクラス宣言を停止します。
+`validate_protocols = TRUE` なら、`protocol_getMissingContracts(klass)` が要求する公開メソッド名の不足を調べ、欠けていればクラス宣言を停止します。
 この検証はメソッドのシグネチャや振る舞いまでは確認しません。
 
 ```{r}
@@ -95,7 +95,7 @@ Runner <- RSObjectClass("Tech04Runner",
   protocols = list(Runnable),
   public = list(run = function() "done")
 )
-stopifnot(identical(protocol_validateContracts(Runner), character(0)))
+stopifnot(identical(protocol_getMissingContracts(Runner), character(0)))
 stopifnot(Runner$new()$conformsTo(Runnable))
 ```
 

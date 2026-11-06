@@ -63,3 +63,31 @@ test_that("RSSet rejects R NULL members", {
   expect_error(set$containsObject(NULL), "robjc_wrap_null", fixed = TRUE)
   expect_identical(set$member(RSNull$null), RSNull$null)
 })
+
+test_that("RSSet subset and additions preserve immutable operands", {
+  a <- RSString_withValue("a")
+  b <- RSString_withValue("b")
+  base <- RSSet$new(list(a))
+  larger <- RSMutableSet$new(list(a, b))
+  expect_true(base$isSubsetOfSet(larger))
+  expect_true(base$isSubsetOfSet(base))
+  expect_false(larger$isSubsetOfSet(base))
+  expect_true(RSSet$new()$isSubsetOfSet(base))
+  expect_true(RSSet$new()$isSubsetOfSet(RSSet$new()))
+  expect_error(base$isSubsetOfSet(RSArray$new()), "set")
+
+  added <- base$setByAddingObject(b)
+  expect_true(added$containsObject(b))
+  expect_equal(base$count(), 1)
+  expect_equal(base$setByAddingObject(RSString_withValue("a"))$count(), 1)
+  expect_error(base$setByAddingObject(NULL), "RSNull")
+
+  combined <- base$setByAddingObjectsFromSet(larger)
+  expect_equal(combined$count(), 2)
+  expect_equal(base$count(), 1)
+  expect_equal(larger$count(), 2)
+
+  from_array <- base$setByAddingObjectsFromArray(RSArray$new(list(b)))
+  expect_equal(from_array$count(), 2)
+  expect_error(base$setByAddingObjectsFromArray(larger), "RSArray")
+})

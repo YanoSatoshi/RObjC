@@ -13,6 +13,16 @@ protocol generator keys are retained by identity. Keep a stored key's
 hash- and equality-relevant state unchanged while it remains in the
 dictionary. \code{copy()} returns an independent immutable \link{RSDictionary}.
 }
+\section{Protocols}{
+
+\itemize{
+\item \link{RSMutableCopying}
+\item \link{RSCopying}
+\item \link{RSListing}
+\item \link{RSCoding}
+}
+}
+
 \section{Convenience Constructor}{
 
 \code{\link[=RSMutableDictionary_withDictionary]{RSMutableDictionary_withDictionary()}} creates a mutable shallow copy with
@@ -45,7 +55,7 @@ an independent native table.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superclass"><a href='../../robjc/html/RSObject.html#method-RSObject-superclass'><code>RSObject$superclass()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDictionary" data-id="allEntries"><a href='../../robjc/html/RSDictionary.html#method-RSDictionary-allEntries'><code>RSDictionary$allEntries()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDictionary" data-id="allEntriesAsList"><a href='../../robjc/html/RSDictionary.html#method-RSDictionary-allEntriesAsList'><code>RSDictionary$allEntriesAsList()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDictionary" data-id="allKeys"><a href='../../robjc/html/RSDictionary.html#method-RSDictionary-allKeys'><code>RSDictionary$allKeys()</code></a></span></li>
@@ -60,8 +70,8 @@ an independent native table.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDictionary" data-id="containsKey"><a href='../../robjc/html/RSDictionary.html#method-RSDictionary-containsKey'><code>RSDictionary$containsKey()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDictionary" data-id="count"><a href='../../robjc/html/RSDictionary.html#method-RSDictionary-count'><code>RSDictionary$count()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDictionary" data-id="description"><a href='../../robjc/html/RSDictionary.html#method-RSDictionary-description'><code>RSDictionary$description()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDictionary" data-id="dictionaryByExcludingWithDictionary"><a href='../../robjc/html/RSDictionary.html#method-RSDictionary-dictionaryByExcludingWithDictionary'><code>RSDictionary$dictionaryByExcludingWithDictionary()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDictionary" data-id="dictionaryByMergingWithDictionary"><a href='../../robjc/html/RSDictionary.html#method-RSDictionary-dictionaryByMergingWithDictionary'><code>RSDictionary$dictionaryByMergingWithDictionary()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDictionary" data-id="dictionaryByExcludingDictionary"><a href='../../robjc/html/RSDictionary.html#method-RSDictionary-dictionaryByExcludingDictionary'><code>RSDictionary$dictionaryByExcludingDictionary()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDictionary" data-id="dictionaryByMergingDictionary"><a href='../../robjc/html/RSDictionary.html#method-RSDictionary-dictionaryByMergingDictionary'><code>RSDictionary$dictionaryByMergingDictionary()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDictionary" data-id="encodeWithCoder"><a href='../../robjc/html/RSDictionary.html#method-RSDictionary-encodeWithCoder'><code>RSDictionary$encodeWithCoder()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDictionary" data-id="hash"><a href='../../robjc/html/RSDictionary.html#method-RSDictionary-hash'><code>RSDictionary$hash()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDictionary" data-id="initWithCoder"><a href='../../robjc/html/RSDictionary.html#method-RSDictionary-initWithCoder'><code>RSDictionary$initWithCoder()</code></a></span></li>

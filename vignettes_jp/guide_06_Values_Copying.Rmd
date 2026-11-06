@@ -84,6 +84,7 @@ stopifnot(is.null(fields$objectForKey(RSString$new("absent"))))
 ## ベクトルを包む
 
 `RSVector` と `RSMutableVector` は、R の atomic vector を一つの robjc オブジェクトに包みます。
+`RSVector` が読み取り専用の親クラスで、`RSMutableVector` は読み取り・比較メソッドを継承し、変更メソッドを追加します。
 各要素を `RSNumber` などに変換して保持するわけではありません。
 `asVector()` で通常の R のベクトルを取り出し、`valueAtIndex()` で 1 始まりの位置にある値を読みます。
 ベクトル内の `NA` もそのまま保持できます。

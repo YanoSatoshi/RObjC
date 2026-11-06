@@ -10,7 +10,6 @@
 \alias{RSMutableArray_withObject}
 \alias{RSMutableArray_withObjects}
 \alias{RSMutableArray_withArray}
-\alias{RSMutableArray_withCapacity}
 \title{RSArray and RSMutableArray Convenience Constructors}
 \usage{
 RSArray_empty()
@@ -28,8 +27,6 @@ RSMutableArray_withObject(object)
 RSMutableArray_withObjects(objects)
 
 RSMutableArray_withArray(array)
-
-RSMutableArray_withCapacity(capacity)
 }
 \arguments{
 \item{object}{An RObjC object, class generator, or protocol generator.}
@@ -37,9 +34,6 @@ RSMutableArray_withCapacity(capacity)
 \item{objects}{A list of RObjC objects, class generators, or protocol generators.}
 
 \item{array}{An \code{RSArray} or \code{RSMutableArray} instance.}
-
-\item{capacity}{A non-negative whole number. Capacity reservation is not
-implemented for the current R list storage.}
 }
 \value{
 An array of the type named by the function, except that copying an

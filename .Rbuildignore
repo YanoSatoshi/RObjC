@@ -1,11 +1,12 @@
 ^.DS_Store$
+^README\.ja\.md$
 ^\.github$
 ^\.sf$
 ^LICENSE\.md$
 ^doc$
+^html$
 ^Meta$
 ^temp_lib$
-^html$
 ^vignettes_jp$
 ^robjc\.Rcheck$
 ^robjc_*\.tar\.gz$

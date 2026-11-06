@@ -19,6 +19,11 @@ is determined by their \code{hash()} and \code{isEqual()} methods.
 The set operations mutate the receiver. They correspond to the operations
 provided by Foundation's mutable set: union, intersection, and subtraction.
 }
+\section{Protocols}{
+
+None.
+}
+
 \section{Methods}{
 
 \itemize{

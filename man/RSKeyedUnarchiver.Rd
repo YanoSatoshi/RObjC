@@ -5,14 +5,47 @@
 \title{RSKeyedUnarchiver: Restore Logical Object State}
 \description{
 Loads a keyed archive for inspection and class mapping, then restores it
-when \verb{$decode()} is called. \verb{$showAllClasses()} returns classes needing
-attention by default, and \verb{$setClasses()} accepts an edited tibble or
+when \verb{$decode()} is called. \verb{$classMappings()} returns classes needing
+attention by default, and \verb{$setClassMappings()} accepts an edited tibble or
 \link{RSMutableDictionary}.
 A caller-supplied resolver remains available for older archives and
 classes defined outside a package namespace.
 
 The default instance factory uses \code{\link[=robjc_allocate]{robjc_allocate()}} to create an instance
 without calling \code{initialize()}, then invokes its \code{initWithCoder()} method.
+}
+\section{Protocols}{
+
+\itemize{
+\item \link{RSCopying}
+}
+}
+
+\examples{
+# Restore one root. Built-in classes resolve automatically.
+archive <- RSKeyedArchiver$new()$encode(RSString$new("saved text"))
+path <- tempfile(fileext = ".rds")
+saveRDS(archive, path)
+saved <- readRDS(path)
+unlink(path)
+decoder <- RSKeyedUnarchiver$new(saved)
+stopifnot(nrow(decoder$classMappings()) == 0L)
+restored <- decoder$decode()
+stopifnot(identical(restored$value(), "saved text"))
+
+# A list restores multiple roots and preserves shared references.
+shared <- RSString$new("shared")
+roots <- list(first = shared, second = RSNumber$new(2L), again = shared)
+multiple <- RSKeyedArchiver$new()$encode(roots)
+path <- tempfile(fileext = ".rds")
+saveRDS(multiple, path)
+saved_multiple <- readRDS(path)
+unlink(path)
+restored_roots <- RSKeyedUnarchiver$new(saved_multiple)$decode()
+stopifnot(identical(names(restored_roots), names(roots)))
+stopifnot(identical(restored_roots$first, restored_roots$again))
+stopifnot(identical(restored_roots$second$value(), 2L))
+
 }
 \section{Super classes}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSCoder]{RSCoder}} -> \code{RSKeyedUnarchiver}
@@ -21,14 +54,13 @@ without calling \code{initialize()}, then invokes its \code{initWithCoder()} met
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-RSKeyedUnarchiver-initialize}{\code{RSKeyedUnarchiver$new()}}
-    \item \href{#method-RSKeyedUnarchiver-showAllClasses}{\code{RSKeyedUnarchiver$showAllClasses()}}
-    \item \href{#method-RSKeyedUnarchiver-dictionaryWithAllClasses}{\code{RSKeyedUnarchiver$dictionaryWithAllClasses()}}
-    \item \href{#method-RSKeyedUnarchiver-showClass}{\code{RSKeyedUnarchiver$showClass()}}
-    \item \href{#method-RSKeyedUnarchiver-setClasses}{\code{RSKeyedUnarchiver$setClasses()}}
+    \item \href{#method-RSKeyedUnarchiver-classMappings}{\code{RSKeyedUnarchiver$classMappings()}}
+    \item \href{#method-RSKeyedUnarchiver-classMappingsAsDictionary}{\code{RSKeyedUnarchiver$classMappingsAsDictionary()}}
+    \item \href{#method-RSKeyedUnarchiver-classMappingForKey}{\code{RSKeyedUnarchiver$classMappingForKey()}}
+    \item \href{#method-RSKeyedUnarchiver-setClassMappings}{\code{RSKeyedUnarchiver$setClassMappings()}}
     \item \href{#method-RSKeyedUnarchiver-decodeObjectForKey}{\code{RSKeyedUnarchiver$decodeObjectForKey()}}
     \item \href{#method-RSKeyedUnarchiver-savedClassVersion}{\code{RSKeyedUnarchiver$savedClassVersion()}}
     \item \href{#method-RSKeyedUnarchiver-decode}{\code{RSKeyedUnarchiver$decode()}}
-    \item \href{#method-RSKeyedUnarchiver-unarchive}{\code{RSKeyedUnarchiver$unarchive()}}
   }
 }
 \if{html}{\out{<details><summary>Inherited methods</summary>
@@ -46,7 +78,7 @@ without calling \code{initialize()}, then invokes its \code{initWithCoder()} met
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superclass"><a href='../../robjc/html/RSObject.html#method-RSObject-superclass'><code>RSObject$superclass()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSCoder" data-id="encodeObjectForKey"><a href='../../robjc/html/RSCoder.html#method-RSCoder-encodeObjectForKey'><code>RSCoder$encodeObjectForKey()</code></a></span></li>
 </ul>
 </details>}}
@@ -67,7 +99,7 @@ without calling \code{initialize()}, then invokes its \code{initWithCoder()} met
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{archive}}{Archive created by \link{RSKeyedArchiver}\verb{$archive()}.}
+      \item{\code{archive}}{Archive created by \link{RSKeyedArchiver}\verb{$encode()}.}
       \item{\code{resolve_class}}{Optional function receiving class name, saved
 version, and kind (\code{"instance"}, \code{"class"}, or \code{"protocol"}). If
 supplied, it takes precedence over package registration.}
@@ -79,16 +111,16 @@ returning an instance. Defaults to \code{\link[=robjc_allocate]{robjc_allocate()
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSKeyedUnarchiver-showAllClasses"></a>}}
-\if{latex}{\out{\hypertarget{method-RSKeyedUnarchiver-showAllClasses}{}}}
-\subsection{\code{RSKeyedUnarchiver$showAllClasses()}}{
+\if{html}{\out{<a id="method-RSKeyedUnarchiver-classMappings"></a>}}
+\if{latex}{\out{\hypertarget{method-RSKeyedUnarchiver-classMappings}{}}}
+\subsection{\code{RSKeyedUnarchiver$classMappings()}}{
   Shows archived classes and their proposed decoder classes.
 By default, classes resolved automatically from package registration
 are omitted. Explicit resolver results and manual mappings remain
 visible. Use \code{remove_default = FALSE} to show every class.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSKeyedUnarchiver$showAllClasses(remove_default = TRUE)}
+    \preformatted{RSKeyedUnarchiver$classMappings(remove_default = TRUE)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -104,17 +136,17 @@ visible. Use \code{remove_default = FALSE} to show every class.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSKeyedUnarchiver-dictionaryWithAllClasses"></a>}}
-\if{latex}{\out{\hypertarget{method-RSKeyedUnarchiver-dictionaryWithAllClasses}{}}}
-\subsection{\code{RSKeyedUnarchiver$dictionaryWithAllClasses()}}{
+\if{html}{\out{<a id="method-RSKeyedUnarchiver-classMappingsAsDictionary"></a>}}
+\if{latex}{\out{\hypertarget{method-RSKeyedUnarchiver-classMappingsAsDictionary}{}}}
+\subsection{\code{RSKeyedUnarchiver$classMappingsAsDictionary()}}{
   Returns all current class mappings as a mutable dictionary.
 Keys are \code{RSString} objects containing the \code{class_key} values shown by
-\verb{$showAllClasses(remove_default = FALSE)}. Values are decoder generators; unresolved classes
+\verb{$classMappings(remove_default = FALSE)}. Values are decoder generators; unresolved classes
 have \link{RSNull}\verb{$null} as a placeholder. The returned dictionary is an
-independent snapshot. Pass it to \verb{$setClasses()} after editing it.
+independent snapshot. Pass it to \verb{$setClassMappings()} after editing it.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSKeyedUnarchiver$dictionaryWithAllClasses()}
+    \preformatted{RSKeyedUnarchiver$classMappingsAsDictionary()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
@@ -123,14 +155,14 @@ independent snapshot. Pass it to \verb{$setClasses()} after editing it.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSKeyedUnarchiver-showClass"></a>}}
-\if{latex}{\out{\hypertarget{method-RSKeyedUnarchiver-showClass}{}}}
-\subsection{\code{RSKeyedUnarchiver$showClass()}}{
+\if{html}{\out{<a id="method-RSKeyedUnarchiver-classMappingForKey"></a>}}
+\if{latex}{\out{\hypertarget{method-RSKeyedUnarchiver-classMappingForKey}{}}}
+\subsection{\code{RSKeyedUnarchiver$classMappingForKey()}}{
   Shows one class mapping by the \code{class_key} shown in
-\verb{$showAllClasses(remove_default = FALSE)}.
+\verb{$classMappings(remove_default = FALSE)}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSKeyedUnarchiver$showClass(class_key)}
+    \preformatted{RSKeyedUnarchiver$classMappingForKey(class_key)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -146,9 +178,9 @@ independent snapshot. Pass it to \verb{$setClasses()} after editing it.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSKeyedUnarchiver-setClasses"></a>}}
-\if{latex}{\out{\hypertarget{method-RSKeyedUnarchiver-setClasses}{}}}
-\subsection{\code{RSKeyedUnarchiver$setClasses()}}{
+\if{html}{\out{<a id="method-RSKeyedUnarchiver-setClassMappings"></a>}}
+\if{latex}{\out{\hypertarget{method-RSKeyedUnarchiver-setClassMappings}{}}}
+\subsection{\code{RSKeyedUnarchiver$setClassMappings()}}{
   Registers decoder classes from an edited tibble or an
 \link{RSMutableDictionary} whose \code{RSString} keys are archive class keys and
 whose values are class or protocol generators. Use \link{RSNull}\verb{$null} in
@@ -156,7 +188,7 @@ a dictionary for an unresolved class. Missing rows or entries leave
 their current mappings unchanged.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSKeyedUnarchiver$setClasses(mapping)}
+    \preformatted{RSKeyedUnarchiver$setClassMappings(mapping)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -221,21 +253,6 @@ an \code{RSMutableDictionary}.}
   }
   \subsection{Returns}{
     The restored object or base R value.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSKeyedUnarchiver-unarchive"></a>}}
-\if{latex}{\out{\hypertarget{method-RSKeyedUnarchiver-unarchive}{}}}
-\subsection{\code{RSKeyedUnarchiver$unarchive()}}{
-  Compatibility alias for \verb{$decode()}.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSKeyedUnarchiver$unarchive()}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    The restored archive root.
   }
 }
 

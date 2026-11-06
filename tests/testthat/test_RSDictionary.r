@@ -8,6 +8,17 @@ test_that("RSDictionary: objectForKey returns correct value", {
   expect_equal(v$value(), "v1")
 })
 
+test_that("dictionary asList iterates over keys", {
+  key <- RSString_withValue("key")
+  value <- RSString_withValue("value")
+  for (generator in list(RSDictionary, RSMutableDictionary)) {
+    dictionary <- generator$new(keys = list(key), values = list(value))
+    expect_identical(dictionary$asList(), list(key))
+    expect_identical(dictionary$allEntriesAsList()[[1L]]$value(), value)
+    expect_identical(dictionary$objectForKey(dictionary$asList()[[1L]]), value)
+  }
+})
+
 test_that("RSDictionary: objectForKey returns NULL for missing key", {
   d <- RSDictionary$new(objects_and_keys = list(
     RSString_withValue("value"), RSString_withValue("key")

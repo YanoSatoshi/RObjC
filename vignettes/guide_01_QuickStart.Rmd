@@ -81,14 +81,14 @@ Every robjc instance has the basic methods supplied by `RSObject`.
 Some of them are listed below; see the [classes and objects guide](guide_02_Classes_Objects.Rmd) for more.
 
 - `class()` returns the instance's class generator.
-- `superClass()` returns the parent generator of the instance's class.
+- `superclass()` returns the parent generator of the instance's class.
 - `isKindOf(Class)` checks whether the instance belongs to `Class` or one of its subclasses.
 - `isMemberOf(Class)` checks whether the instance belongs directly to `Class`.
 
 ## Inspecting an instance
 
 You can inspect an object's class and inheritance.
-`class()` and `superClass()` return class generator objects, rather than class names.
+`class()` and `superclass()` return class generator objects, rather than class names.
 `isMemberOf()` checks the direct class; `isKindOf()` includes its ancestors.
 
 ```{r}
@@ -177,12 +177,12 @@ You can save that list as an RDS file. `RSKeyedUnarchiver$new()` loads the archi
 
 ```{r}
 shared <- RSString$new("shared value")
-archive <- RSKeyedArchiver$new()$archive(list(shared, shared))
+archive <- RSKeyedArchiver$new()$encode(list(shared, shared))
 path <- tempfile(fileext = ".rds")
 saveRDS(archive, path)
 
 decoder <- RSKeyedUnarchiver$new(readRDS(path))
-decoder$showAllClasses()  # Inspect classes that need manual resolution.
+decoder$classMappings()  # Inspect classes that need manual resolution.
 restored <- decoder$decode()
 unlink(path)
 
@@ -191,5 +191,5 @@ stopifnot(identical(restored[[1L]]$value(), "shared value"))
 ```
 
 This example uses only standard robjc classes, so no class mapping is needed.
-To restore custom classes, inspect unresolved classes with `showAllClasses()`, assign their target classes with `setClasses()`, and then call `decode()`.
+To restore custom classes, inspect unresolved classes with `classMappings()`, assign their target classes with `setClassMappings()`, and then call `decode()`.
 See the [archiving guide](guide_10_Archiving.Rmd) for the full procedure.

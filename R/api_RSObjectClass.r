@@ -50,6 +50,12 @@ RSObjectClass <- function(
 ) {
   # Get real-super-meta-class
   super_generator <- force(super_class)
+  if (!is.character(class_name) || length(class_name) != 1L ||
+      is.na(class_name) || !nzchar(class_name))
+    stop("\u0060class_name\u0060 must be one nonempty character string.", call. = FALSE)
+  if (!is.logical(validate_protocols) || length(validate_protocols) != 1L ||
+      is.na(validate_protocols))
+    stop("\u0060validate_protocols\u0060 must be TRUE or FALSE.", call. = FALSE)
   stopifnot(
     "`class_name` must be one nonempty character string." =
       is.character(class_name) && length(class_name) == 1L &&
@@ -83,7 +89,7 @@ RSObjectClass <- function(
     version   = version
   )
   if (validate_protocols) {
-    missing <- protocol_validateContracts(klass)
+    missing <- protocol_getMissingContracts(klass)
     if (length(missing))
       stop(sprintf("Class `%s` is missing protocol methods: %s.",
                    class_name, paste(missing, collapse = ", ")), call. = FALSE)

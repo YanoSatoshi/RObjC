@@ -17,20 +17,21 @@ The standard wrappers provide only the minimum functionality needed to bring dat
 ## Create a data frame object
 
 Pass a data frame or tibble as the `df` argument.
-`getData()` returns the stored tibble.
+`getDataFrame()` returns the stored tibble.
 
 ```{r}
 library(robjc)
 
 people <- data.frame(
   id = c(1L, 2L),
-  name = c("Ada", "Ben")
+  name = c("Ada", "Ben"),
+  stringsAsFactors = FALSE
 )
 mutable <- RSMutableDataFrame$new(people)
 fixed <- RSDataFrame$new(people)
 
-stopifnot(inherits(mutable$getData(), "tbl_df"))
-stopifnot(identical(mutable$getData(), fixed$getData()))
+stopifnot(inherits(mutable$getDataFrame(), "tbl_df"))
+stopifnot(identical(mutable$getDataFrame(), fixed$getDataFrame()))
 stopifnot(mutable$isKindOf(RSDataFrame))
 stopifnot(!fixed$isKindOf(RSMutableDataFrame))
 ```
@@ -52,14 +53,14 @@ stopifnot(identical(mutable$getColumn("name"), c("Ada", "Ben")))
 
 ## Edit and copy
 
-`setColumn()` changes a column's values, and `setData()` replaces the whole table.
+`setColumn()` changes a column's values, and `setDataFrame()` replaces the whole table.
 These methods belong only to `RSMutableDataFrame`; `RSDataFrame` does not provide them.
 
 ```{r}
 mutable$setColumn("name", c("Ada", "Bea"))
 stopifnot(identical(mutable$getColumn("name"), c("Ada", "Bea")))
 
-mutable$setData(data.frame(id = 3L, name = "Cal"))
+mutable$setDataFrame(data.frame(id = 3L, name = "Cal", stringsAsFactors = FALSE))
 stopifnot(identical(mutable$nrow(), 1L))
 ```
 
@@ -84,8 +85,8 @@ It distinguishes differences in column values, types, and attributes.
 This differs from `==`, which checks whether the wrappers themselves are the same instance.
 
 ```{r}
-left <- RSMutableDataFrame$new(data.frame(id = 1L, name = "Ada"))
-right <- RSDataFrame$new(data.frame(id = 1L, name = "Ada"))
+left <- RSMutableDataFrame$new(data.frame(id = 1L, name = "Ada", stringsAsFactors = FALSE))
+right <- RSDataFrame$new(data.frame(id = 1L, name = "Ada", stringsAsFactors = FALSE))
 stopifnot(left$isEqual(right))
 stopifnot(left != right)
 ```
@@ -106,7 +107,7 @@ If you need content-sensitive lookup or row keys, define a class for your use ca
 For a Dictionary key, prefer an `RSDataFrame` whose contents cannot change after insertion.
 
 ```{r}
-other <- RSDataFrame$new(data.frame(id = 2L, name = "Bea"))
+other <- RSDataFrame$new(data.frame(id = 2L, name = "Bea", stringsAsFactors = FALSE))
 stopifnot(!left$isEqual(other))
 stopifnot(identical(left$hash(), other$hash()))
 ```
@@ -116,7 +117,7 @@ Column types and values remain available after restoration.
 See the [Archiving Guide](guide_10_Archiving.Rmd) for the complete restoration workflow.
 
 ```{r}
-archive <- RSKeyedArchiver$new()$archive(left)
+archive <- RSKeyedArchiver$new()$encode(left)
 decoder <- RSKeyedUnarchiver$new(archive)
 restored <- decoder$decode()
 stopifnot(restored$isEqual(left))

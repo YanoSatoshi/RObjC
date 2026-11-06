@@ -84,6 +84,7 @@ stopifnot(is.null(fields$objectForKey(RSString$new("absent"))))
 ## Wrap a vector
 
 `RSVector` and `RSMutableVector` wrap an R atomic vector as one robjc object.
+`RSVector` is the read-only parent; `RSMutableVector` inherits its read and comparison methods and adds mutation methods.
 They do not convert each element into an `RSNumber` or another scalar object.
 Use `asVector()` to retrieve an ordinary R vector, and `valueAtIndex()` to read a value at a one-based position.
 Missing values remain in the vector.

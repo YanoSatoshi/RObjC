@@ -15,6 +15,8 @@ object_getClass <- function(obj) {
   obj$.__enclos_env__$private$.__isa$class
 }
 
+
+
 #' Wrap a Null Collection Item
 #'
 #' Converts R `NULL` to the shared `RSNull$null` instance for storage or lookup
@@ -27,18 +29,25 @@ object_getClass <- function(obj) {
 #' identical(robjc_wrap_null(NULL), RSNull$null)
 #' @export
 robjc_wrap_null <- function(object) {
-  if (is.null(object)) return(RSNull$null)
-  if (robjc_isInstance(object) || robjc_isMetaClass(object)) return(object)
+  if (is.null(object))
+    return(RSNull$null)
+  if (robjc_isRObjC(object))
+    return(object)
   stop(sprintf("Unsupported object type: %s", class(object)[1]), call. = FALSE)
 }
 
+
+
+# Reject R NULL and unsupported values before collection storage or lookup.
 .robjc_collection_object <- function(object) {
   if (is.null(object))
-    stop("R NULL is not a collection object; use RSNull$null or robjc_wrap_null(NULL).",
-         call. = FALSE)
-  if (robjc_isInstance(object) || robjc_isMetaClass(object)) return(object)
+    stop("R NULL is not a collection object; use RSNull$null or robjc_wrap_null(NULL).", call. = FALSE)
+  if (robjc_isRObjC(object))
+    return(object)
   stop(sprintf("Unsupported object type: %s", class(object)[1]), call. = FALSE)
 }
+
+
 
 # Summarize R6 member lists without expanding their values or evaluating methods.
 robjc_member_summaries <- function(
@@ -55,11 +64,16 @@ robjc_member_summaries <- function(
       names(members)
   names <- setdiff(names, exclude)
   if (!include_methods) {
-    names <- names[vapply(names, function(name) {
-      if (is.environment(members) && bindingIsActive(name, members))
-        return(TRUE)
-      !is.function(.subset2(members, name))
-    }, logical(1))]
+    flag  <- vapply(
+      names,
+      function(name) {
+        if (is.environment(members) && bindingIsActive(name, members))
+          return(TRUE)
+        !is.function(.subset2(members, name))
+      },
+      logical(1)
+    )
+    names <- names[flag]
   }
   vapply(
     names,

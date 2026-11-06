@@ -7,30 +7,46 @@
 The \code{RSVector} class generator.
 }
 \description{
-\code{RSVector} is the read-only counterpart of \link{RSMutableVector}. It inherits
-indexed access, equality, comparison, and hashing while rejecting changes
-to its contents. Use \code{mutableCopy()} to obtain an editable vector.
+Wraps an atomic vector with indexed access, equality,
+comparison, hashing, and coding. The stored values cannot be changed.
+Use \code{mutableCopy()} to obtain an editable vector.
+Hashes use the standard \link{RSHashOperator} instance.
 }
-\examples{
-vector <- RSVector$new(c(1L, 2L))
-vector$valueAtIndex(2L)
-editable <- vector$mutableCopy()
-editable$appendValues(3L)
+\section{Protocols}{
 
+\itemize{
+\item \link{RSMutableCopying}
+\item \link{RSCopying}
+\item \link{RSComparable}
+\item \link{RSListing}
+\item \link{RSCoding}
 }
-\section{Super classes}{
-\code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSMutableVector]{RSMutableVector}} -> \code{RSVector}
+}
+
+\section{Super class}{
+\code{\link[robjc:RSObject]{RSObject}} -> \code{RSVector}
 }
 \section{Methods}{
 \subsection{Public methods}{
   \itemize{
+    \item \href{#method-RSVector-initialize}{\code{RSVector$new()}}
+    \item \href{#method-RSVector-encodeWithCoder}{\code{RSVector$encodeWithCoder()}}
+    \item \href{#method-RSVector-initWithCoder}{\code{RSVector$initWithCoder()}}
+    \item \href{#method-RSVector-values}{\code{RSVector$values()}}
+    \item \href{#method-RSVector-valueAtIndex}{\code{RSVector$valueAtIndex()}}
+    \item \href{#method-RSVector-containsValues}{\code{RSVector$containsValues()}}
+    \item \href{#method-RSVector-indexesOfValues}{\code{RSVector$indexesOfValues()}}
+    \item \href{#method-RSVector-asVector}{\code{RSVector$asVector()}}
+    \item \href{#method-RSVector-asList}{\code{RSVector$asList()}}
+    \item \href{#method-RSVector-count}{\code{RSVector$count()}}
     \item \href{#method-RSVector-copy}{\code{RSVector$copy()}}
     \item \href{#method-RSVector-mutableCopy}{\code{RSVector$mutableCopy()}}
-    \item \href{#method-RSVector-appendValues}{\code{RSVector$appendValues()}}
-    \item \href{#method-RSVector-insertValuesAtIndex}{\code{RSVector$insertValuesAtIndex()}}
-    \item \href{#method-RSVector-replaceValuesAtIndices}{\code{RSVector$replaceValuesAtIndices()}}
-    \item \href{#method-RSVector-removeValuesAtIndices}{\code{RSVector$removeValuesAtIndices()}}
-    \item \href{#method-RSVector-removeAllValues}{\code{RSVector$removeAllValues()}}
+    \item \href{#method-RSVector-hash}{\code{RSVector$hash()}}
+    \item \href{#method-RSVector-hashesOfValues}{\code{RSVector$hashesOfValues()}}
+    \item \href{#method-RSVector-description}{\code{RSVector$description()}}
+    \item \href{#method-RSVector-isEqual}{\code{RSVector$isEqual()}}
+    \item \href{#method-RSVector-compare}{\code{RSVector$compare()}}
+    \item \href{#method-RSVector-nativeCompare}{\code{RSVector$nativeCompare()}}
   }
 }
 \if{html}{\out{<details><summary>Inherited methods</summary>
@@ -44,26 +60,203 @@ editable$appendValues(3L)
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableVector" data-id="asVector"><a href='../../robjc/html/RSMutableVector.html#method-RSMutableVector-asVector'><code>RSMutableVector$asVector()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableVector" data-id="compare"><a href='../../robjc/html/RSMutableVector.html#method-RSMutableVector-compare'><code>RSMutableVector$compare()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableVector" data-id="containsValues"><a href='../../robjc/html/RSMutableVector.html#method-RSMutableVector-containsValues'><code>RSMutableVector$containsValues()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableVector" data-id="count"><a href='../../robjc/html/RSMutableVector.html#method-RSMutableVector-count'><code>RSMutableVector$count()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableVector" data-id="description"><a href='../../robjc/html/RSMutableVector.html#method-RSMutableVector-description'><code>RSMutableVector$description()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableVector" data-id="encodeWithCoder"><a href='../../robjc/html/RSMutableVector.html#method-RSMutableVector-encodeWithCoder'><code>RSMutableVector$encodeWithCoder()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableVector" data-id="hash"><a href='../../robjc/html/RSMutableVector.html#method-RSMutableVector-hash'><code>RSMutableVector$hash()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableVector" data-id="hashOperator"><a href='../../robjc/html/RSMutableVector.html#method-RSMutableVector-hashOperator'><code>RSMutableVector$hashOperator()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableVector" data-id="hashesOfValues"><a href='../../robjc/html/RSMutableVector.html#method-RSMutableVector-hashesOfValues'><code>RSMutableVector$hashesOfValues()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableVector" data-id="indicesOfValues"><a href='../../robjc/html/RSMutableVector.html#method-RSMutableVector-indicesOfValues'><code>RSMutableVector$indicesOfValues()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableVector" data-id="initWithCoder"><a href='../../robjc/html/RSMutableVector.html#method-RSMutableVector-initWithCoder'><code>RSMutableVector$initWithCoder()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableVector" data-id="initialize"><a href='../../robjc/html/RSMutableVector.html#method-RSMutableVector-initialize'><code>RSMutableVector$initialize()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableVector" data-id="isEqual"><a href='../../robjc/html/RSMutableVector.html#method-RSMutableVector-isEqual'><code>RSMutableVector$isEqual()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableVector" data-id="nativeCompare"><a href='../../robjc/html/RSMutableVector.html#method-RSMutableVector-nativeCompare'><code>RSMutableVector$nativeCompare()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableVector" data-id="print"><a href='../../robjc/html/RSMutableVector.html#method-RSMutableVector-print'><code>RSMutableVector$print()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableVector" data-id="valueAtIndex"><a href='../../robjc/html/RSMutableVector.html#method-RSMutableVector-valueAtIndex'><code>RSMutableVector$valueAtIndex()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSMutableVector" data-id="values"><a href='../../robjc/html/RSMutableVector.html#method-RSMutableVector-values'><code>RSMutableVector$values()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superclass"><a href='../../robjc/html/RSObject.html#method-RSObject-superclass'><code>RSObject$superclass()</code></a></span></li>
 </ul>
 </details>}}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSVector-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-RSVector-initialize}{}}}
+\subsection{\code{RSVector$new()}}{
+  Initialize the vector.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSVector$new(vec)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{vec}}{An atomic vector without dimensions.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The initialized instance, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSVector-encodeWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSVector-encodeWithCoder}{}}}
+\subsection{\code{RSVector$encodeWithCoder()}}{
+  Encodes the atomic vector as a base R serialization value.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSVector$encodeWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedArchiver} recording keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSVector-initWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSVector-initWithCoder}{}}}
+\subsection{\code{RSVector$initWithCoder()}}{
+  Restores the vector without calling
+\code{initialize()}. Also serves immutable \link{RSVector} subclasses.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSVector$initWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedUnarchiver} reading keyed values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSVector-values"></a>}}
+\if{latex}{\out{\hypertarget{method-RSVector-values}{}}}
+\subsection{\code{RSVector$values()}}{
+  Return the stored values.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSVector$values()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The atomic vector.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSVector-valueAtIndex"></a>}}
+\if{latex}{\out{\hypertarget{method-RSVector-valueAtIndex}{}}}
+\subsection{\code{RSVector$valueAtIndex()}}{
+  Return the value at a one-based index.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSVector$valueAtIndex(index)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{index}}{Numeric position to read; converted with \code{as.integer()}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A length-one value.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSVector-containsValues"></a>}}
+\if{latex}{\out{\hypertarget{method-RSVector-containsValues}{}}}
+\subsection{\code{RSVector$containsValues()}}{
+  Test whether each value occurs in the vector.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSVector$containsValues(values)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{values}}{Values with the stored vector's type and class to search for.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A logical vector.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSVector-indexesOfValues"></a>}}
+\if{latex}{\out{\hypertarget{method-RSVector-indexesOfValues}{}}}
+\subsection{\code{RSVector$indexesOfValues()}}{
+  Find the first matching index for each value.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSVector$indexesOfValues(values)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{values}}{Values with the stored vector's type and class to search for.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Integer indices, with \code{NA} for values not found.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSVector-asVector"></a>}}
+\if{latex}{\out{\hypertarget{method-RSVector-asVector}{}}}
+\subsection{\code{RSVector$asVector()}}{
+  Return the stored atomic vector.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSVector$asVector()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The atomic vector.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSVector-asList"></a>}}
+\if{latex}{\out{\hypertarget{method-RSVector-asList}{}}}
+\subsection{\code{RSVector$asList()}}{
+  Returns individual native values as a list for iteration.
+Value classes such as factor and Date are preserved by \code{as.list()}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSVector$asList()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An R list in vector order.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSVector-count"></a>}}
+\if{latex}{\out{\hypertarget{method-RSVector-count}{}}}
+\subsection{\code{RSVector$count()}}{
+  Return the number of values.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSVector$count()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An integer count.
+  }
+}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSVector-copy"></a>}}
 \if{latex}{\out{\hypertarget{method-RSVector-copy}{}}}
@@ -95,97 +288,135 @@ editable$appendValues(3L)
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSVector-appendValues"></a>}}
-\if{latex}{\out{\hypertarget{method-RSVector-appendValues}{}}}
-\subsection{\code{RSVector$appendValues()}}{
-  Disabled for immutable vectors.
+\if{html}{\out{<a id="method-RSVector-hash"></a>}}
+\if{latex}{\out{\hypertarget{method-RSVector-hash}{}}}
+\subsection{\code{RSVector$hash()}}{
+  Computes an aggregate hash by combining the hash values of all elements.
+This is used for fast comparison and dictionary key support.
+The result passes through \code{\link[=robjc_normalize_hash]{robjc_normalize_hash()}}, mapping R's
+\code{NA_integer_} bit pattern to \code{0L}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSVector$appendValues(...)}
+    \preformatted{RSVector$hash()}
     \if{html}{\out{</div>}}
   }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{...}}{Ignored; this method always raises an error.}
-    }
-    \if{html}{\out{</div>}}
+  \subsection{Returns}{
+    One non-missing integer hash value.
   }
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSVector-insertValuesAtIndex"></a>}}
-\if{latex}{\out{\hypertarget{method-RSVector-insertValuesAtIndex}{}}}
-\subsection{\code{RSVector$insertValuesAtIndex()}}{
-  Disabled for immutable vectors.
+\if{html}{\out{<a id="method-RSVector-hashesOfValues"></a>}}
+\if{latex}{\out{\hypertarget{method-RSVector-hashesOfValues}{}}}
+\subsection{\code{RSVector$hashesOfValues()}}{
+  Computes a hash code for each scalar value in the vector.
+A missing result from the hash operator raises an error.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSVector$insertValuesAtIndex(...)}
+    \preformatted{RSVector$hashesOfValues()}
     \if{html}{\out{</div>}}
   }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{...}}{Ignored; this method always raises an error.}
-    }
-    \if{html}{\out{</div>}}
+  \subsection{Returns}{
+    An integer vector of non-missing hashes.
   }
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSVector-replaceValuesAtIndices"></a>}}
-\if{latex}{\out{\hypertarget{method-RSVector-replaceValuesAtIndices}{}}}
-\subsection{\code{RSVector$replaceValuesAtIndices()}}{
-  Disabled for immutable vectors.
+\if{html}{\out{<a id="method-RSVector-description"></a>}}
+\if{latex}{\out{\hypertarget{method-RSVector-description}{}}}
+\subsection{\code{RSVector$description()}}{
+  Returns a concise textual summary of the vector,
+including its class name and the current number of stored values.
+This is primarily used for human-readable identification and logging.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSVector$replaceValuesAtIndices(...)}
+    \preformatted{RSVector$description()}
     \if{html}{\out{</div>}}
   }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{...}}{Ignored; this method always raises an error.}
-    }
-    \if{html}{\out{</div>}}
+  \subsection{Returns}{
+    A character string in the form \code{"<ClassName: N values>"},
+where \code{ClassName} is the actual class of the object and \code{N} is the number of elements it contains.
   }
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSVector-removeValuesAtIndices"></a>}}
-\if{latex}{\out{\hypertarget{method-RSVector-removeValuesAtIndices}{}}}
-\subsection{\code{RSVector$removeValuesAtIndices()}}{
-  Disabled for immutable vectors.
+\if{html}{\out{<a id="method-RSVector-isEqual"></a>}}
+\if{latex}{\out{\hypertarget{method-RSVector-isEqual}{}}}
+\subsection{\code{RSVector$isEqual()}}{
+  Compares this vector to another for equality, including value attributes.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSVector$removeValuesAtIndices(...)}
+    \preformatted{RSVector$isEqual(other)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{...}}{Ignored; this method always raises an error.}
+      \item{\code{other}}{Another vector object to compare with.}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} if the vectors are equal; otherwise \code{FALSE}.
   }
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSVector-removeAllValues"></a>}}
-\if{latex}{\out{\hypertarget{method-RSVector-removeAllValues}{}}}
-\subsection{\code{RSVector$removeAllValues()}}{
-  Disabled for immutable vectors.
+\if{html}{\out{<a id="method-RSVector-compare"></a>}}
+\if{latex}{\out{\hypertarget{method-RSVector-compare}{}}}
+\subsection{\code{RSVector$compare()}}{
+  Compares this vector to another for ordering.
+The comparison is lexicographic: each element is compared in order using
+base R's sorting order. Stored vectors must have the same \code{typeof()} and
+\code{class()}; use \code{nativeCompare()} for base R's cross-type value comparison.
+If all elements are equal, the shorter vector is considered smaller.
+Factor vectors with different levels cannot be ordered against each other.
+Factor and non-factor vectors have no shared sorting order.
+Raw vectors cannot be ordered, including empty raw vectors.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSVector$removeAllValues(...)}
+    \preformatted{RSVector$compare(other, na.last = TRUE)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{...}}{Ignored; this method always raises an error.}
+      \item{\code{other}}{Another \code{RSMutableVector} or \code{RSVector} instance.}
+      \item{\code{na.last}}{Whether NA values are treated as greater. Coerced with
+\code{as.logical()}; the result must be one nonmissing value.}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{-1L} if less than, \code{0L} if equal, or \code{1L} if greater.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSVector-nativeCompare"></a>}}
+\if{latex}{\out{\hypertarget{method-RSVector-nativeCompare}{}}}
+\subsection{\code{RSVector$nativeCompare()}}{
+  Compare vectors lexicographically using base R's atomic
+value operators (\code{==}, \code{<}, and \code{>}), rather than \code{compare()}'s sorting
+rules. Each pair is compared as native R scalar values. Missing values
+(including \code{NaN}) tie and are placed according to \code{na.last}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSVector$nativeCompare(other, na.last = TRUE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another \code{RSMutableVector} or \code{RSVector} instance.}
+      \item{\code{na.last}}{Whether missing values sort after nonmissing values.
+Coerced with \code{as.logical()}; the result must be one nonmissing value.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{-1L}, \code{0L}, or \code{1L}. An error is raised when base R has no
+ordering for unequal values.
   }
 }
 

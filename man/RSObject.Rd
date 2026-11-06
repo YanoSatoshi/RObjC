@@ -18,6 +18,13 @@ The default implementation does not create a new instance. This is safe for
 immutable objects. If the object has mutable fields, overriding this method
 is strongly recommended to avoid side effects from shared references.
 }
+\section{Protocols}{
+
+\itemize{
+\item \link{RSCopying}
+}
+}
+
 \section{Public Methods}{
 
 \itemize{
@@ -80,7 +87,7 @@ identical(obj, copy)  # TRUE
   \itemize{
     \item \href{#method-RSObject-initialize}{\code{RSObject$new()}}
     \item \href{#method-RSObject-class}{\code{RSObject$class()}}
-    \item \href{#method-RSObject-superClass}{\code{RSObject$superClass()}}
+    \item \href{#method-RSObject-superclass}{\code{RSObject$superclass()}}
     \item \href{#method-RSObject-conformsTo}{\code{RSObject$conformsTo()}}
     \item \href{#method-RSObject-respondsTo}{\code{RSObject$respondsTo()}}
     \item \href{#method-RSObject-description}{\code{RSObject$description()}}
@@ -126,13 +133,13 @@ identical(obj, copy)  # TRUE
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSObject-superClass"></a>}}
-\if{latex}{\out{\hypertarget{method-RSObject-superClass}{}}}
-\subsection{\code{RSObject$superClass()}}{
+\if{html}{\out{<a id="method-RSObject-superclass"></a>}}
+\if{latex}{\out{\hypertarget{method-RSObject-superclass}{}}}
+\subsection{\code{RSObject$superclass()}}{
   Returns the super-class.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSObject$superClass()}
+    \preformatted{RSObject$superclass()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{

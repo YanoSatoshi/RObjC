@@ -65,9 +65,9 @@ test_that("RSMutableSet accepts class and protocol generators", {
   expect_true(set$isEqual(same))
   expect_identical(set$hash(), same$hash())
   expect_identical(set$objectsForEncoding(), list(object))
-  expect_true(set$intersectSet(RSSet$new(list(protocol)))$containsObject(protocol))
-  expect_true(set$uniteSet(RSSet$new(list(protocol)))$containsObject(protocol))
-  expect_false(set$subtractSet(RSSet$new(list(protocol)))$containsObject(protocol))
+  expect_true(set$setByIntersectingSet(RSSet$new(list(protocol)))$containsObject(protocol))
+  expect_true(set$setByUnitingSet(RSSet$new(list(protocol)))$containsObject(protocol))
+  expect_false(set$setBySubtractingSet(RSSet$new(list(protocol)))$containsObject(protocol))
   set$removeObject(RSString)
   expect_false(set$containsObject(RSString))
   set$addObject(RSString)
@@ -123,9 +123,9 @@ test_that("RSMutableSet: set operations work (union, intersect, diff)", {
   a$addObject(RSString_withValue("b"))
   b$addObject(RSString_withValue("b"))
   b$addObject(RSString_withValue("c"))
-  u <- a$uniteSet(b)
-  i <- a$intersectSet(b)
-  d <- a$subtractSet(b)
+  u <- a$setByUnitingSet(b)
+  i <- a$setByIntersectingSet(b)
+  d <- a$setBySubtractingSet(b)
   expect_setequal(
     vapply(u$allObjectsAsList(), function(x) x$value(), character(1)),
     c("a", "b", "c")
@@ -140,4 +140,33 @@ test_that("RSMutableSet: set operations work (union, intersect, diff)", {
   )
   expect_equal(a$count(), 2)
   expect_equal(b$count(), 2)
+})
+
+test_that("RSMutableSet: mutating set operations update only the receiver", {
+  values <- function(set) vapply(set$allObjectsAsList(),
+                                 function(item) item$value(), character(1))
+  left <- RSSet$new(list(RSString_withValue("a"), RSString_withValue("b")))
+  right <- RSSet$new(list(RSString_withValue("b"), RSString_withValue("c")))
+
+  union <- left$mutableCopy()
+  expect_identical(union$uniteSet(right), union)
+  expect_setequal(values(union), c("a", "b", "c"))
+
+  intersection <- left$mutableCopy()
+  expect_identical(intersection$intersectSet(right), intersection)
+  expect_setequal(values(intersection), "b")
+
+  difference <- left$mutableCopy()
+  expect_identical(difference$subtractSet(right), difference)
+  expect_setequal(values(difference), "a")
+  expect_setequal(values(left), c("a", "b"))
+  expect_setequal(values(right), c("b", "c"))
+
+  expect_identical(union$uniteSet(union), union)
+  expect_identical(intersection$intersectSet(intersection), intersection)
+  expect_identical(difference$subtractSet(difference), difference)
+  expect_equal(difference$count(), 0)
+  for (method in list(union$uniteSet, union$intersectSet, union$subtractSet))
+    expect_error(method(RSArray$new()), "Object must be a set")
+  expect_false(left$respondsTo("uniteSet"))
 })

@@ -90,7 +90,7 @@ Record <- RSObjectClass(
 )
 
 record <- Record$new()
-stopifnot(identical(protocol_validateContracts(Record), character(0)))
+stopifnot(identical(protocol_getMissingContracts(Record), character(0)))
 stopifnot(record$conformsTo(Detailed))
 stopifnot(record$conformsTo(Named))
 stopifnot(record$respondsTo("name"))
@@ -179,7 +179,7 @@ DeclaredOnly <- RSObjectClass(
 incomplete <- DeclaredOnly$new()
 stopifnot(incomplete$conformsTo(Named))
 stopifnot(!incomplete$respondsTo("name"))
-stopifnot(identical(protocol_validateContracts(DeclaredOnly), "name"))
+stopifnot(identical(protocol_getMissingContracts(DeclaredOnly), "name"))
 
 Undeclared <- RSObjectClass(
   "Guide03Undeclared",
@@ -194,11 +194,11 @@ stopifnot(!undeclared$conformsTo(Named))
 
 | 利用場面 | 確認方法 | 分かること |
 |:--|:--|:--|
-| クラス実装時に、宣言した契約のメソッドが揃ったか | `protocol_validateContracts(Class)` | 不足するメソッド名。揃っていれば `character(0)` |
+| クラス実装時に、宣言した契約のメソッドが揃ったか | `protocol_getMissingContracts(Class)` | 不足するメソッド名。揃っていれば `character(0)` |
 | 利用側で、オブジェクトが特定の役割を引き受けると宣言しているか | `object$conformsTo(Protocol)` | 準拠宣言の有無。メソッドの有無は調べない |
 | 利用側で、個別の公開メソッドを呼べるか | `object$respondsTo("method")` | そのインスタンスにメソッドがあるか。準拠宣言は調べない |
 
-`protocol_validateContracts()` の引数はクラスジェネレータ一つです。
+`protocol_getMissingContracts()` の引数はクラスジェネレータ一つです。
 上の `DeclaredOnly` は準拠を宣言していても `name()` が不足します。
 一方、`Undeclared` は `name()` を実装していても準拠を宣言していません。
 `conformsTo()` と `respondsTo()` が別の問いに答えることが分かります。

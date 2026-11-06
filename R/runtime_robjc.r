@@ -137,8 +137,8 @@ robjc_isInstance <- function(obj) {
 #' @return `TRUE` for a recognized RObjC instance or generator, otherwise
 #'   `FALSE`.
 #' @export
-robjc_doesBelongToRobjc <- function(obj) {
-  robjc_isMetaClass(obj) || robjc_isInstance(obj)
+robjc_isRObjC <- function(obj) {
+  robjc_isInstance(obj) || robjc_isMetaClass(obj)
 }
 
 
@@ -194,7 +194,6 @@ robjc_install_meta_value_methods <- function(generator) {
   lockBinding("hash", generator)
   invisible(generator)
 }
-
 
 
 
@@ -288,7 +287,6 @@ robjc_freeze_isa <- function(klass) {
 
 
 
-
 # ------------
 # Make singleton
 # ------------
@@ -323,7 +321,7 @@ robjc_make_singleton_isa <- function(
     version   = version
   )
   if (validate_protocols) {
-    missing <- protocol_validateContracts(r6generator)
+    missing <- protocol_getMissingContracts(r6generator)
     if (length(missing))
       stop(sprintf("Class `%s` is missing protocol methods: %s.",
                    r6generator$classname, paste(missing, collapse = ", ")),

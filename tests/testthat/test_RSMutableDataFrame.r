@@ -6,9 +6,9 @@ test_that("DataFrame equality handles valid and incompatible inputs", {
 
   expect_true(mutable$isKindOf(RSDataFrame))
   expect_false(immutable$isKindOf(RSMutableDataFrame))
-  expect_true(mutable$respondsTo("setData"))
+  expect_true(mutable$respondsTo("setDataFrame"))
   expect_true(mutable$respondsTo("setColumn"))
-  expect_false(immutable$respondsTo("setData"))
+  expect_false(immutable$respondsTo("setDataFrame"))
   expect_false(immutable$respondsTo("setColumn"))
   expect_identical(immutable$copy(), immutable)
   expect_identical(mutable$copy()$class(), RSDataFrame)
@@ -45,7 +45,7 @@ test_that("DataFrame hash uses row count, column names, and storage types", {
   expect_type(first$hash(), "integer")
   expect_false(is.na(first$hash()))
 
-  data <- first$getData()
+  data <- first$getDataFrame()
   seed <- c(nrow(data), paste(names(data), vapply(data, typeof, character(1)), sep = "/"))
   expected <- robjc_normalize_hash(Reduce(bitwXor,
     vapply(seed, RSHashOperator$instance$computeHashCodeWithString, integer(1)),

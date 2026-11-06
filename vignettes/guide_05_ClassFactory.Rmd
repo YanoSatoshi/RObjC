@@ -110,14 +110,14 @@ LabeledWidget <- RSObjectClass(
   public = list(label = function() "labeled widget")
 )
 stopifnot(LabeledWidget$new()$conformsTo(Labeled))
-stopifnot(identical(protocol_validateContracts(LabeledWidget), character(0)))
+stopifnot(identical(protocol_getMissingContracts(LabeledWidget), character(0)))
 ```
 
 For protocol inheritance and adoption, see the [protocols guide](guide_03_Protocols.Rmd).
 
 ## Validate protocol contracts
 
-With `validate_protocols = TRUE`, `RSObjectClass()`, `RSSingletonClass()`, and `RSScalarClass()` call `protocol_validateContracts()` during class declaration.
+With `validate_protocols = TRUE`, `RSObjectClass()`, `RSSingletonClass()`, and `RSScalarClass()` call `protocol_getMissingContracts()` during class declaration.
 If a method is missing, the factory raises an error instead of returning a class. The following declaration fails because `label()` is absent.
 
 ```{r}
@@ -143,11 +143,11 @@ LabeledChild <- RSObjectClass(
   super_class = LabeledParent,
   protocols = list(Labeled)
 )
-stopifnot(identical(protocol_validateContracts(LabeledChild), character(0)))
+stopifnot(identical(protocol_getMissingContracts(LabeledChild), character(0)))
 ```
 
 Use `validate_protocols = FALSE` when implementation must be deferred.
-The adoption declaration still remains. Pass the class generator to `protocol_validateContracts(Class)` to get a character vector of missing names, or `character(0)` when none are missing.
+The adoption declaration still remains. Pass the class generator to `protocol_getMissingContracts(Class)` to get a character vector of missing names, or `character(0)` when none are missing.
 Checking later does not supply the missing methods. Provide a class with those methods before relying on the protocol.
 
 ```{r}
@@ -157,7 +157,7 @@ DeferredWidget <- RSObjectClass(
   validate_protocols = FALSE
 )
 stopifnot(DeferredWidget$new()$conformsTo(Labeled))
-stopifnot(identical(protocol_validateContracts(DeferredWidget), "label"))
+stopifnot(identical(protocol_getMissingContracts(DeferredWidget), "label"))
 ```
 
 All three object class factories perform this validation by default.

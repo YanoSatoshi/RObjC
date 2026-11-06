@@ -14,6 +14,16 @@ retained by identity. A stored key's hash and equality-relevant state must
 remain stable. \code{copy()} returns the receiver, while \code{mutableCopy()} creates
 independent native storage that initially references the same entries.
 }
+\section{Protocols}{
+
+\itemize{
+\item \link{RSMutableCopying}
+\item \link{RSCopying}
+\item \link{RSListing}
+\item \link{RSCoding}
+}
+}
+
 \section{Supported Initializations}{
 
 \itemize{
@@ -55,8 +65,8 @@ mutable dictionary. An immutable dictionary is returned unchanged.
     \item \href{#method-RSDictionary-hash}{\code{RSDictionary$hash()}}
     \item \href{#method-RSDictionary-isEqual}{\code{RSDictionary$isEqual()}}
     \item \href{#method-RSDictionary-description}{\code{RSDictionary$description()}}
-    \item \href{#method-RSDictionary-dictionaryByMergingWithDictionary}{\code{RSDictionary$dictionaryByMergingWithDictionary()}}
-    \item \href{#method-RSDictionary-dictionaryByExcludingWithDictionary}{\code{RSDictionary$dictionaryByExcludingWithDictionary()}}
+    \item \href{#method-RSDictionary-dictionaryByMergingDictionary}{\code{RSDictionary$dictionaryByMergingDictionary()}}
+    \item \href{#method-RSDictionary-dictionaryByExcludingDictionary}{\code{RSDictionary$dictionaryByExcludingDictionary()}}
     \item \href{#method-RSDictionary-objectsForEncoding}{\code{RSDictionary$objectsForEncoding()}}
     \item \href{#method-RSDictionary-prepareForSerialization}{\code{RSDictionary$prepareForSerialization()}}
     \item \href{#method-RSDictionary-encodeWithCoder}{\code{RSDictionary$encodeWithCoder()}}
@@ -73,7 +83,7 @@ mutable dictionary. An immutable dictionary is returned unchanged.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superclass"><a href='../../robjc/html/RSObject.html#method-RSObject-superclass'><code>RSObject$superclass()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
@@ -156,14 +166,15 @@ With no arguments, constructs an empty dictionary.
 \if{html}{\out{<a id="method-RSDictionary-asList"></a>}}
 \if{latex}{\out{\hypertarget{method-RSDictionary-asList}{}}}
 \subsection{\code{RSDictionary$asList()}}{
-  Returns all entries as \link{RSKeyValuePair} objects.
+  Returns all keys as a list for iteration.
+Use \code{allEntriesAsList()} to iterate over key-value pairs.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSDictionary$asList()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A list in unspecified order.
+    A list of keys in unspecified order.
   }
 }
 
@@ -437,13 +448,13 @@ The final result passes through \code{\link[=robjc_normalize_hash]{robjc_normali
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSDictionary-dictionaryByMergingWithDictionary"></a>}}
-\if{latex}{\out{\hypertarget{method-RSDictionary-dictionaryByMergingWithDictionary}{}}}
-\subsection{\code{RSDictionary$dictionaryByMergingWithDictionary()}}{
+\if{html}{\out{<a id="method-RSDictionary-dictionaryByMergingDictionary"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-dictionaryByMergingDictionary}{}}}
+\subsection{\code{RSDictionary$dictionaryByMergingDictionary()}}{
   Returns an immutable merge; values from \code{other} win.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSDictionary$dictionaryByMergingWithDictionary(other)}
+    \preformatted{RSDictionary$dictionaryByMergingDictionary(other)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -459,13 +470,13 @@ The final result passes through \code{\link[=robjc_normalize_hash]{robjc_normali
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSDictionary-dictionaryByExcludingWithDictionary"></a>}}
-\if{latex}{\out{\hypertarget{method-RSDictionary-dictionaryByExcludingWithDictionary}{}}}
-\subsection{\code{RSDictionary$dictionaryByExcludingWithDictionary()}}{
+\if{html}{\out{<a id="method-RSDictionary-dictionaryByExcludingDictionary"></a>}}
+\if{latex}{\out{\hypertarget{method-RSDictionary-dictionaryByExcludingDictionary}{}}}
+\subsection{\code{RSDictionary$dictionaryByExcludingDictionary()}}{
   Returns an immutable copy excluding keys found in \code{other}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSDictionary$dictionaryByExcludingWithDictionary(other)}
+    \preformatted{RSDictionary$dictionaryByExcludingDictionary(other)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{

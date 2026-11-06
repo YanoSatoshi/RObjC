@@ -18,6 +18,14 @@ solely on the key, which allows consistent behavior in hashed containers such as
 The key can only be replaced if the value is \code{RSNull}. Attempting to change the key
 when the value is bound to a non-null object will result in an error.
 }
+\section{Protocols}{
+
+\itemize{
+\item \link{RSCoding}
+\item \link{RSCopying}
+}
+}
+
 \section{Inheritance}{
 
 Inherits from \code{\link{RSObject}}. Unlike earlier versions, this class is now concrete and can be instantiated directly.
@@ -90,7 +98,7 @@ pair$setKey(RSString$new("b"))         # Error: not allowed when value is non-nu
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superclass"><a href='../../robjc/html/RSObject.html#method-RSObject-superclass'><code>RSObject$superclass()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}

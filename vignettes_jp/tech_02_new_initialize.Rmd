@@ -141,8 +141,8 @@ stopifnot(identical(RSNumber$new(NA_real_), RSNumber$na))
 `RSObject$initialize()` は `isa` を参照して `class(self)` を設定し、`invisible(self)` を返します。
 サブクラスは通常、`super$initialize()` を呼び、自分のフィールドを設定して `invisible(self)` を返します。
 
-例えば `RSArray$initialize()` は引数とハッシュ演算子を確認し、親の初期化を呼んだあと、要素を検証して private な保存領域を埋めます。
-`RSMutableArray$initialize()` は `super$initialize(objects, hash_operator)` に委ね、最後に `invisible(self)` を返します。
+例えば `RSArray$initialize()` は引数と要素を検証し、親の初期化を呼んだあと、private な保存領域を埋めます。
+`RSMutableArray$initialize()` は `super$initialize(objects)` に委ね、最後に `invisible(self)` を返します。
 各クラスは自分が必要とする不変条件をここで成立させます。
 
 ただし、`super$initialize()` の**返り値を伝播すべきクラス**では、最後に無条件で `invisible(self)` を返してはいけません。

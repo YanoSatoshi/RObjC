@@ -7,7 +7,7 @@
 #' @include api_RSDate.r
 #' @include api_RSDateTime.r
 #' @title Wrap a Native R Scalar
-#' @description Choose the matching RObjC scalar class for a native R value.
+#' @description Choose the matching RObjC value class for a native R scalar.
 #'   `NULL` returns the shared [RSNull]; `NA` uses the matching `RSNA*`
 #'   class through the typed API, while supported `NaN` values remain in their
 #'   regular scalar classes. Built-in scalar wrappers accept base R classes,
@@ -15,7 +15,8 @@
 #' @param val `NULL` or a length-one, dimensionless logical, integer, double, complex, raw,
 #'   character, factor, `Date`, `POSIXct`, or `POSIXlt` value with its standard
 #'   base R class.
-#' @return An RObjC scalar instance.
+#' @return An RObjC value instance. Raw input returns an [RSRaw] instance,
+#'   which inherits directly from [RSObject].
 #' @export
 RSScalar_withValue <- function(val) {
   if (is.null(val))             return(RSNull_null())

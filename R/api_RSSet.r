@@ -14,15 +14,13 @@
 NULL
 
 .rs_api_set_objects <- function(objects) {
-  if (!is.list(objects) || !all(vapply(
-    objects,
-    function(object) robjc_isInstance(object) ||
-      robjc_isMetaClass(object),
-    logical(1)
-  )))
+  if (!is.list(objects) ||
+      !all(vapply(objects, robjc_isRObjC, logical(1))))
     stop("`objects` must be a list of RObjC objects, classes, or protocols; use RSNull$null for null members.", call. = FALSE)
   objects
 }
+
+
 
 .rs_api_set_array <- function(array) {
   if (!robjc_isInstance(array) || !array$isKindOf(RSArray))
@@ -30,23 +28,33 @@ NULL
   array
 }
 
+
+
 .rs_api_set <- function(set) {
   if (!robjc_isInstance(set) || !set$isKindOf(RSSet))
     stop("`set` must be an RSSet or RSMutableSet.", call. = FALSE)
   set
 }
 
+
+
 #' @rdname set_constructors
 #' @export
 RSSet_empty <- function() RSSet$new()
+
+
 
 #' @rdname set_constructors
 #' @export
 RSSet_withObject <- function(object) RSSet$new(objects = .rs_api_set_objects(list(object)))
 
+
+
 #' @rdname set_constructors
 #' @export
 RSSet_withObjects <- function(objects) RSSet$new(objects = .rs_api_set_objects(objects))
+
+
 
 #' @rdname set_constructors
 #' @export
@@ -54,13 +62,19 @@ RSSet_withArray <- function(array) {
   RSSet$new(objects = .rs_api_set_objects(.rs_api_set_array(array)$asList()))
 }
 
+
+
 #' @rdname set_constructors
 #' @export
 RSSet_withSet <- function(set) .rs_api_set(set)$copy()
 
+
+
 #' @rdname set_constructors
 #' @export
 RSMutableSet_empty <- function() RSMutableSet$new()
+
+
 
 #' @rdname set_constructors
 #' @export
@@ -68,17 +82,23 @@ RSMutableSet_withObject <- function(object) {
   RSMutableSet$new(objects = .rs_api_set_objects(list(object)))
 }
 
+
+
 #' @rdname set_constructors
 #' @export
 RSMutableSet_withObjects <- function(objects) {
   RSMutableSet$new(objects = .rs_api_set_objects(objects))
 }
 
+
+
 #' @rdname set_constructors
 #' @export
 RSMutableSet_withArray <- function(array) {
   RSMutableSet$new(objects = .rs_api_set_objects(.rs_api_set_array(array)$asList()))
 }
+
+
 
 #' @rdname set_constructors
 #' @export

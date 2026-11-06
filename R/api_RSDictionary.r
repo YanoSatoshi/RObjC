@@ -20,12 +20,13 @@
 NULL
 
 .rs_api_dictionary_value <- function(object) {
-  if (!robjc_isInstance(object) && !robjc_isClass(object) &&
-      !robjc_isProtocol(object))
+  if (!robjc_isRObjC(object))
     stop("Dictionary values must be RObjC objects, classes, or protocols; use RSNull$null for null values.",
          call. = FALSE)
   object
 }
+
+
 
 .rs_api_dictionary_key <- function(key) {
   if (!robjc_isMetaClass(key) &&
@@ -37,6 +38,8 @@ NULL
   key
 }
 
+
+
 .rs_api_dictionary_pairs <- function(objects, keys) {
   if (!is.list(objects) || !is.list(keys))
     stop("`objects` and `keys` must be lists.", call. = FALSE)
@@ -46,6 +49,8 @@ NULL
   lapply(keys, .rs_api_dictionary_key)
   invisible(TRUE)
 }
+
+
 
 .rs_api_dictionary_alternating <- function(objectsAndKeys) {
   if (!is.list(objectsAndKeys) || length(objectsAndKeys) %% 2L != 0L)
@@ -58,6 +63,8 @@ NULL
   objectsAndKeys
 }
 
+
+
 .rs_api_dictionary <- function(dictionary) {
   if (!robjc_isInstance(dictionary) ||
       !dictionary$isKindOf(RSDictionary)) {
@@ -67,9 +74,13 @@ NULL
   dictionary
 }
 
+
+
 #' @rdname dictionary_constructors
 #' @export
 RSDictionary_empty <- function() RSDictionary$new()
+
+
 
 #' @rdname dictionary_constructors
 #' @export
@@ -79,12 +90,16 @@ RSDictionary_withObjectForKey <- function(object, key) {
   RSDictionary$new(objects_and_keys = list(object, key))
 }
 
+
+
 #' @rdname dictionary_constructors
 #' @export
 RSDictionary_withObjectsForKeys <- function(objects, keys) {
   .rs_api_dictionary_pairs(objects, keys)
   RSDictionary$new(keys = keys, values = objects)
 }
+
+
 
 #' @rdname dictionary_constructors
 #' @export
@@ -93,15 +108,21 @@ RSDictionary_withObjectsAndKeys <- function(objectsAndKeys) {
                      .rs_api_dictionary_alternating(objectsAndKeys))
 }
 
+
+
 #' @rdname dictionary_constructors
 #' @export
 RSDictionary_withDictionary <- function(dictionary) {
   .rs_api_dictionary(dictionary)$copy()
 }
 
+
+
 #' @rdname dictionary_constructors
 #' @export
 RSMutableDictionary_empty <- function() RSMutableDictionary$new()
+
+
 
 #' @rdname dictionary_constructors
 #' @export
@@ -111,6 +132,8 @@ RSMutableDictionary_withObjectForKey <- function(object, key) {
   RSMutableDictionary$new(objects_and_keys = list(object, key))
 }
 
+
+
 #' @rdname dictionary_constructors
 #' @export
 RSMutableDictionary_withObjectsForKeys <- function(objects, keys) {
@@ -118,12 +141,16 @@ RSMutableDictionary_withObjectsForKeys <- function(objects, keys) {
   RSMutableDictionary$new(keys = keys, values = objects)
 }
 
+
+
 #' @rdname dictionary_constructors
 #' @export
 RSMutableDictionary_withObjectsAndKeys <- function(objectsAndKeys) {
   RSMutableDictionary$new(objects_and_keys =
                             .rs_api_dictionary_alternating(objectsAndKeys))
 }
+
+
 
 #' @rdname dictionary_constructors
 #' @export

@@ -8,6 +8,23 @@
 #' addresses of restored objects.
 #' Lists are traversed to preserve references inside collection fields; other
 #' base R values form the R serialization boundary.
+#' @section Protocols:
+#' - [RSCopying]
+#'
+#' @examples
+#' # Archive one root object.
+#' original <- RSString$new("saved text")
+#' archive <- RSKeyedArchiver$new()$encode(original)
+#' stopifnot(is.list(archive), length(archive$records) == 1L)
+#' # saveRDS(archive, save_to_path)
+#'
+#' # A list supplies multiple named roots. Shared objects are recorded once.
+#' shared <- RSString$new("shared")
+#' roots <- list(first = shared, second = RSNumber$new(2L), again = shared)
+#' multiple <- RSKeyedArchiver$new()$encode(roots)
+#' stopifnot(length(multiple$records) == 2L)
+#' # saveRDS(multiple, save_to_path)
+#'
 #' @export
 RSKeyedArchiver <- RSObjectClass(
   "RSKeyedArchiver",
@@ -19,20 +36,26 @@ RSKeyedArchiver <- RSObjectClass(
     .current_fields = NULL,
 
     .encode_value = function(value) {
-      if (robjc_isInstance(value) || robjc_isMetaClass(value)) {
+      if (robjc_isRObjC(value)) {
         address <- robjc_get_pointer(value)
+        # check `.retained` cache
         if (exists(address, envir = private$.retained, inherits = FALSE))
           return(list(type = "ref", id = address))
 
+        # new archiving
         private$.retained[[address]] <- value
         if (robjc_isInstance(value)) {
+          # instance
           generator <- value$class()
           kind      <- "instance"
         } else {
+          # class or protocol
           generator <- value
           kind      <- if (robjc_isClass(value)) "class" else "protocol"
         }
+        # get stable ID for the generator
         identity <- .robjc_registered_identity(generator)
+        # make record template & store it
         record <- list(
           kind        = kind,
           class_name  = generator$classname,
@@ -43,18 +66,20 @@ RSKeyedArchiver <- RSObjectClass(
         )
         private$.records[[address]] <- record
 
+        # stores the instance data
         if (identical(kind, "instance")) {
           if (!value$respondsTo("encodeWithCoder"))
             stop(
               sprintf("%s does not implement encodeWithCoder().", generator$classname),
               call. = FALSE
             )
-          fields <- new.env(hash = FALSE, parent = emptyenv())
+          # leave current storage, set new storage for encoding instance
+          fields   <- new.env(hash = FALSE, parent = emptyenv())
           previous <- private$.current_fields
           private$.current_fields <- fields
           tryCatch(
             value$encodeWithCoder(self),
-            finally = { private$.current_fields <- previous }
+            finally = { private$.current_fields <- previous } # restore the prev
           )
           record$fields <- as.list(fields, all.names = TRUE)
           private$.records[[address]] <- record
@@ -75,6 +100,8 @@ RSKeyedArchiver <- RSObjectClass(
       invisible(self)
     },
 
+
+
     #' @description Records a field of the object currently being encoded.
     #' @param object Value to encode.
     #' @param key One nonempty character string.
@@ -89,10 +116,12 @@ RSKeyedArchiver <- RSObjectClass(
       invisible(self)
     },
 
+
+
     #' @description Encodes a root value as a portable record graph.
     #' @param object Root RObjC object or base R value.
     #' @return A plain R list suitable for `saveRDS()`.
-    archive = function(object) {
+    encode = function(object) {
       private$.retained <- new.env(hash = TRUE,  parent = emptyenv())
       private$.records  <- new.env(hash = FALSE, parent = emptyenv())
       private$.current_fields <- NULL

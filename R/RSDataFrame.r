@@ -17,6 +17,11 @@
 #' `copy()` returns the immutable receiver, while `mutableCopy()` creates a
 #' mutable wrapper around the same data.
 #'
+#' @section Protocols:
+#' - [RSCopying]
+#' - [RSMutableCopying]
+#' - [RSCoding]
+#'
 #' @export
 RSDataFrame <- RSObjectClass(
   "RSDataFrame",
@@ -40,6 +45,8 @@ RSDataFrame <- RSObjectClass(
       invisible(self)
     },
 
+
+
     #' @description Encodes the stored tibble as a base R serialization value.
     #' @param coder An [RSKeyedArchiver] recording keyed values.
     #' @return `self`, invisibly.
@@ -47,6 +54,8 @@ RSDataFrame <- RSObjectClass(
       coder$encodeObjectForKey(private$.df, "data")
       invisible(self)
     },
+
+
 
     #' @description Restores the tibble without calling `initialize()`.
     #'   This also serves [RSMutableDataFrame]. Legacy archives may contain an
@@ -61,30 +70,44 @@ RSDataFrame <- RSObjectClass(
       invisible(self)
     },
 
+
+
     #' @description Returns the internal tibble object.
     #' @return A `tibble::tibble` object.
-    getData = function() private$.df,
+    getDataFrame = function() private$.df,
+
+
 
     #' @description Returns the values stored in the specified column.
     #' @param name Column name.
     #' @return A vector of column values.
     getColumn = function(name) private$.df[[name]],
 
+
+
     #' @description Returns the number of rows in the data frame.
     #' @return Integer.
     nrow = function() nrow(private$.df),
+
+
 
     #' @description Returns the number of columns.
     #' @return Integer.
     ncol = function() ncol(private$.df),
 
+
+
     #' @description Returns the column names of the data frame.
     #' @return Character vector.
     colnames = function() colnames(private$.df),
 
+
+
     #' @description Returns the row names of the data frame.
     #' @return Character vector.
     rownames = function() rownames(private$.df),
+
+
 
     #' @description Compares the complete stored tibble with another data frame
     #'   wrapper using `identical()`.
@@ -93,8 +116,10 @@ RSDataFrame <- RSObjectClass(
     isEqual = function(other) {
       if (!robjc_isInstance(other) || !other$isKindOf(RSDataFrame))
         return(FALSE)
-      identical(private$.df, other$getData())
+      identical(private$.df, other$getDataFrame())
     },
+
+
 
     #' @description Computes a coarse hash from row count, column names, and
     #'   column storage types. Cell values and other attributes are not included,
@@ -103,14 +128,29 @@ RSDataFrame <- RSObjectClass(
     #' @return One non-missing integer hash value.
     hash = function() {
       df <- private$.df
-      seed <- c(nrow(df), paste(colnames(df), vapply(df, typeof, character(1)), sep = "/"))
-      hashes <- vapply(seed, RSHashOperator$instance$computeHashCodeWithString, integer(1))
+      seed <- c(
+        nrow(df),
+        paste(
+          colnames(df),
+          vapply(df, typeof, character(1)),
+          sep = "/"
+        )
+      )
+      hashes <- vapply(
+        seed,
+        RSHashOperator$instance$computeHashCodeWithString,
+        integer(1)
+      )
       robjc_normalize_hash(Reduce(bitwXor, hashes, init = 0L))
     },
+
+
 
     #' @description Returns the immutable receiver without duplicating it.
     #' @return The same `RSDataFrame` instance.
     copy = function() self,
+
+
 
     #' @description Creates a mutable wrapper around the same tibble. R's
     #'   copy-on-modify semantics separate the stored data on later edits.

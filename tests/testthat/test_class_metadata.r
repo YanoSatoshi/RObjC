@@ -13,6 +13,15 @@ test_that("exported RObjC generators have class versions and identity records", 
   }
 })
 
+test_that("robjc_isRObjC recognizes instances and both generator kinds", {
+  protocol <- RSProtocolClass("BelongToAuditProtocol")
+  for (object in list(RSObject$new(), RSObject, protocol))
+    expect_true(robjc_isRObjC(object))
+  for (object in list(NULL, 1L, list(), RSObject$robjc_isa,
+                      R6::R6Class("PlainR6")))
+    expect_false(robjc_isRObjC(object))
+})
+
 test_that("package-defined generators restore their binding locks", {
   for (klass in list(RSObject, RSProtocol, RSString, RSNANumber, RSNull)) {
     for (binding in c("robjc_isa", "isEqual", "hash"))

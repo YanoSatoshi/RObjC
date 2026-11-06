@@ -6,6 +6,11 @@
 #' [RSNAComplex] instance, available as `RSComplex$na`. Values containing
 #' `NaN` remain regular `RSComplex` objects.
 #'
+#' @section Protocols:
+#' - [RSComparable]
+#' - [RSCoding]
+#' - [RSCopying]
+#'
 #' @return The `RSComplex` class generator.
 #' @export
 RSComplex <- RSScalarClass(
@@ -25,6 +30,8 @@ RSComplex <- RSScalarClass(
       super$initialize(val)
     },
 
+
+
     #' @description Compare using base R's complex sort order: real part, then
     #'   imaginary part. Missing values follow `na.last`.
     #' @param other Another `RSComplex` instance.
@@ -39,6 +46,11 @@ RSComplex <- RSScalarClass(
 #' @title RSNAComplex
 #' @description The generated NA companion class for [RSComplex]. Use
 #'   `RSComplex$na` for its shared instance.
+#' @section Protocols:
+#' - [RSComparable]
+#' - [RSCoding]
+#' - [RSCopying]
+#'
 #' @return The NA class generator.
 #' @export
 RSNAComplex <- RSComplex$na$class()

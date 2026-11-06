@@ -12,18 +12,23 @@ NULL
 #' @export
 RSDateTime_now <- function() RSDateTime$new(Sys.time())
 
+
+
 #' @rdname datetime_constructors
 #' @export
 RSDateTime_withDateTime <- function(val) {
   standard_class <- identical(class(val), c("POSIXct", "POSIXt")) ||
-    identical(class(val), c("POSIXlt", "POSIXt"))
-  if (!standard_class || length(val) != 1L || !is.null(dim(val)))
+                    identical(class(val), c("POSIXlt", "POSIXt"))
+  if (!standard_class ||
+      length(val) != 1L ||
+      !is.null(dim(val)))
     stop("`val` must be a POSIXct or POSIXlt scalar.", call. = FALSE)
   normalized <- as.POSIXct(val)
-  if (!inherits(normalized, "POSIXct") || length(normalized) != 1L ||
+  if (!inherits(normalized, "POSIXct") ||
+      length(normalized) != 1L ||
       !is.null(dim(normalized)) ||
       !(typeof(normalized) %in% c("integer", "double")))
     stop("`val` must be a numeric POSIX date-time.", call. = FALSE)
-  if (is.na(val) && !is.nan(val)) return(RSDateTime$na)
+  if (is.na(normalized) && !robjc_is_nan_scalar(normalized)) return(RSDateTime$na)
   RSDateTime$new(val)
 }

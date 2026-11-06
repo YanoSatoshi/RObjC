@@ -1,4 +1,4 @@
-test_that("protocol_validateContracts reports missing inherited requirements", {
+test_that("protocol_getMissingContracts reports missing inherited requirements", {
   Named <- RSProtocolClass("ValidateContractNamed", contract_methods = "name")
   Detailed <- RSProtocolClass(
     "ValidateContractDetailed",
@@ -22,16 +22,16 @@ test_that("protocol_validateContracts reports missing inherited requirements", {
     public = list(code = function() "ok")
   )
 
-  expect_identical(protocol_validateContracts(Child), "code")
-  expect_identical(protocol_validateContracts(Complete), character(0))
-  expect_identical(protocol_validateContracts(Parent), character(0))
+  expect_identical(protocol_getMissingContracts(Child), "code")
+  expect_identical(protocol_getMissingContracts(Complete), character(0))
+  expect_identical(protocol_getMissingContracts(Parent), character(0))
 })
 
-test_that("protocol_validateContracts validates its inputs", {
+test_that("protocol_getMissingContracts validates its inputs", {
   Example <- RSObjectClass("ValidateContractExample")
-  expect_error(protocol_validateContracts(1L),
+  expect_error(protocol_getMissingContracts(1L),
                "`klass` must be an RObjC object class generator.", fixed = TRUE)
-  expect_error(protocol_validateContracts(RSProtocol),
+  expect_error(protocol_getMissingContracts(RSProtocol),
                "`klass` must be an RObjC object class generator.", fixed = TRUE)
-  expect_identical(protocol_validateContracts(Example), character(0))
+  expect_identical(protocol_getMissingContracts(Example), character(0))
 })

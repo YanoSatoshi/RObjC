@@ -9,13 +9,25 @@ and removal of elements. It shares the parent's list storage, validation,
 searching, comparison, hashing, and keyed coding methods.
 
 Elements are retained by reference. \code{copy()} creates an independent
-immutable \link{RSArray} container with the same element references and hash
-operator. \code{mutableCopy()} creates an independent mutable container.
+immutable \link{RSArray} container with the same element references.
+\code{mutableCopy()} creates an independent mutable container.
 }
+\section{Protocols}{
+
+\itemize{
+\item \link{RSMutableCopying}
+\item \link{RSCopying}
+\item \link{RSComparable}
+\item \link{RSListing}
+\item \link{RSCoding}
+}
+}
+
 \section{Core Methods}{
 
 \itemize{
 \item \code{addObject(obj)} — Append an object.
+\item \code{addObjectsFromArray(other)} — Append another array's elements.
 \item \code{insertObjectAtIndex(obj, index)} — Insert at a one-based position.
 \item \code{replaceObjectAtIndex(obj, index)} — Replace an element.
 \item \code{removeObjectAtIndex(index)} and \code{removeAllObjects()} — Remove elements.
@@ -30,6 +42,7 @@ operator. \code{mutableCopy()} creates an independent mutable container.
   \itemize{
     \item \href{#method-RSMutableArray-initialize}{\code{RSMutableArray$new()}}
     \item \href{#method-RSMutableArray-addObject}{\code{RSMutableArray$addObject()}}
+    \item \href{#method-RSMutableArray-addObjectsFromArray}{\code{RSMutableArray$addObjectsFromArray()}}
     \item \href{#method-RSMutableArray-insertObjectAtIndex}{\code{RSMutableArray$insertObjectAtIndex()}}
     \item \href{#method-RSMutableArray-replaceObjectAtIndex}{\code{RSMutableArray$replaceObjectAtIndex()}}
     \item \href{#method-RSMutableArray-removeObjectAtIndex}{\code{RSMutableArray$removeObjectAtIndex()}}
@@ -47,25 +60,28 @@ operator. \code{mutableCopy()} creates an independent mutable container.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superclass"><a href='../../robjc/html/RSObject.html#method-RSObject-superclass'><code>RSObject$superclass()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="allObjects"><a href='../../robjc/html/RSArray.html#method-RSArray-allObjects'><code>RSArray$allObjects()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="allObjectsAsList"><a href='../../robjc/html/RSArray.html#method-RSArray-allObjectsAsList'><code>RSArray$allObjectsAsList()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="arrayByAddingObject"><a href='../../robjc/html/RSArray.html#method-RSArray-arrayByAddingObject'><code>RSArray$arrayByAddingObject()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="arrayByAddingObjectsFromArray"><a href='../../robjc/html/RSArray.html#method-RSArray-arrayByAddingObjectsFromArray'><code>RSArray$arrayByAddingObjectsFromArray()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="asList"><a href='../../robjc/html/RSArray.html#method-RSArray-asList'><code>RSArray$asList()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="compare"><a href='../../robjc/html/RSArray.html#method-RSArray-compare'><code>RSArray$compare()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="containsObject"><a href='../../robjc/html/RSArray.html#method-RSArray-containsObject'><code>RSArray$containsObject()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="count"><a href='../../robjc/html/RSArray.html#method-RSArray-count'><code>RSArray$count()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="description"><a href='../../robjc/html/RSArray.html#method-RSArray-description'><code>RSArray$description()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="encodeWithCoder"><a href='../../robjc/html/RSArray.html#method-RSArray-encodeWithCoder'><code>RSArray$encodeWithCoder()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="filteredArrayWith"><a href='../../robjc/html/RSArray.html#method-RSArray-filteredArrayWith'><code>RSArray$filteredArrayWith()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="hash"><a href='../../robjc/html/RSArray.html#method-RSArray-hash'><code>RSArray$hash()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="hashOperator"><a href='../../robjc/html/RSArray.html#method-RSArray-hashOperator'><code>RSArray$hashOperator()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="hashesOfObjects"><a href='../../robjc/html/RSArray.html#method-RSArray-hashesOfObjects'><code>RSArray$hashesOfObjects()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="indexOfObject"><a href='../../robjc/html/RSArray.html#method-RSArray-indexOfObject'><code>RSArray$indexOfObject()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="initWithCoder"><a href='../../robjc/html/RSArray.html#method-RSArray-initWithCoder'><code>RSArray$initWithCoder()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="isEqual"><a href='../../robjc/html/RSArray.html#method-RSArray-isEqual'><code>RSArray$isEqual()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="lastObject"><a href='../../robjc/html/RSArray.html#method-RSArray-lastObject'><code>RSArray$lastObject()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="mutableCopy"><a href='../../robjc/html/RSArray.html#method-RSArray-mutableCopy'><code>RSArray$mutableCopy()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="objectAtIndex"><a href='../../robjc/html/RSArray.html#method-RSArray-objectAtIndex'><code>RSArray$objectAtIndex()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="objectsAtIndexes"><a href='../../robjc/html/RSArray.html#method-RSArray-objectsAtIndexes'><code>RSArray$objectsAtIndexes()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="objectsForEncoding"><a href='../../robjc/html/RSArray.html#method-RSArray-objectsForEncoding'><code>RSArray$objectsForEncoding()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="print"><a href='../../robjc/html/RSArray.html#method-RSArray-print'><code>RSArray$print()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
@@ -75,15 +91,13 @@ operator. \code{mutableCopy()} creates an independent mutable container.
   Constructs a mutable array from an optional list of RObjC values.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableArray$new(objects = list(), hash_operator = RSHashOperator$instance)}
+    \preformatted{RSMutableArray$new(objects = list())}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{objects}}{A list of RObjC objects, class generators, or protocol generators.}
-      \item{\code{hash_operator}}{An RObjC object providing \code{hashFromObjects()} and
-\code{hashesOfEachObject()}.}
     }
     \if{html}{\out{</div>}}
   }
@@ -115,6 +129,29 @@ operator. \code{mutableCopy()} creates an independent mutable container.
 }
 
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSMutableArray-addObjectsFromArray"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableArray-addObjectsFromArray}{}}}
+\subsection{\code{RSMutableArray$addObjectsFromArray()}}{
+  Appends the elements of another array to the receiver in
+their original order. Elements are retained by reference.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableArray$addObjectsFromArray(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{An \link{RSArray} or \link{RSMutableArray} instance.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableArray-insertObjectAtIndex"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableArray-insertObjectAtIndex}{}}}
 \subsection{\code{RSMutableArray$insertObjectAtIndex()}}{
@@ -128,7 +165,8 @@ operator. \code{mutableCopy()} creates an independent mutable container.
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{obj}}{An RObjC object, class generator, or protocol generator.}
-      \item{\code{index}}{One-based, finite whole-number position where the object is inserted.}
+      \item{\code{index}}{One-based numeric position where the object is inserted;
+converted with \code{as.integer()}.}
     }
     \if{html}{\out{</div>}}
   }
@@ -151,7 +189,7 @@ operator. \code{mutableCopy()} creates an independent mutable container.
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{obj}}{An RObjC object, class generator, or protocol generator.}
-      \item{\code{index}}{One-based, finite whole-number position to replace.}
+      \item{\code{index}}{One-based numeric position to replace; converted with \code{as.integer()}.}
     }
     \if{html}{\out{</div>}}
   }
@@ -174,7 +212,7 @@ The remaining elements are shifted to fill the gap.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{index}}{One-based, finite whole-number position to remove.}
+      \item{\code{index}}{One-based numeric position to remove; converted with \code{as.integer()}.}
     }
     \if{html}{\out{</div>}}
   }

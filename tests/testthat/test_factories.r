@@ -24,7 +24,7 @@ test_that("RSProtocolClass stores only newly declared requirements", {
   )
 
   expect_true(robjc_isProtocol(Child))
-  expect_identical(robjc:::protocol_getContract(Child), "bar")
+  expect_identical(robjc:::protocol_getContracts(Child), "bar")
   expect_setequal(robjc:::protocol_getAllContracts(Child), c("foo", "bar"))
   expect_true(robjc:::protocol_conformsTo(Child, Parent))
   expect_null(Parent$new)

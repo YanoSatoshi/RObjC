@@ -5,6 +5,9 @@
 #' logical state through `encodeObjectForKey()` and reads it through
 #' `decodeObjectForKey()`. The concrete coder owns reference tracking and the
 #' archive format.
+#' @section Protocols:
+#' - [RSCopying]
+#'
 #' @export
 RSCoder <- RSObjectClass(
   "RSCoder",
@@ -17,6 +20,8 @@ RSCoder <- RSObjectClass(
     encodeObjectForKey = function(object, key) {
       stop("encodeObjectForKey() requires an RSKeyedArchiver.", call. = FALSE)
     },
+
+
 
     #' @description Reads a logical field from an archive.
     #' @param key One nonempty character string.

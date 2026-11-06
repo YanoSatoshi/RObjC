@@ -1,11 +1,11 @@
 test_that("package registrations restore instances and generator references", {
   source <- RSNumber$new(42L)
-  archive <- RSKeyedArchiver$new()$archive(list(source, RSNumber, RSCoding))
+  archive <- RSKeyedArchiver$new()$encode(list(source, RSNumber, RSCoding))
   records <- archive$records
   expect_true(all(vapply(records, function(record)
     identical(record$package, "robjc") && nzchar(record$class_id), logical(1))))
 
-  restored <- RSKeyedUnarchiver$new(unserialize(serialize(archive, NULL)))$unarchive()
+  restored <- RSKeyedUnarchiver$new(unserialize(serialize(archive, NULL)))$decode()
   expect_identical(restored[[1L]]$nativeValue(), 42L)
   expect_identical(restored[[2L]], RSNumber)
   expect_identical(restored[[3L]], RSCoding)
@@ -42,14 +42,16 @@ test_that("unregistered classes retain the explicit resolver path", {
       value = NULL
     )
   )
-  archive <- RSKeyedArchiver$new()$archive(Local$new())
+  archive <- RSKeyedArchiver$new()$encode(Local$new())
   expect_null(archive$records[[1L]]$package)
-  expect_error(RSKeyedUnarchiver$new(archive)$unarchive(), "Unresolved archive classes")
-  restored <- RSKeyedUnarchiver$new(archive, function(...) Local)$unarchive()
+  expect_error(RSKeyedUnarchiver$new(archive)$decode(), "Unresolved archive classes")
+  restored <- RSKeyedUnarchiver$new(archive, function(...) Local)$decode()
   expect_identical(restored$value, 7L)
 })
 
 test_that("an extension package registers its class in .onLoad", {
+  if (!any(file.exists(file.path(.libPaths(), "robjc", "DESCRIPTION"))))
+    skip("The extension fixture requires an installed robjc package.")
   package_name <- "robjcextfixture"
   root <- tempfile("robjc-extension-")
   package_dir <- file.path(root, package_name)
@@ -114,7 +116,7 @@ test_that("an extension package registers its class in .onLoad", {
 
   namespace <- loadNamespace(package_name, lib.loc = library_dir)
   extension_class <- get("ExtensionWidget", envir = namespace)
-  archive <- RSKeyedArchiver$new()$archive(extension_class$new("saved"))
+  archive <- RSKeyedArchiver$new()$encode(extension_class$new("saved"))
   record <- archive$records[[1L]]
   expect_identical(record$package, package_name)
   expect_identical(record$class_id, "widget")
@@ -122,7 +124,7 @@ test_that("an extension package registers its class in .onLoad", {
   rm(extension_class, namespace)
   unloadNamespace(package_name)
   decoder <- RSKeyedUnarchiver$new(unserialize(serialize(archive, NULL)))
-  classes <- decoder$showAllClasses(remove_default = FALSE)
+  classes <- decoder$classMappings(remove_default = FALSE)
   expect_identical(classes$decoder_name, "ExtensionWidget")
   expect_identical(classes$status, "automatic")
   expect_identical(decoder$decode()$value, "saved")

@@ -13,6 +13,9 @@
 #' `initialize()` delegates to [RSObject] and returns the instance. It does not
 #' lock instance fields; subclasses can set fields during initialization.
 #'
+#' @section Protocols:
+#' - [RSCopying]
+#'
 #' @examples
 #' \dontrun{
 #' ConfigModule <- RSSingletonClass(

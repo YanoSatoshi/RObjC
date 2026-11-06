@@ -63,7 +63,7 @@ stopifnot(identical(source$next_node, source))
 RObjC のインスタンス、クラスジェネレータ、プロトコルジェネレータは `ref` と対応するレコードを使います。
 
 ```{r}
-archive <- RSKeyedArchiver$new()$archive(root)
+archive <- RSKeyedArchiver$new()$encode(root)
 stopifnot(identical(archive$format, "robjc-keyed-1"))
 stopifnot(identical(archive$root$type, "list"))
 stopifnot(identical(archive$root$values[[1L]]$type, "ref"))
@@ -105,17 +105,17 @@ Node を最初に発見
 各レコードには `kind`、クラス名、保存時のバージョン、登録済みならパッケージとクラス ID が記録されます。
 組み込みクラスや登録済みのパッケージクラスは自動解決でき、スクリプトで定義したクラスには復元先のジェネレータを指定できます。
 `RSKeyedUnarchiver$new(archive)` はデータを読み込む段階であり、オブジェクトの復元はまだ始めません。
-`showAllClasses()` で対応候補を確認し、必要なら `setClasses()` に tibble または `RSMutableDictionary` を渡してから `decode()` を呼びます。
+`classMappings()` で対応候補を確認し、必要なら `setClassMappings()` に tibble または `RSMutableDictionary` を渡してから `decode()` を呼びます。
 
 ```{r}
 decoder <- RSKeyedUnarchiver$new(unserialize(serialize(archive, NULL)))
-mapping <- decoder$showAllClasses(remove_default = FALSE)
+mapping <- decoder$classMappings(remove_default = FALSE)
 stopifnot(identical(mapping$class_name, "Tech08Node"))
 stopifnot(is.null(mapping$decoder_class[[1L]]))
 
 mapping$decoder_class[1L] <- list(Node)
-decoder$setClasses(mapping)
-stopifnot(identical(decoder$showAllClasses(remove_default = FALSE)$decoder_name,
+decoder$setClassMappings(mapping)
+stopifnot(identical(decoder$classMappings(remove_default = FALSE)$decoder_name,
                     "Tech08Node"))
 ```
 

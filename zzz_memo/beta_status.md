@@ -18,8 +18,8 @@
 - `$new()` は `robjc_allocate()` で確保したインスタンスの `initialize()` の結果を返す。`robjc_allocate()` は `initialize()` を呼ばず、復元処理で使用する。singleton の `$new()` は既存インスタンスを返す。
 - `RSScalar` 系列の通常クラスに `NA` を渡すと対応する共有 NA インスタンスを返す。`RSFactor$new(NA_factor)` は levels と ordered 属性を保持する新しい `RSNAFactor` を返す。`NaN` は通常の scalar として扱う。
 - Array、Vector、Set、Dictionary、DataFrame の可変・不変クラスを提供する。Dictionary と Set は Rcpp 経由で native table を使う。`hash()` と `isEqual()` に依存するため、格納中のキー・メンバーの関連状態は安定させる必要がある。
-- `RSCoding`、`RSEncoderProtocol`、`RSDecoderProtocol` に基づき、各対応クラスが `encodeWithCoder()` と `initWithCoder()` を実装する。`RSKeyedArchiver$new()$archive(root)` は通常の R list を返し、`saveRDS()` で保存できる。参照 ID はエンコード元オブジェクトのポインターを文字列として記録し、処理中は元オブジェクトを保持する。復元時にその ID をアドレスとして使用しない。list 内の RObjC 参照と共有参照を扱う。
-- `RSKeyedUnarchiver$new(archive)` はデータを読み込み、復元は `$decode()` まで行わない。`$showAllClasses()` は自動解決済みのクラスを既定で除いた tibble を返す。`$showAllClasses(remove_default = FALSE)` と `$dictionaryWithAllClasses()` で全クラスを見られる。必要な対応を `$setClasses()` に渡し、`$decode()` で復元する。`$unarchive()` は互換用の別名。
+- `RSCoding`、`RSEncoderProtocol`、`RSDecoderProtocol` に基づき、各対応クラスが `encodeWithCoder()` と `initWithCoder()` を実装する。`RSKeyedArchiver$new()$encode(root)` は通常の R list を返し、`saveRDS()` で保存できる。参照 ID はエンコード元オブジェクトのポインターを文字列として記録し、処理中は元オブジェクトを保持する。復元時にその ID をアドレスとして使用しない。list 内の RObjC 参照と共有参照を扱う。
+- `RSKeyedUnarchiver$new(archive)` はデータを読み込み、復元は `$decode()` まで行わない。`$classMappings()` は自動解決済みのクラスを既定で除いた tibble を返す。`$classMappings(remove_default = FALSE)` と `$classMappingsAsDictionary()` で全クラスを見られる。必要な対応を `$setClassMappings()` に渡し、`$decode()` で復元する。`$unarchive()` は互換用の別名。
 - 組み込みクラスは `.onLoad()` で登録する。拡張パッケージも `.onLoad()` から `robjc_register_class()` / `robjc_register_protocol()` を呼べる。登録表には generator 自体を保持せず、package・固定 ID・namespace binding を記録する。スクリプト内のクラスは手動対応または resolver を使う。拡張パッケージの `.onLoad()` 登録から resolver なしで復元する統合テストがある。
 
 ## main からの主な変更（0.1.1 作業中）
@@ -28,7 +28,7 @@
 - `RSDataFrame` のキー列指定を廃止し、`isEqual()` は包んだ data.frame の `identical()` に合わせた。`hash()` は列名・型・行数に基づく簡易値であり、任意のデータ内容に適したハッシュを保証するものではない。
 - `RSNull` に S3 の `$` dispatch を追加した。存在しないメソッド名に対する呼び出しは共有 `RSNull$null` を返す。Collection に R の `NULL` を保存する場合は自動変換せず、`RSNull$null` または公開関数 `robjc_wrap_null()` で明示する。
 - `RSObject` の `==` / `!=` は `identical()` による同一インスタンス判定とした。`description()` と `debugDescription()`、S3 表示の構成も見直した。
-- `protocol_validateContracts()` で宣言済みプロトコルの不足メソッド名を取得できる。クラスファクトリーは既定で契約を検証し、不足があればクラス宣言を停止する。
+- `protocol_getMissingContracts()` で宣言済みプロトコルの不足メソッド名を取得できる。クラスファクトリーは既定で契約を検証し、不足があればクラス宣言を停止する。
 - パッケージ版を `0.1.1` にした。組み込みクラスの版は個別のメタデータなので一律には変更していない。
 
 ## 文書

@@ -10,6 +10,15 @@ The NA class generator.
 The generated NA companion class for \link{RSComplex}. Use
 \code{RSComplex$na} for its shared instance.
 }
+\section{Protocols}{
+
+\itemize{
+\item \link{RSComparable}
+\item \link{RSCoding}
+\item \link{RSCopying}
+}
+}
+
 \section{Super classes}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSScalar]{RSScalar}} -> \code{\link[robjc:RSComplex]{RSComplex}} -> \code{RSNAComplex}
 }

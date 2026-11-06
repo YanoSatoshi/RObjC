@@ -95,9 +95,9 @@ Notebook <- RSObjectClass(
 
 ## 保存と復元
 
-`RSKeyedArchiver$new()$archive()` は通常の R list を返します。これを RDS に保存し、
+`RSKeyedArchiver$new()$encode()` は通常の R list を返します。これを RDS に保存し、
 読み込んだ archive を `RSKeyedUnarchiver` に渡します。`new()` はデータを保持するだけで、
-`showAllClasses()` が保存されたクラス一覧と復元先候補を tibble で示します。
+`classMappings()` が保存されたクラス一覧と復元先候補を tibble で示します。
 この例では候補が未登録なので、対応する generator を設定します。
 
 ```{r}
@@ -108,7 +108,7 @@ notebook <- Notebook$new(list(
   Section$new("Archived", list(shared_note))
 ))
 
-archive <- RSKeyedArchiver$new()$archive(notebook)
+archive <- RSKeyedArchiver$new()$encode(notebook)
 stopifnot(length(archive$records) == 5L)
 
 path <- tempfile(fileext = ".rds")
@@ -122,11 +122,11 @@ available <- list(
   NotebookGuideNotebook = Notebook
 )
 decoder <- RSKeyedUnarchiver$new(saved)
-classes <- decoder$showAllClasses()
+classes <- decoder$classMappings()
 stopifnot(nrow(classes) == 3L)
 stopifnot(all(classes$status == "unresolved"))
 classes$decoder_class <- unname(available[classes$class_name])
-decoder$setClasses(classes)
+decoder$setClassMappings(classes)
 loaded <- decoder$decode()
 
 stopifnot(identical(loaded$class(), Notebook))

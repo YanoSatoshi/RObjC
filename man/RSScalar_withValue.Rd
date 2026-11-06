@@ -12,10 +12,11 @@ character, factor, \code{Date}, \code{POSIXct}, or \code{POSIXlt} value with its
 base R class.}
 }
 \value{
-An RObjC scalar instance.
+An RObjC value instance. Raw input returns an \link{RSRaw} instance,
+which inherits directly from \link{RSObject}.
 }
 \description{
-Choose the matching RObjC scalar class for a native R value.
+Choose the matching RObjC value class for a native R scalar.
 \code{NULL} returns the shared \link{RSNull}; \code{NA} uses the matching \verb{RSNA*}
 class through the typed API, while supported \code{NaN} values remain in their
 regular scalar classes. Built-in scalar wrappers accept base R classes,

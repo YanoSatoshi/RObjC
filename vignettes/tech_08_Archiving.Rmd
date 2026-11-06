@@ -63,7 +63,7 @@ The three node types are `ref` for an RObjC object, `list` for traversing an ord
 RObjC instances, class generators, and protocol generators use `ref` nodes and matching records.
 
 ```{r}
-archive <- RSKeyedArchiver$new()$archive(root)
+archive <- RSKeyedArchiver$new()$encode(root)
 stopifnot(identical(archive$format, "robjc-keyed-1"))
 stopifnot(identical(archive$root$type, "list"))
 stopifnot(identical(archive$root$values[[1L]]$type, "ref"))
@@ -105,17 +105,17 @@ During decoding, saved IDs are opaque strings, not pointers to restored objects.
 Each record contains a `kind`, class name, saved version, and, if registered, a package and class ID.
 Built-in and registered package classes can be resolved automatically; a generator can be supplied for a class defined in a script.
 `RSKeyedUnarchiver$new(archive)` loads the data without restoring objects yet.
-Inspect candidate mappings with `showAllClasses()`, supply a tibble or `RSMutableDictionary` to `setClasses()` if needed, and then call `decode()`.
+Inspect candidate mappings with `classMappings()`, supply a tibble or `RSMutableDictionary` to `setClassMappings()` if needed, and then call `decode()`.
 
 ```{r}
 decoder <- RSKeyedUnarchiver$new(unserialize(serialize(archive, NULL)))
-mapping <- decoder$showAllClasses(remove_default = FALSE)
+mapping <- decoder$classMappings(remove_default = FALSE)
 stopifnot(identical(mapping$class_name, "Tech08Node"))
 stopifnot(is.null(mapping$decoder_class[[1L]]))
 
 mapping$decoder_class[1L] <- list(Node)
-decoder$setClasses(mapping)
-stopifnot(identical(decoder$showAllClasses(remove_default = FALSE)$decoder_name,
+decoder$setClassMappings(mapping)
+stopifnot(identical(decoder$classMappings(remove_default = FALSE)$decoder_name,
                     "Tech08Node"))
 ```
 

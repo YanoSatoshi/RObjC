@@ -109,14 +109,14 @@ LabeledWidget <- RSObjectClass(
   public = list(label = function() "labeled widget")
 )
 stopifnot(LabeledWidget$new()$conformsTo(Labeled))
-stopifnot(identical(protocol_validateContracts(LabeledWidget), character(0)))
+stopifnot(identical(protocol_getMissingContracts(LabeledWidget), character(0)))
 ```
 
 プロトコルの継承や準拠宣言は[プロトコルのガイド](guide_03_Protocols.Rmd)で扱います。
 
 ## プロトコル契約を検証する
 
-`RSObjectClass()`、`RSSingletonClass()`、`RSScalarClass()` は、`validate_protocols = TRUE` のとき、クラス宣言中に `protocol_validateContracts()` で要求メソッドの有無を調べます。
+`RSObjectClass()`、`RSSingletonClass()`、`RSScalarClass()` は、`validate_protocols = TRUE` のとき、クラス宣言中に `protocol_getMissingContracts()` で要求メソッドの有無を調べます。
 不足があれば、クラスを返さずエラーにします。次の例では `label()` がないため宣言に失敗します。
 
 ```{r}
@@ -142,11 +142,11 @@ LabeledChild <- RSObjectClass(
   super_class = LabeledParent,
   protocols = list(Labeled)
 )
-stopifnot(identical(protocol_validateContracts(LabeledChild), character(0)))
+stopifnot(identical(protocol_getMissingContracts(LabeledChild), character(0)))
 ```
 
 `validate_protocols = FALSE` は、実装を後回しにする場合の指定です。
-この設定でも準拠宣言は残ります。`protocol_validateContracts(Class)` にクラスジェネレータを渡すと、不足するメソッド名の文字ベクトルが返り、揃っていれば `character(0)` になります。
+この設定でも準拠宣言は残ります。`protocol_getMissingContracts(Class)` にクラスジェネレータを渡すと、不足するメソッド名の文字ベクトルが返り、揃っていれば `character(0)` になります。
 検証するだけでは不足は解消しないため、利用前に必要なメソッドを備えたクラスを用意します。
 
 ```{r}
@@ -156,7 +156,7 @@ DeferredWidget <- RSObjectClass(
   validate_protocols = FALSE
 )
 stopifnot(DeferredWidget$new()$conformsTo(Labeled))
-stopifnot(identical(protocol_validateContracts(DeferredWidget), "label"))
+stopifnot(identical(protocol_getMissingContracts(DeferredWidget), "label"))
 ```
 
 三つのオブジェクトクラスファクトリーはいずれも、この検証を既定で行います。

@@ -69,30 +69,42 @@ RSScalarClass <- function(
   validate_protocols = TRUE
 ) {
   super_generator <- force(super_class)
-  if (!is.logical(na_singleton) || length(na_singleton) != 1L || is.na(na_singleton))
+  if (!is.character(class_name) ||
+      length(class_name) != 1L ||
+      is.na(class_name) ||
+      !nzchar(class_name))
+    stop("\u0060class_name\u0060 must be one nonempty character string.", call. = FALSE)
+  if (!is.logical(na_singleton) ||
+      length(na_singleton) != 1L ||
+      is.na(na_singleton))
     stop("`na_singleton` must be TRUE or FALSE.", call. = FALSE)
-  if (!is.logical(validate_protocols) || length(validate_protocols) != 1L ||
+  if (!is.logical(validate_protocols) ||
+      length(validate_protocols) != 1L ||
       is.na(validate_protocols))
     stop("`validate_protocols` must be TRUE or FALSE.", call. = FALSE)
   stopifnot(
     "`class_name` must be one nonempty character string." =
-      is.character(class_name) && length(class_name) == 1L &&
-      !is.na(class_name) && nzchar(class_name),
+      is.character(class_name) &&
+      length(class_name) == 1L &&
+      !is.na(class_name) &&
+      nzchar(class_name),
     "`super_class` must inherit from RSScalar." =
       robjc_isClass(super_generator) &&
       any(vapply(
         robjc_inheritChain(super_generator$robjc_isa),
-        function(klass) identical(klass, RSScalar), logical(1)
+        function(klass) identical(klass, RSScalar),
+        logical(1)
       )),
     "Use `RSSingletonClass()` to declare a singleton subclass." =
       !inherits(super_generator, ROBJC_SINGLETON)
   )
-  if ((!is.atomic(na_value) && !inherits(na_value, "POSIXlt")) ||
+  if ((!is.atomic(na_value) &&
+      !inherits(na_value, "POSIXlt")) ||
       length(na_value) != 1L ||
       !is.null(dim(na_value)) ||
-      !isTRUE(is.na(na_value)) || isTRUE(is.nan(na_value))) {
+      !isTRUE(is.na(na_value)) ||
+      isTRUE(robjc_is_nan_scalar(na_value)))
     stop("`na_value` must be a scalar NA.", call. = FALSE)
-  }
 
   klass <- do.call(
     R6::R6Class,
@@ -114,16 +126,21 @@ RSScalarClass <- function(
     version = version
   )
   if (validate_protocols) {
-    missing <- protocol_validateContracts(klass)
+    missing <- protocol_getMissingContracts(klass)
     if (length(missing))
-      stop(sprintf("Class `%s` is missing protocol methods: %s.",
-                   class_name, paste(missing, collapse = ", ")), call. = FALSE)
+      stop(
+        sprintf(
+          "Class `%s` is missing protocol methods: %s.",
+          class_name,
+          paste(missing, collapse = ", ")
+        ),
+        call. = FALSE
+      )
   }
   robjc_install_new(klass)
-  na_class_name <- if (startsWith(class_name, "RS"))
-    sub("^RS", "RSNA", class_name)
-  else
-    paste0(class_name, "NA")
+  na_class_name <-
+    if (startsWith(class_name, "RS")) sub("^RS", "RSNA", class_name)
+    else paste0(class_name, "NA")
   na_klass <- rsscalar_make_na_class(
     na_class_name,
     klass,
@@ -178,10 +195,16 @@ rsscalar_make_na_class <- function(
     version   = version
   )
   if (validate_protocols) {
-    missing <- protocol_validateContracts(r6generator)
+    missing <- protocol_getMissingContracts(r6generator)
     if (length(missing))
-      stop(sprintf("Class `%s` is missing protocol methods: %s.",
-                   na_class_name, paste(missing, collapse = ", ")), call. = FALSE)
+      stop(
+        sprintf(
+          "Class `%s` is missing protocol methods: %s.",
+          na_class_name,
+          paste(missing, collapse = ", ")
+        ),
+        call. = FALSE
+      )
   }
   robjc_install_new(r6generator)
   r6generator$robjc_isa$slot <- r6generator$new(na_value)
