@@ -1,6 +1,6 @@
 test_that("RSRaw wraps every raw byte without an NA companion", {
   zero <- RSRaw_withValue(as.raw(0))
-  high <- RSScalar_withValue(as.raw(255))
+  high <- RSRaw_withValue(as.raw(255))
   expect_true(zero$isMemberOf(RSRaw))
   expect_true(high$isMemberOf(RSRaw))
   expect_true(zero$isKindOf(RSObject))

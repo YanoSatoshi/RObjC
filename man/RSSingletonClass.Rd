@@ -55,8 +55,10 @@ then locks the instance binding and class metadata.
 }
 
 \examples{
-ExampleSingleton <- RSSingletonClass("ExampleSingleton",
-  version = "0.1.0 beta")
-ExampleSingleton$instance$class()$classname
+ExampleService <- RSSingletonClass("ExampleService",
+  public = list(value = function() "shared")
+)
+ExampleService$instance$value()
+identical(ExampleService$new(), ExampleService$instance)
 
 }

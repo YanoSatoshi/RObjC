@@ -11,11 +11,19 @@
 #' - [RSListing]
 #' - [RSCoding]
 #'
+#' @examples
+#' values <- RSVector$new(c(10L, 20L, 30L))
+#' values$valueAtIndex(2L)
+#' values$indexesOfValues(c(30L, 99L))
+#' editable <- values$mutableCopy()
+#' editable$appendValues(40L)
+#' values$values()  # The immutable receiver still has three values.
+#'
 #' @return The `RSVector` class generator.
 #' @export
 RSVector <- RSObjectClass(
   "RSVector",
-  version = "0.1.0 beta",
+  version = "0.2.0",
   super_class = RSObject,
   protocols = list(RSMutableCopying, RSCopying, RSComparable, RSListing, RSCoding),
   private     = list(

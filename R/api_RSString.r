@@ -8,6 +8,12 @@
 #'   `RSString_withValue`; a standard factor scalar for `RSFactor_withFactor`.
 #' @param string A character scalar or an `RSString` instance.
 #' @return The corresponding scalar wrapper.
+#' @examples
+#' RSString_empty()$value()
+#' RSString_withValue("Ada")$value()
+#' RSString_withString(RSString_withValue("Ada"))$value()
+#' RSFactor_withFactor(factor("red", levels = c("red", "blue")))$value()
+#' identical(RSString_withValue(NA_character_), RSString$na)
 #' @name string_constructors
 NULL
 

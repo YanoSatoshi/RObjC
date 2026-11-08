@@ -39,6 +39,20 @@ independent native storage that initially references the same entries.
 mutable dictionary. An immutable dictionary is returned unchanged.
 }
 
+\examples{
+lookup <- RSDictionary$new(objects_and_keys = list(
+  RSNumber_withValue(42L), RSString_withValue("answer")
+))
+lookup$objectForKey(RSString_withValue("answer"))$value()
+lookup$containsKey(RSString_withValue("missing"))
+extended <- lookup$dictionaryByMergingDictionary(
+  RSDictionary_withObjectForKey(RSNumber_withValue(7L),
+                                RSString_withValue("lucky"))
+)
+extended$count()
+lookup$count()  # The original dictionary is unchanged.
+
+}
 \section{Super class}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{RSDictionary}
 }

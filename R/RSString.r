@@ -26,12 +26,14 @@
 #' 
 #' @examples
 #' s <- RSString_withValue("hello")
-#' s$value()  # "hello"
+#' s$value()
+#' s$isEqual(RSString$new("hello"))
+#' identical(RSString_withValue(NA_character_), RSString$na)
 #'
 #' @export
 RSString <- RSScalarClass(
   "RSString",
-  version     = "0.1.0 beta",
+  version     = "0.2.0",
   super_class = RSScalar,
   na_value    = NA_character_,
   public      = list(
@@ -86,6 +88,11 @@ RSString <- RSScalarClass(
 #' - [RSComparable]
 #' - [RSCoding]
 #' - [RSCopying]
+#'
+#' @examples
+#' missing_string <- RSString$na
+#' missing_string$isMemberOf(RSNAString)
+#' is.na(missing_string$value())
 #'
 #' @return The NA class generator.
 #' @export

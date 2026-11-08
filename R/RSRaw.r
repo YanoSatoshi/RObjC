@@ -11,11 +11,17 @@
 #' - [RSCoding]
 #' - [RSCopying]
 #'
+#' @examples
+#' byte <- RSRaw_withValue(as.raw(0xFF))
+#' byte$value()
+#' byte$isEqual(RSRaw$new(as.raw(0xFF)))
+#' byte$isKindOf(RSObject)
+#'
 #' @return The `RSRaw` class generator.
 #' @export
 RSRaw <- RSObjectClass(
   "RSRaw",
-  version = "0.1.0 beta",
+  version = "0.2.0",
   super_class = RSObject,
   protocols = list(RSComparable, RSCoding, RSCopying),
   public = list(

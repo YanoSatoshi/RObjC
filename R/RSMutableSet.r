@@ -20,10 +20,18 @@
 #' - `copy()` returns an independent immutable [RSSet].
 #' - `mutableCopy()` returns an independent mutable set.
 #'
+#' @examples
+#' editable <- RSMutableSet$new(list(RSString_withValue("Ada")))
+#' snapshot <- editable$copy()
+#' editable$addObject(RSString_withValue("Ben"))
+#' editable$uniteSet(RSSet_withObject(RSString_withValue("Cy")))
+#' editable$containsObject(RSString_withValue("Cy"))
+#' snapshot$count()  # The immutable copy still has one member.
+#'
 #' @export
 RSMutableSet <- RSObjectClass(
   "RSMutableSet",
-  version = "0.1.1 beta",
+  version = "0.2.0",
   super_class = RSSet,
   protocols = list(RSCopying, RSMutableCopying, RSListing, RSCoding),
   public = list(
@@ -76,13 +84,6 @@ RSMutableSet <- RSObjectClass(
 
 
 
-    #' @description Adds every member of `other` to the receiver.
-    #' @param other An [RSSet] or [RSMutableSet].
-    #' @return `self`, invisibly.
-    unionSet = function(other) self$uniteSet(other),
-
-
-
     #' @description Retains only members also present in `other`.
     #' @param other An [RSSet] or [RSMutableSet].
     #' @return `self`, invisibly.
@@ -102,13 +103,6 @@ RSMutableSet <- RSObjectClass(
       private$.storage$subtractWith(.rs_set_storage(other))
       invisible(self)
     },
-
-
-
-    #' @description Removes members also present in `other`.
-    #' @param other An [RSSet] or [RSMutableSet].
-    #' @return `self`, invisibly.
-    minusSet = function(other) self$subtractSet(other),
 
 
 

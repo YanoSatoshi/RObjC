@@ -20,6 +20,13 @@ The \code{RSComplex} class generator.
 }
 }
 
+\examples{
+z <- RSComplex_withValue(1 + 2i)
+z$value()
+z$isEqual(RSComplex$new(1 + 2i))
+identical(RSComplex$new(NA_complex_), RSComplex$na)
+
+}
 \section{Super classes}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSScalar]{RSScalar}} -> \code{RSComplex}
 }

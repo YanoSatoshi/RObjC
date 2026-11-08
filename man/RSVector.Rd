@@ -23,6 +23,15 @@ Hashes use the standard \link{RSHashOperator} instance.
 }
 }
 
+\examples{
+values <- RSVector$new(c(10L, 20L, 30L))
+values$valueAtIndex(2L)
+values$indexesOfValues(c(30L, 99L))
+editable <- values$mutableCopy()
+editable$appendValues(40L)
+values$values()  # The immutable receiver still has three values.
+
+}
 \section{Super class}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{RSVector}
 }

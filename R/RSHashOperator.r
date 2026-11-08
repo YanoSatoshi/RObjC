@@ -11,12 +11,23 @@
 #' - [RSHashOperatorProtocol]
 #' - [RSCopying]
 #'
+#' @examples
+#' operator <- RSHashOperator$instance
+#' operator$computeHashCodeWithString("Ada")
+#' identical(operator$hashForScalar(42L), operator$hashForScalar(42))
+#'
+#' objects <- list(RSString_withValue("Ada"), RSNumber_withValue(42L))
+#' operator$hashesOfObjects(objects)
+#' operator$combinedHashFromObjects(objects)
+#' identical(operator$combinedHashFromObjects(objects),
+#'           operator$combinedHashFromObjects(rev(objects)))
+#'
 #' @return The `RSHashOperator` class generator.
 #'
 #' @export
 RSHashOperator <- RSSingletonClass(
   "RSHashOperator",
-  version = "0.1.0 beta",
+  version = "0.2.0",
   super_class = RSObject,
   protocols   = list(RSHashOperatorProtocol),
   public = list(

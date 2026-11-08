@@ -21,3 +21,9 @@ An \link{RSDateTime} or \link{RSNADateTime} instance.
 Construct a date-time wrapper. \code{NA} produces \link{RSNADateTime},
 while \code{NaN} remains an \link{RSDateTime} value.
 }
+\examples{
+RSDateTime_now()$value()
+date_time <- as.POSIXct("2024-01-01 12:00:00", tz = "UTC")
+RSDateTime_withDateTime(date_time)$value()
+identical(RSDateTime_withDateTime(as.POSIXct(NA)), RSDateTime$na)
+}

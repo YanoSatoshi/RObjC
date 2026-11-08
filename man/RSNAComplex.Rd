@@ -19,6 +19,12 @@ The generated NA companion class for \link{RSComplex}. Use
 }
 }
 
+\examples{
+missing_complex <- RSComplex$na
+missing_complex$isMemberOf(RSNAComplex)
+is.na(missing_complex$value())
+
+}
 \section{Super classes}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSScalar]{RSScalar}} -> \code{\link[robjc:RSComplex]{RSComplex}} -> \code{RSNAComplex}
 }

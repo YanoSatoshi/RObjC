@@ -11,11 +11,17 @@
 #' - [RSCoding]
 #' - [RSCopying]
 #'
+#' @examples
+#' z <- RSComplex_withValue(1 + 2i)
+#' z$value()
+#' z$isEqual(RSComplex$new(1 + 2i))
+#' identical(RSComplex$new(NA_complex_), RSComplex$na)
+#'
 #' @return The `RSComplex` class generator.
 #' @export
 RSComplex <- RSScalarClass(
   "RSComplex",
-  version = "0.1.0 beta",
+  version = "0.2.0",
   super_class = RSScalar,
   na_value = NA_complex_,
   public = list(
@@ -50,6 +56,11 @@ RSComplex <- RSScalarClass(
 #' - [RSComparable]
 #' - [RSCoding]
 #' - [RSCopying]
+#'
+#' @examples
+#' missing_complex <- RSComplex$na
+#' missing_complex$isMemberOf(RSNAComplex)
+#' is.na(missing_complex$value())
 #'
 #' @return The NA class generator.
 #' @export

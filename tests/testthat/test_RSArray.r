@@ -44,7 +44,7 @@ test_that("Array derivation retains references and order", {
 
   added <- source$arrayByAddingObject(second)
   combined <- source$arrayByAddingObjectsFromArray(other)
-  filtered <- combined$filteredArrayWith(function(obj) identical(obj, first))
+  filtered <- combined$filteredArrayByFunction(function(obj) identical(obj, first))
   for (array in list(added, combined, filtered)) {
     expect_identical(array$class(), RSArray)
   }
@@ -56,7 +56,7 @@ test_that("Array derivation retains references and order", {
   expect_identical(source$arrayByAddingObjectsFromArray(
     RSArray$new())$asList(),
                    list(first))
-  expect_identical(source$filteredArrayWith(function(obj) FALSE)$asList(), list())
+  expect_identical(source$filteredArrayByFunction(function(obj) FALSE)$asList(), list())
 })
 
 test_that("Array derivation rejects unsupported inputs and predicates", {
@@ -65,10 +65,10 @@ test_that("Array derivation rejects unsupported inputs and predicates", {
   for (other in list(NULL, list(), RSObject$new()))
     expect_error(source$arrayByAddingObjectsFromArray(other),
                  "`other` must be a kind of RSArray.", fixed = TRUE)
-  expect_error(source$filteredArrayWith(NULL), "`lambda` must be a function.", fixed = TRUE)
+  expect_error(source$filteredArrayByFunction(NULL), "`lambda` must be a function.", fixed = TRUE)
   for (predicate in list(function(x) NA, function(x) TRUE[FALSE],
                          function(x) c(TRUE, FALSE), function(x) 1L))
-    expect_error(source$filteredArrayWith(predicate),
+    expect_error(source$filteredArrayByFunction(predicate),
                  "`lambda` must return one non-missing logical value.", fixed = TRUE)
 })
 

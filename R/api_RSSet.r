@@ -10,6 +10,15 @@
 #' @param set An `RSSet` or `RSMutableSet` instance.
 #' @return A set of the type named by the function, except that copying an
 #'   immutable set may return that same instance.
+#' @examples
+#' one <- RSSet_withObject(RSString_withValue("Ada"))
+#' many <- RSSet_withObjects(list(RSString_withValue("Ada"),
+#'                                RSString_withValue("Ada")))
+#' one$count()
+#' many$count()  # Duplicate values collapse to one member.
+#' editable <- RSMutableSet_withSet(many)
+#' editable$addObject(RSString_withValue("Ben"))
+#' many$count()  # Still one member.
 #' @name set_constructors
 NULL
 

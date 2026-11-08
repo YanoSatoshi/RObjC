@@ -28,7 +28,7 @@
 #' @export
 RSKeyedArchiver <- RSObjectClass(
   "RSKeyedArchiver",
-  version = "0.1.0 beta",
+  version = "0.2.0",
   super_class = RSCoder,
   private = list(
     .retained = NULL,

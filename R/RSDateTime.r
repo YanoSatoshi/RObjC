@@ -21,16 +21,17 @@
 #' Use \code{RSDateTime_withDateTime(val)} to construct from a POSIX scalar.
 #' 
 #' @examples
-#' dt <- RSDateTime_withDateTime(Sys.time())
+#' dt <- RSDateTime_withDateTime(as.POSIXct("2024-01-01 12:00:00", tz = "UTC"))
 #' dt$value()
-#' dt$hash()
+#' dt$isEqual(RSDateTime$new(as.POSIXct("2024-01-01 12:00:00", tz = "UTC")))
+#' identical(RSDateTime_withDateTime(as.POSIXct(NA)), RSDateTime$na)
 #'
 #' @seealso RSNADateTime
 #'
 #' @export
 RSDateTime <- RSScalarClass(
   "RSDateTime",
-  version     = "0.1.0 beta",
+  version     = "0.2.0",
   super_class = RSScalar,
   na_value    = as.POSIXct(NA),
   public      = list(
@@ -88,6 +89,11 @@ RSDateTime <- RSScalarClass(
 #' - [RSComparable]
 #' - [RSCoding]
 #' - [RSCopying]
+#'
+#' @examples
+#' missing_time <- RSDateTime$na
+#' missing_time$isMemberOf(RSNADateTime)
+#' is.na(missing_time$value())
 #'
 #' @return The NA class generator.
 #' @export

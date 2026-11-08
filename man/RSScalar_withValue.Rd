@@ -7,18 +7,24 @@
 RSScalar_withValue(val)
 }
 \arguments{
-\item{val}{\code{NULL} or a length-one, dimensionless logical, integer, double, complex, raw,
+\item{val}{\code{NULL} or a length-one, dimensionless logical, integer, double, complex,
 character, factor, \code{Date}, \code{POSIXct}, or \code{POSIXlt} value with its standard
 base R class.}
 }
 \value{
-An RObjC value instance. Raw input returns an \link{RSRaw} instance,
-which inherits directly from \link{RSObject}.
+An RObjC value instance.
 }
 \description{
 Choose the matching RObjC value class for a native R scalar.
 \code{NULL} returns the shared \link{RSNull}; \code{NA} uses the matching \verb{RSNA*}
 class through the typed API, while supported \code{NaN} values remain in their
 regular scalar classes. Built-in scalar wrappers accept base R classes,
-not custom S3 subclasses.
+not custom S3 subclasses. Use \code{\link[=RSRaw_withValue]{RSRaw_withValue()}} for raw bytes.
+}
+\examples{
+RSScalar_withValue(42L)$isMemberOf(RSNumber)
+RSScalar_withValue("Ada")$value()
+identical(RSScalar_withValue(NA_integer_), RSNumber$na)
+RSRaw_withValue(as.raw(0xFF))$value()  # Raw bytes use their own constructor.
+
 }

@@ -17,3 +17,8 @@ robjc_isRObjC(obj)
 Tests whether an object is either an RObjC instance or an RObjC
 class or protocol generator.
 }
+\examples{
+robjc_isRObjC(RSObject$new())
+robjc_isRObjC(RSObject)
+robjc_isRObjC(list())
+}

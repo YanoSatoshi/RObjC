@@ -20,6 +20,7 @@ For collection lookup and mutation, see the [Collections Guide](guide_07_Collect
 
 For an R value of length one, use a type-specific entry point such as `RSNumber$new()` or `RSString_withValue()` when you know its type.
 Use `RSScalar_withValue()` when you want the input type to determine the class.
+Raw bytes are outside the `RSScalar` hierarchy; use `RSRaw_withValue()` for them.
 Retrieve the wrapped value with `value()`.
 
 ```{r}

@@ -2,7 +2,6 @@
 #' @include api_RSBoolean.r
 #' @include api_RSNumber.r
 #' @include api_RSComplex.r
-#' @include api_RSRaw.r
 #' @include api_RSString.r
 #' @include api_RSDate.r
 #' @include api_RSDateTime.r
@@ -11,12 +10,17 @@
 #'   `NULL` returns the shared [RSNull]; `NA` uses the matching `RSNA*`
 #'   class through the typed API, while supported `NaN` values remain in their
 #'   regular scalar classes. Built-in scalar wrappers accept base R classes,
-#'   not custom S3 subclasses.
-#' @param val `NULL` or a length-one, dimensionless logical, integer, double, complex, raw,
+#'   not custom S3 subclasses. Use [RSRaw_withValue()] for raw bytes.
+#' @param val `NULL` or a length-one, dimensionless logical, integer, double, complex,
 #'   character, factor, `Date`, `POSIXct`, or `POSIXlt` value with its standard
 #'   base R class.
-#' @return An RObjC value instance. Raw input returns an [RSRaw] instance,
-#'   which inherits directly from [RSObject].
+#' @return An RObjC value instance.
+#' @examples
+#' RSScalar_withValue(42L)$isMemberOf(RSNumber)
+#' RSScalar_withValue("Ada")$value()
+#' identical(RSScalar_withValue(NA_integer_), RSNumber$na)
+#' RSRaw_withValue(as.raw(0xFF))$value()  # Raw bytes use their own constructor.
+#'
 #' @export
 RSScalar_withValue <- function(val) {
   if (is.null(val))             return(RSNull_null())
@@ -28,7 +32,6 @@ RSScalar_withValue <- function(val) {
   if (is.logical(val))          return(RSBoolean_withBoolean(val))
   if (is.character(val))        return(RSString_withValue(val))
   if (is.complex(val))          return(RSComplex_withValue(val))
-  if (is.raw(val))              return(RSRaw_withValue(val))
   if (is.numeric(val) && typeof(val) %in% c("integer", "double")) return(RSNumber_withValue(val))
   stop(
     sprintf("Unsupported scalar type: %s", class(val)[1L]),

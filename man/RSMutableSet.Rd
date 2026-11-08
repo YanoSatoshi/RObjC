@@ -30,6 +30,15 @@ using another set.
 }
 }
 
+\examples{
+editable <- RSMutableSet$new(list(RSString_withValue("Ada")))
+snapshot <- editable$copy()
+editable$addObject(RSString_withValue("Ben"))
+editable$uniteSet(RSSet_withObject(RSString_withValue("Cy")))
+editable$containsObject(RSString_withValue("Cy"))
+snapshot$count()  # The immutable copy still has one member.
+
+}
 \section{Super classes}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSSet]{RSSet}} -> \code{RSMutableSet}
 }
@@ -41,10 +50,8 @@ using another set.
     \item \href{#method-RSMutableSet-removeObject}{\code{RSMutableSet$removeObject()}}
     \item \href{#method-RSMutableSet-removeAllObjects}{\code{RSMutableSet$removeAllObjects()}}
     \item \href{#method-RSMutableSet-uniteSet}{\code{RSMutableSet$uniteSet()}}
-    \item \href{#method-RSMutableSet-unionSet}{\code{RSMutableSet$unionSet()}}
     \item \href{#method-RSMutableSet-intersectSet}{\code{RSMutableSet$intersectSet()}}
     \item \href{#method-RSMutableSet-subtractSet}{\code{RSMutableSet$subtractSet()}}
-    \item \href{#method-RSMutableSet-minusSet}{\code{RSMutableSet$minusSet()}}
     \item \href{#method-RSMutableSet-copy}{\code{RSMutableSet$copy()}}
   }
 }
@@ -190,28 +197,6 @@ with a valid integer \code{hash()}. R \code{NULL} is rejected.}
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableSet-unionSet"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableSet-unionSet}{}}}
-\subsection{\code{RSMutableSet$unionSet()}}{
-  Adds every member of \code{other} to the receiver.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableSet$unionSet(other)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{other}}{An \link{RSSet} or \link{RSMutableSet}.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    \code{self}, invisibly.
-  }
-}
-
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSMutableSet-intersectSet"></a>}}
 \if{latex}{\out{\hypertarget{method-RSMutableSet-intersectSet}{}}}
 \subsection{\code{RSMutableSet$intersectSet()}}{
@@ -241,28 +226,6 @@ with a valid integer \code{hash()}. R \code{NULL} is rejected.}
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableSet$subtractSet(other)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{other}}{An \link{RSSet} or \link{RSMutableSet}.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    \code{self}, invisibly.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableSet-minusSet"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableSet-minusSet}{}}}
-\subsection{\code{RSMutableSet$minusSet()}}{
-  Removes members also present in \code{other}.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableSet$minusSet(other)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{

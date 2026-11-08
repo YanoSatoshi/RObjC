@@ -92,26 +92,26 @@ Follow its prompt to inspect or adjust class mappings, if needed, before calling
 
 ```{r}
 stopifnot(nrow(decoder$classMappings()) == 0L)
-all_classes <- decoder$classMappings(remove_default = FALSE)
+all_classes <- decoder$classMappings(include_automatic = TRUE)
 stopifnot(identical(all_classes$class_name, "RSString"))
 stopifnot(identical(all_classes$status, "automatic"))
 stopifnot(identical(all_classes$decoder_class[[1L]], RSString))
 stopifnot(identical(decoder$classMappingForKey(all_classes$class_key[[1L]])$status, "automatic"))
 ```
 
-For this example, selected columns of `classMappings(remove_default = FALSE)` look like this.
+For this example, selected columns of `classMappings(include_automatic = TRUE)` look like this.
 The default `classMappings()` view is a zero-row tibble because it omits this automatically resolved row.
 
 | `class_key` | `class_name` | `version` | `decoder_name` | `status` |
 |:--|:--|:--|:--|:--|
-| C1 | RSString | 0.1.0 beta | RSString | automatic |
+| C1 | RSString | 0.2.0 | RSString | automatic |
 
 The actual tibble also includes `package`, `class_id`, `kind`, and `decoder_class`, which are omitted here.
 `decoder_name` is for display; `decoder_class` holds the generator used to restore the object.
 
 `class_name` and `version` describe the saved class. `decoder_class` is a list column of destination generators.
 `class_key` identifies a class mapping within this archive when you edit it.
-Use `remove_default = FALSE` to display all classes.
+Use `include_automatic = TRUE` to display all classes.
 `classMappingsAsDictionary()` always returns every class as an `RSMutableDictionary`. Its keys are `RSString` objects wrapping `class_key` values, and its values are destination generators.
 
 ```{r}

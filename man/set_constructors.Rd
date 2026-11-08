@@ -53,3 +53,13 @@ Construct sets from RObjC objects, class or protocol generators,
 an array, or an existing set.
 Use \code{RSNull$null} to store a null member; R \code{NULL} is rejected.
 }
+\examples{
+one <- RSSet_withObject(RSString_withValue("Ada"))
+many <- RSSet_withObjects(list(RSString_withValue("Ada"),
+                               RSString_withValue("Ada")))
+one$count()
+many$count()  # Duplicate values collapse to one member.
+editable <- RSMutableSet_withSet(many)
+editable$addObject(RSString_withValue("Ben"))
+many$count()  # Still one member.
+}

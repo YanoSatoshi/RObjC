@@ -3,6 +3,9 @@
 #' @description Wrap a logical scalar. Missing values produce [RSNABoolean].
 #' @param val A logical scalar without an S3 class attribute, including `NA`.
 #' @return An [RSBoolean] or [RSNABoolean] instance.
+#' @examples
+#' RSBoolean_withBoolean(TRUE)$value()
+#' identical(RSBoolean_withBoolean(NA), RSBoolean$na)
 #' @export
 RSBoolean_withBoolean <- function(val) {
   if (!inherits(val, "logical") || length(val) != 1L || !is.null(dim(val)))

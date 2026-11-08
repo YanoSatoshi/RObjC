@@ -11,7 +11,7 @@
 #' @export
 RSCoder <- RSObjectClass(
   "RSCoder",
-  version = "0.1.0 beta",
+  version = "0.2.0",
   super_class = RSObject,
   public = list(
     #' @description Records a logical field in an archive.

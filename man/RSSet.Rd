@@ -32,6 +32,17 @@ storage that initially references the same member objects.
 independent native storage. An immutable set is returned as is.
 }
 
+\examples{
+members <- RSSet$new(list(RSString_withValue("Ada"),
+                          RSString_withValue("Ada")))
+members$count()  # Equal values appear once.
+members$containsObject(RSString_withValue("Ada"))
+extended <- members$setByAddingObject(RSString_withValue("Ben"))
+extended$count()
+members$count()  # The original set is unchanged.
+RSSet_withObject(RSNull$null)$containsObject(RSNull$null)
+
+}
 \section{Super class}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{RSSet}
 }

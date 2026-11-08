@@ -49,11 +49,20 @@
 #' a new [RSNAFactor] for each missing factor to preserve its metadata.
 #'
 #' @examples
-#' Probe <- RSScalarClass("Probe", na_value = NA_integer_,
-#'   public = list(initialize = function(val) {
-#'     super$initialize(val)
-#'   }))
-#' Probe$na$isKindOf(Probe)
+#' ExampleCount <- RSScalarClass("ExampleCount", na_value = NA_integer_,
+#'   public = list(
+#'     initialize = function(val) {
+#'       if (!is.integer(val) || length(val) != 1L)
+#'         stop("`val` must be one integer.")
+#'       super$initialize(val)
+#'     }
+#'   )
+#' )
+#' regular <- ExampleCount$new(3L)
+#' regular$value()
+#' missing <- ExampleCount$new(NA_integer_)
+#' identical(missing, ExampleCount$na)
+#' missing$isKindOf(ExampleCount)
 #'
 #' @export
 RSScalarClass <- function(
@@ -172,7 +181,7 @@ rsscalar_make_na_class <- function(
   na_value,
   parent_env,
   protocols = list(),
-  version   = "0.1.0 beta",
+  version   = "0.2.0",
   na_singleton = TRUE,
   validate_protocols = TRUE
 ) {

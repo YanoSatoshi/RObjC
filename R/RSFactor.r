@@ -29,13 +29,16 @@
 #' obj$levels()      # "low" "medium" "high"
 #' obj$ordered()     # TRUE
 #' obj$asFactor()    # reconstructs original factor
+#' missing <- RSFactor_withFactor(factor(NA_character_, levels = levels(f)))
+#' missing$isMemberOf(RSNAFactor)
+#' missing$levels()
 #'
 #' @seealso RSNAFactor
 #'
 #' @export
 RSFactor <- RSScalarClass(
   "RSFactor",
-  version     = "0.1.0 beta",
+  version     = "0.2.0",
   super_class = RSString,
   na_value    = factor(NA_character_),
   na_singleton = FALSE,
@@ -190,6 +193,13 @@ RSFactor <- RSScalarClass(
 #' - [RSComparable]
 #' - [RSCoding]
 #' - [RSCopying]
+#'
+#' @examples
+#' missing_factor <- RSFactor_withFactor(
+#'   factor(NA_character_, levels = c("low", "high"))
+#' )
+#' missing_factor$isMemberOf(RSNAFactor)
+#' missing_factor$levels()
 #'
 #' @return The NA class generator.
 #' @export

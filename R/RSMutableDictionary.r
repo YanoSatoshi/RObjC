@@ -21,10 +21,20 @@
 #' [RSMutableDictionary_withDictionary()] creates a mutable shallow copy with
 #' an independent native table.
 #'
+#' @examples
+#' editable <- RSMutableDictionary$new()
+#' editable$setObjectForKey(RSNumber_withValue(42L),
+#'                          RSString_withValue("answer"))
+#' snapshot <- editable$copy()
+#' editable$setObjectForKey(RSNumber_withValue(43L),
+#'                          RSString_withValue("answer"))
+#' editable$objectForKey(RSString_withValue("answer"))$value()
+#' snapshot$objectForKey(RSString_withValue("answer"))$value()
+#'
 #' @export
 RSMutableDictionary <- RSObjectClass(
   "RSMutableDictionary",
-  version = "0.1.1 beta",
+  version = "0.2.0",
   super_class = RSDictionary,
   protocols = list(RSMutableCopying, RSCopying, RSListing, RSCoding),
   public = list(

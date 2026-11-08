@@ -136,6 +136,10 @@ robjc_isInstance <- function(obj) {
 #' @param obj Any R object.
 #' @return `TRUE` for a recognized RObjC instance or generator, otherwise
 #'   `FALSE`.
+#' @examples
+#' robjc_isRObjC(RSObject$new())
+#' robjc_isRObjC(RSObject)
+#' robjc_isRObjC(list())
 #' @export
 robjc_isRObjC <- function(obj) {
   robjc_isInstance(obj) || robjc_isMetaClass(obj)
@@ -216,7 +220,7 @@ robjc_make_isa <- function(
   super_class,
   protocols = list(),
   slot = NULL,
-  version = "0.1.0 beta"
+  version = "0.2.0"
 ) {
   if (!is.list(protocols) || !all(vapply(protocols, robjc_isProtocol, logical(1))))
     stop("`protocols` must be a list of RObjC protocols.", call. = FALSE)
@@ -305,7 +309,7 @@ robjc_make_singleton_isa <- function(
   r6generator,
   super_class,
   protocols = list(),
-  version   = "0.1.0 beta",
+  version   = "0.2.0",
   validate_protocols = TRUE
 ) {
   if (!inherits(super_class$robjc_isa, ISA_OBJECT))

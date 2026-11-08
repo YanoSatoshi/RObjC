@@ -36,7 +36,9 @@ If \code{val} is \code{NA}, it returns \code{RSNAString}.
 
 \examples{
 s <- RSString_withValue("hello")
-s$value()  # "hello"
+s$value()
+s$isEqual(RSString$new("hello"))
+identical(RSString_withValue(NA_character_), RSString$na)
 
 }
 \section{Super classes}{

@@ -26,7 +26,7 @@
 #' @export
 RSSorter <- RSSingletonClass(
   "RSSorter",
-  version = "0.1.0 beta",
+  version = "0.2.0",
   super_class = RSObject,
   public = list(
 

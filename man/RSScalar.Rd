@@ -33,6 +33,13 @@ value when constructed directly. \code{NaN} remains a regular scalar value.
 }
 }
 
+\examples{
+value <- RSScalar_withValue(42L)
+value$isKindOf(RSScalar)
+value$value()
+identical(RSScalar_withValue(NA_integer_), RSNumber$na)
+
+}
 \section{Super class}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{RSScalar}
 }

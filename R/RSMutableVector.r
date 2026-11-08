@@ -10,11 +10,19 @@
 #' - [RSListing]
 #' - [RSCoding]
 #'
+#' @examples
+#' editable <- RSMutableVector$new(c(10L, 20L))
+#' snapshot <- editable$copy()
+#' editable$insertValuesAtIndex(15L, 2L)
+#' editable$replaceValuesAtIndexes(25L, 3L)
+#' editable$values()
+#' snapshot$values()  # The immutable copy retains the original values.
+#'
 #' @return The `RSMutableVector` class generator.
 #' @export
 RSMutableVector <- RSObjectClass(
   "RSMutableVector",
-  version = "0.1.0 beta",
+  version = "0.2.0",
   super_class = RSVector,
   protocols = list(RSMutableCopying, RSCopying, RSComparable, RSListing, RSCoding),
   public = list(

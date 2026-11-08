@@ -12,3 +12,6 @@ The shared \link{RSNull} instance.
 \description{
 Return the shared \code{RSNull} instance.
 }
+\examples{
+identical(RSNull_null(), RSNull$null)
+}

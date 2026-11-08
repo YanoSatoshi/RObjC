@@ -15,10 +15,19 @@
 #' - [RSMutableCopying]
 #' - [RSCoding]
 #'
+#' @examples
+#' editable <- RSMutableDataFrame$new(
+#'   data.frame(name = c("Ada", "Ben"), stringsAsFactors = FALSE)
+#' )
+#' snapshot <- editable$copy()
+#' editable$setColumn("name", c("Ada", "Bea"))
+#' editable$getColumn("name")
+#' snapshot$getColumn("name")  # The immutable copy retains the earlier values.
+#'
 #' @export
 RSMutableDataFrame <- RSObjectClass(
   "RSMutableDataFrame",
-  version = "0.1.1 beta",
+  version = "0.2.0",
   super_class = RSDataFrame,
   protocols = list(RSCopying, RSMutableCopying, RSCoding),
   public = list(

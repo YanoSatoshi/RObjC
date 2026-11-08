@@ -20,6 +20,7 @@ Collection の検索や変更操作は[Collection のガイド](guide_07_Collect
 
 長さ 1 の R の値を包むときは、型が分かっていれば `RSNumber$new()` や `RSString_withValue()` のような型別の入口を使います。
 入力の型に応じてクラスを選びたい場合は `RSScalar_withValue()` を使います。
+raw 値は `RSScalar` 系列に含まれないため、`RSRaw_withValue()` を使います。
 包んだ値は `value()` で取り出せます。
 
 ```{r}

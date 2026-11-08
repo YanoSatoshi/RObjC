@@ -24,10 +24,21 @@
 #' - `replaceObjectAtIndex(obj, index)` — Replace an element.
 #' - `removeObjectAtIndex(index)` and `removeAllObjects()` — Remove elements.
 #'
+#' @examples
+#' editable <- RSMutableArray$new(list(RSString_withValue("Ada")))
+#' snapshot <- editable$copy()
+#' editable$addObjectsFromArray(RSArray_withObject(RSString_withValue("Bea")))
+#' editable$replaceObjectAtIndex(RSString_withValue("Ben"), 2L)
+#' editable$objectAtIndex(2L)$value()
+#' snapshot$count()  # The immutable copy still has one element.
+#' another <- RSMutableArray_withArray(snapshot)
+#' another$addObject(RSString_withValue("Cy"))
+#' another$count()
+#'
 #' @export
 RSMutableArray <- RSObjectClass(
   "RSMutableArray",
-  version = "0.1.1 beta",
+  version = "0.2.0",
   super_class = RSArray,
   protocols = list(RSMutableCopying, RSCopying, RSComparable, RSListing, RSCoding),
   public = list(

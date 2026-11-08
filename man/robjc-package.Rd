@@ -4,9 +4,9 @@
 \name{robjc-package}
 \alias{robjc}
 \alias{robjc-package}
-\title{robjc: Objective-C Inspired OOP Framework for R using 'R6'}
+\title{robjc: Objective-C-Inspired Object System Built on 'R6'}
 \description{
-Provides a lightweight object-oriented programming framework in R, inspired by Objective-C, using 'R6' classes. Includes scalar wrappers, dictionary and set structures, protocol, and safe copying.
+Provides an object system for R built on 'R6' and inspired by Objective-C. Class factories support inheritance, protocols, singletons, and scalar wrappers with typed missing values. Mutable and immutable arrays, vectors, sets, dictionaries, and data frame wrappers support application objects; sets and dictionaries use class-defined equality and hashing for lookup. Keyed archiving preserves shared references and cycles when saving and restoring object graphs, and supports mapping archived classes to current classes during restoration.
 }
 \section{Documentation index}{
 
@@ -32,11 +32,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Satoshi Yano \email{yanosatoshi@gmail.com}
+\strong{Maintainer}: Satoshi Yano \email{yanosatoshi@gmail.com} [copyright holder]
 
 Authors:
 \itemize{
-  \item Satoshi Yano \email{yanosatoshi@gmail.com}
+  \item Satoshi Yano \email{yanosatoshi@gmail.com} [copyright holder]
 }
 
 Other contributors:

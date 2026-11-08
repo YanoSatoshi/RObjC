@@ -22,6 +22,15 @@ are converted with \code{as.integer()} before bounds checks.
 }
 }
 
+\examples{
+editable <- RSMutableVector$new(c(10L, 20L))
+snapshot <- editable$copy()
+editable$insertValuesAtIndex(15L, 2L)
+editable$replaceValuesAtIndexes(25L, 3L)
+editable$values()
+snapshot$values()  # The immutable copy retains the original values.
+
+}
 \section{Super classes}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSVector]{RSVector}} -> \code{RSMutableVector}
 }

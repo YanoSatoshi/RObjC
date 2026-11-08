@@ -44,3 +44,15 @@ Construct ordered collections from RObjC objects, class or
 protocol generators, or an existing array. The \code{withObjects} input is an R list;
 its names are discarded because array elements are addressed by position.
 }
+\examples{
+empty <- RSArray_empty()
+one <- RSArray_withObject(RSString_withValue("Ada"))
+many <- RSArray_withObjects(list(RSString_withValue("Ada"),
+                                 RSString_withValue("Ben")))
+empty$count()
+one$objectAtIndex(1L)$value()
+many$count()
+editable <- RSMutableArray_withArray(many)
+editable$addObject(RSString_withValue("Cy"))
+many$count()  # Still two elements.
+}

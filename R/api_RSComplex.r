@@ -4,6 +4,9 @@
 #'   [RSNAComplex] instance; values containing `NaN` remain [RSComplex] values.
 #' @param val A length-one complex value without an S3 class attribute.
 #' @return An [RSComplex] or [RSNAComplex] instance.
+#' @examples
+#' RSComplex_withValue(1 + 2i)$value()
+#' identical(RSComplex_withValue(NA_complex_), RSComplex$na)
 #' @export
 RSComplex_withValue <- function(val) {
   if (!is.complex(val) || length(val) != 1L || !is.null(dim(val)))

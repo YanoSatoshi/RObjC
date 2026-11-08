@@ -5,6 +5,11 @@
 #' @param val A scalar with the standard `POSIXct` or `POSIXlt` class,
 #'   including `NA` and `NaN`.
 #' @return An [RSDateTime] or [RSNADateTime] instance.
+#' @examples
+#' RSDateTime_now()$value()
+#' date_time <- as.POSIXct("2024-01-01 12:00:00", tz = "UTC")
+#' RSDateTime_withDateTime(date_time)$value()
+#' identical(RSDateTime_withDateTime(as.POSIXct(NA)), RSDateTime$na)
 #' @name datetime_constructors
 NULL
 

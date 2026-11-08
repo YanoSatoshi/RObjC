@@ -19,10 +19,16 @@
 #' @section See Also:
 #' [RSNANumber] for handling NA values.
 #'
+#' @examples
+#' number <- RSNumber_withInteger(42L)
+#' number$value()
+#' number$isEqual(RSNumber_withDouble(42))
+#' identical(RSNumber$new(NA_real_), RSNumber$na)
+#'
 #' @export
 RSNumber <- RSScalarClass(
   "RSNumber",
-  version     = "0.1.0 beta",
+  version     = "0.2.0",
   super_class = RSScalar,
   na_value    = NA_real_,
   public      = list(
@@ -59,6 +65,11 @@ RSNumber <- RSScalarClass(
 #' - [RSComparable]
 #' - [RSCoding]
 #' - [RSCopying]
+#'
+#' @examples
+#' missing_number <- RSNumber$na
+#' missing_number$isMemberOf(RSNANumber)
+#' is.na(missing_number$value())
 #'
 #' @return The NA class generator.
 #' @export

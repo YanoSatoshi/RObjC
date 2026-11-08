@@ -27,13 +27,26 @@
 #' - `encodeWithCoder()` and `initWithCoder()`: Preserve the key and value references.
 #' - `objectsForEncoding()`: Returns instance members for legacy serialization hooks.
 #'
-#' @return A concrete instance of `RSKeyValuePair`.
+#' @examples
+#' pair <- RSKeyValuePair$new(RSString_withValue("answer"),
+#'                            RSNumber_withValue(42L))
+#' pair$key()$value()
+#' pair$value()$value()
+#' pair$isEqual(RSKeyValuePair$new(RSString_withValue("answer"),
+#'                                 RSNumber_withValue(0L)))
+#'
+#' dictionary <- RSMutableDictionary$new()
+#' dictionary$addEntry(pair)
+#' dictionary$objectForKey(RSString_withValue("answer"))$value()
+#'
+#' @return The `RSKeyValuePair` class generator.
 #'
 #' @seealso [RSObject], [RSMutableDictionary]
 #'
+#' @export
 RSKeyValuePair <- RSObjectClass(
   "RSKeyValuePair",
-  version = "0.1.0 beta",
+  version = "0.2.0",
   super_class = RSObject,
   protocols = list(RSCoding),
   private     = list(
@@ -109,7 +122,7 @@ RSKeyValuePair <- RSObjectClass(
     #'
     #' @examples
     #' # A pair with an RSNull value permits replacing its key.
-    #' pair <- robjc:::RSKeyValuePair$new(RSNull$null, RSNull$null)
+    #' pair <- RSKeyValuePair$new(RSNull$null, RSNull$null)
     #' pair$setKey(RSString_withValue("some_key"))
     #'
     #' \dontrun{

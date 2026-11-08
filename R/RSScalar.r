@@ -24,12 +24,18 @@
 #' class's `$na` instance. A non-singleton NA companion accepts only an `NA`
 #' value when constructed directly. `NaN` remains a regular scalar value.
 #'
+#' @examples
+#' value <- RSScalar_withValue(42L)
+#' value$isKindOf(RSScalar)
+#' value$value()
+#' identical(RSScalar_withValue(NA_integer_), RSNumber$na)
+#'
 #' @return The `RSScalar` class generator.
 #'
 #' @export
 RSScalar <- RSObjectClass(
   "RSScalar",
-  version     = "0.1.0 beta",
+  version     = "0.2.0",
   super_class = RSObject,
   protocols   = list(RSComparable, RSCoding),
   public      = list(

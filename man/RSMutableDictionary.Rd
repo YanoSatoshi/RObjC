@@ -29,6 +29,17 @@ dictionary. \code{copy()} returns an independent immutable \link{RSDictionary}.
 an independent native table.
 }
 
+\examples{
+editable <- RSMutableDictionary$new()
+editable$setObjectForKey(RSNumber_withValue(42L),
+                         RSString_withValue("answer"))
+snapshot <- editable$copy()
+editable$setObjectForKey(RSNumber_withValue(43L),
+                         RSString_withValue("answer"))
+editable$objectForKey(RSString_withValue("answer"))$value()
+snapshot$objectForKey(RSString_withValue("answer"))$value()
+
+}
 \section{Super classes}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSDictionary]{RSDictionary}} -> \code{RSMutableDictionary}
 }

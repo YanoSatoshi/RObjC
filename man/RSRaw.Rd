@@ -20,6 +20,13 @@ has no NA companion.
 }
 }
 
+\examples{
+byte <- RSRaw_withValue(as.raw(0xFF))
+byte$value()
+byte$isEqual(RSRaw$new(as.raw(0xFF)))
+byte$isKindOf(RSObject)
+
+}
 \section{Super class}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{RSRaw}
 }

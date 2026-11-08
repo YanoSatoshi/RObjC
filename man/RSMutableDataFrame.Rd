@@ -20,6 +20,16 @@ and creates a separate mutable wrapper.
 }
 }
 
+\examples{
+editable <- RSMutableDataFrame$new(
+  data.frame(name = c("Ada", "Ben"), stringsAsFactors = FALSE)
+)
+snapshot <- editable$copy()
+editable$setColumn("name", c("Ada", "Bea"))
+editable$getColumn("name")
+snapshot$getColumn("name")  # The immutable copy retains the earlier values.
+
+}
 \section{Super classes}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSDataFrame]{RSDataFrame}} -> \code{RSMutableDataFrame}
 }

@@ -34,9 +34,10 @@ Use \code{RSDate_withDate(val)} to construct safely from a Date scalar.
 }
 
 \examples{
-d <- RSDate_withDate(Sys.Date())
+d <- RSDate_withDate(as.Date("2024-01-01"))
 d$value()
-d$hash()
+d$isEqual(RSDate$new(as.Date("2024-01-01")))
+identical(RSDate_withDate(as.Date(NA)), RSDate$na)
 
 }
 \seealso{

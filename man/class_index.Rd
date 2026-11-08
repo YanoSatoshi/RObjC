@@ -39,6 +39,7 @@ Built-in RObjC class and protocol generators, grouped by use. See the
 \item \link{RSVector} and \link{RSMutableVector} wrap atomic vectors.
 \item \link{RSSet} and \link{RSMutableSet} store unique objects.
 \item \link{RSDictionary} and \link{RSMutableDictionary} store key-value pairs.
+\item \link{RSKeyValuePair} represents a dictionary entry.
 \item \link{RSDataFrame} and \link{RSMutableDataFrame} wrap data frames.
 }
 }

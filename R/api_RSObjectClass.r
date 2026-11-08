@@ -34,8 +34,20 @@
 #' to construct a usable object should return `self`.
 #'
 #' @examples
-#' ExampleObject <- RSObjectClass("ExampleObject", version = "0.1.0 beta")
-#' ExampleObject$new()$class()$classname
+#' ExamplePerson <- RSObjectClass("ExamplePerson",
+#'   private = list(.name = NULL),
+#'   public = list(
+#'     initialize = function(name) {
+#'       super$initialize()
+#'       private$.name <- name
+#'       invisible(self)
+#'     },
+#'     name = function() private$.name
+#'   )
+#' )
+#' person <- ExamplePerson$new("Ada")
+#' person$name()
+#' person$isKindOf(RSObject)
 #'
 #' @export
 RSObjectClass <- function(

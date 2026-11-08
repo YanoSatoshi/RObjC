@@ -6,6 +6,7 @@ test_that("scalar APIs route native values and missing values", {
   expect_true(RSScalar_withValue(factor("x"))$isKindOf(RSFactor))
   expect_true(RSScalar_withValue(as.Date("2024-01-01"))$isKindOf(RSDate))
   expect_true(RSScalar_withValue(as.POSIXct("2024-01-01", tz = "UTC"))$isKindOf(RSDateTime))
+  expect_error(RSScalar_withValue(as.raw(0xFF)), "Unsupported scalar type: raw", fixed = TRUE)
 
   expect_true(RSBoolean_withBoolean(NA)$isMemberOf(RSNABoolean))
   expect_true(RSNumber_withValue(NA_real_)$isMemberOf(RSNANumber))

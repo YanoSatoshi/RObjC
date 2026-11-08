@@ -8,6 +8,17 @@
 #' @param array An `RSArray` or `RSMutableArray` instance.
 #' @return An array of the type named by the function, except that copying an
 #'   immutable array may return that same instance.
+#' @examples
+#' empty <- RSArray_empty()
+#' one <- RSArray_withObject(RSString_withValue("Ada"))
+#' many <- RSArray_withObjects(list(RSString_withValue("Ada"),
+#'                                  RSString_withValue("Ben")))
+#' empty$count()
+#' one$objectAtIndex(1L)$value()
+#' many$count()
+#' editable <- RSMutableArray_withArray(many)
+#' editable$addObject(RSString_withValue("Cy"))
+#' many$count()  # Still two elements.
 #' @name array_constructors
 NULL
 

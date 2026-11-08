@@ -6,6 +6,11 @@
 #'   including `NA` and `NaN`.
 #' @param value An unclassed integer or double scalar as specified by the function name.
 #' @return An [RSNumber] or [RSNANumber] instance.
+#' @examples
+#' RSNumber_withValue(2.5)$value()
+#' RSNumber_withInteger(2L)$value()
+#' RSNumber_withDouble(2.5)$value()
+#' identical(RSNumber_withValue(NA_real_), RSNumber$na)
 #' @name number_constructors
 NULL
 

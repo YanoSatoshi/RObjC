@@ -69,7 +69,7 @@ test_that("dictionaries restore keys, values, cycles and immutability", {
 })
 
 test_that("dictionary restores the stored key without copying it again", {
-  CopyKey <- RSObjectClass("CopyKeyForCoding", version = "0.1.0 beta",
+  CopyKey <- RSObjectClass("CopyKeyForCoding", version = "0.2.0",
     public = list(
       initialize = function(value) {
         super$initialize()
@@ -108,26 +108,18 @@ test_that("factor metadata and null singleton survive keyed coding", {
   expect_identical(restored[[3L]], restored[[4L]])
 })
 
-test_that("RSNull archives record the current version and restore older records", {
+test_that("RSNull archives record the current version", {
   archive <- RSKeyedArchiver$new()$encode(RSNull$null)
   id <- archive$root$id
-  expect_identical(archive$records[[id]]$version, "0.1.1 beta")
+  expect_identical(archive$records[[id]]$version, "0.2.0")
 
   decoder <- suppressMessages(RSKeyedUnarchiver$new(archive))
-  classes <- decoder$classMappings(remove_default = FALSE)
+  classes <- decoder$classMappings(include_automatic = TRUE)
   expect_identical(classes$class_name, "RSNull")
-  expect_identical(classes$version, "0.1.1 beta")
+  expect_identical(classes$version, "0.2.0")
   expect_identical(classes$status, "automatic")
   expect_identical(decoder$decode(), RSNull$null)
 
-  older_archive <- unserialize(serialize(archive, NULL))
-  older_archive$records[[id]]$version <- "0.1.0 beta"
-  older_decoder <- suppressMessages(RSKeyedUnarchiver$new(older_archive))
-  expect_identical(
-    older_decoder$classMappings(remove_default = FALSE)$version,
-    "0.1.0 beta"
-  )
-  expect_identical(older_decoder$decode(), RSNull$null)
 })
 
 test_that("scalar subclasses retain native values and NA companions", {

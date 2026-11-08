@@ -68,7 +68,7 @@ test_that("an extension package registers its class in .onLoad", {
   writeLines(c(
     "Package: robjcextfixture",
     "Title: Minimal RObjC Extension Fixture",
-    "Version: 0.0.1",
+    "Version: 0.2.0",
     "Description: Tests registration and keyed archive restoration.",
     "License: MIT",
     "Encoding: UTF-8",
@@ -124,7 +124,7 @@ test_that("an extension package registers its class in .onLoad", {
   rm(extension_class, namespace)
   unloadNamespace(package_name)
   decoder <- RSKeyedUnarchiver$new(unserialize(serialize(archive, NULL)))
-  classes <- decoder$classMappings(remove_default = FALSE)
+  classes <- decoder$classMappings(include_automatic = TRUE)
   expect_identical(classes$decoder_name, "ExtensionWidget")
   expect_identical(classes$status, "automatic")
   expect_identical(decoder$decode()$value, "saved")

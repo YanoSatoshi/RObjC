@@ -19,10 +19,16 @@
 #' To create an instance, use the static constructor:
 #' \code{RSBoolean_withBoolean(val)}, which returns \code{RSNABoolean} if \code{val} is \code{NA}.
 #' 
+#' @examples
+#' flag <- RSBoolean_withBoolean(TRUE)
+#' flag$value()
+#' flag$asNumber()$value()
+#' identical(RSBoolean_withBoolean(NA), RSBoolean$na)
+#'
 #' @export
 RSBoolean <- RSScalarClass(
   "RSBoolean",
-  version     = "0.1.0 beta",
+  version     = "0.2.0",
   super_class = RSScalar,
   na_value    = NA,
   public      = list(
@@ -61,6 +67,11 @@ RSBoolean <- RSScalarClass(
 #' - [RSComparable]
 #' - [RSCoding]
 #' - [RSCopying]
+#'
+#' @examples
+#' missing_flag <- RSBoolean$na
+#' missing_flag$isMemberOf(RSNABoolean)
+#' is.na(missing_flag$value())
 #'
 #' @return The NA class generator.
 #' @export

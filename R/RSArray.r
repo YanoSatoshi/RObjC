@@ -31,15 +31,26 @@
 #' - `lastObject()` — Retrieve the final element.
 #' - `arrayByAddingObject()` and `arrayByAddingObjectsFromArray()` — Create
 #'   a new array with additional elements.
-#' - `filteredArrayWith()` — Create a new array with selected elements.
+#' - `filteredArrayByFunction()` — Create a new array with selected elements.
 #' - `indexOfObject(obj)` and `containsObject(obj)` — Search by equality.
 #' - `asList()` — Return the element references in an R list.
 #' - `copy()` and `mutableCopy()` — Reuse or copy the container.
 #'
+#' @examples
+#' first <- RSString_withValue("Ada")
+#' ordered <- RSArray$new(list(first, RSNumber_withValue(2L)))
+#' ordered$objectAtIndex(1L)$value()
+#' ordered$objectsAtIndexes(c(2L, 1L))$count()
+#' extended <- RSArray_withArray(ordered)$arrayByAddingObject(
+#'   RSString_withValue("Bea")
+#' )
+#' extended$count()
+#' ordered$count()  # The original array still has two elements.
+#'
 #' @export
 RSArray <- RSObjectClass(
   "RSArray",
-  version = "0.1.1 beta",
+  version = "0.2.0",
   super_class = RSObject,
   protocols = list(RSMutableCopying, RSCopying, RSComparable, RSListing, RSCoding),
   private = list(
@@ -218,7 +229,7 @@ RSArray <- RSObjectClass(
     #' @param lambda A function receiving one stored element and returning
     #'   exactly one non-missing logical value.
     #' @return A new [RSArray] of retained element references.
-    filteredArrayWith = function(lambda) {
+    filteredArrayByFunction = function(lambda) {
       if (!is.function(lambda))
         stop("`lambda` must be a function.", call. = FALSE)
       keep <- vapply(private$.storage, function(obj) {

@@ -39,7 +39,7 @@
 RSNull <- RSSingletonClass(
   "RSNull",
   super_class = RSScalar,
-  version     = "0.1.1 beta",
+  version     = "0.2.0",
   public      = list(
     #' @description
     #' Initializes an `RSNull` instance. The factory invokes it to create the

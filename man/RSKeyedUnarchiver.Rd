@@ -117,16 +117,16 @@ returning an instance. Defaults to \code{\link[=robjc_allocate]{robjc_allocate()
   Shows archived classes and their proposed decoder classes.
 By default, classes resolved automatically from package registration
 are omitted. Explicit resolver results and manual mappings remain
-visible. Use \code{remove_default = FALSE} to show every class.
+visible. Use \code{include_automatic = TRUE} to show every class.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSKeyedUnarchiver$classMappings(remove_default = TRUE)}
+    \preformatted{RSKeyedUnarchiver$classMappings(include_automatic = FALSE)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{remove_default}}{Whether to omit automatically resolved classes.}
+      \item{\code{include_automatic}}{Whether to include automatically resolved classes (default: FALSE).}
     }
     \if{html}{\out{</div>}}
   }
@@ -141,7 +141,7 @@ visible. Use \code{remove_default = FALSE} to show every class.
 \subsection{\code{RSKeyedUnarchiver$classMappingsAsDictionary()}}{
   Returns all current class mappings as a mutable dictionary.
 Keys are \code{RSString} objects containing the \code{class_key} values shown by
-\verb{$classMappings(remove_default = FALSE)}. Values are decoder generators; unresolved classes
+\verb{$classMappings(include_automatic = TRUE)}. Values are decoder generators; unresolved classes
 have \link{RSNull}\verb{$null} as a placeholder. The returned dictionary is an
 independent snapshot. Pass it to \verb{$setClassMappings()} after editing it.
   \subsection{Usage}{
@@ -159,7 +159,7 @@ independent snapshot. Pass it to \verb{$setClassMappings()} after editing it.
 \if{latex}{\out{\hypertarget{method-RSKeyedUnarchiver-classMappingForKey}{}}}
 \subsection{\code{RSKeyedUnarchiver$classMappingForKey()}}{
   Shows one class mapping by the \code{class_key} shown in
-\verb{$classMappings(remove_default = FALSE)}.
+\verb{$classMappings(include_automatic = TRUE)}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSKeyedUnarchiver$classMappingForKey(class_key)}

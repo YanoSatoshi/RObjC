@@ -41,7 +41,7 @@
 #' @export
 RSKeyedUnarchiver <- RSObjectClass(
   "RSKeyedUnarchiver",
-  version = "0.1.0 beta",
+  version = "0.2.0",
   super_class = RSCoder,
   private = list(
     .archive        = NULL,
@@ -271,16 +271,16 @@ RSKeyedUnarchiver <- RSObjectClass(
     #' @description Shows archived classes and their proposed decoder classes.
     #'   By default, classes resolved automatically from package registration
     #'   are omitted. Explicit resolver results and manual mappings remain
-    #'   visible. Use `remove_default = FALSE` to show every class.
-    #' @param remove_default Whether to omit automatically resolved classes.
+    #'   visible. Use `include_automatic = TRUE` to show every class.
+    #' @param include_automatic Whether to include automatically resolved classes (default: FALSE).
     #' @return A tibble with a `decoder_class` list column of generators or `NULL`.
-    classMappings = function(remove_default = TRUE) {
-      if (!is.logical(remove_default) ||
-          length(remove_default) != 1L ||
-          is.na(remove_default))
-        stop("`remove_default` must be TRUE or FALSE.", call. = FALSE)
+    classMappings = function(include_automatic = FALSE) {
+      if (!is.logical(include_automatic) ||
+          length(include_automatic) != 1L ||
+          is.na(include_automatic))
+        stop("`include_automatic` must be TRUE or FALSE.", call. = FALSE)
       private$.prepare_classes()
-      if (remove_default)
+      if (!include_automatic)
         private$.class_table[private$.class_table$status != "automatic", , drop = FALSE]
       else
         private$.class_table
@@ -290,7 +290,7 @@ RSKeyedUnarchiver <- RSObjectClass(
 
     #' @description Returns all current class mappings as a mutable dictionary.
     #'   Keys are `RSString` objects containing the `class_key` values shown by
-    #'   `$classMappings(remove_default = FALSE)`. Values are decoder generators; unresolved classes
+    #'   `$classMappings(include_automatic = TRUE)`. Values are decoder generators; unresolved classes
     #'   have [RSNull]`$null` as a placeholder. The returned dictionary is an
     #'   independent snapshot. Pass it to `$setClassMappings()` after editing it.
     #' @return An [RSMutableDictionary].
@@ -312,7 +312,7 @@ RSKeyedUnarchiver <- RSObjectClass(
 
 
     #' @description Shows one class mapping by the `class_key` shown in
-    #'   `$classMappings(remove_default = FALSE)`.
+    #'   `$classMappings(include_automatic = TRUE)`.
     #' @param class_key One class key, such as `"C1"`.
     #' @return A one-row tibble.
     classMappingForKey = function(class_key) {

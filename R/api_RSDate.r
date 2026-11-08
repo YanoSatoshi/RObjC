@@ -4,6 +4,10 @@
 #'   `NaN` remains an [RSDate] value.
 #' @param val A scalar with the standard `Date` class, including `NA` and `NaN`.
 #' @return An [RSDate] or [RSNADate] instance.
+#' @examples
+#' RSDate_today()$value()
+#' RSDate_withDate(as.Date("2024-01-01"))$value()
+#' identical(RSDate_withDate(as.Date(NA)), RSDate$na)
 #' @name date_constructors
 NULL
 

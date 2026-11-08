@@ -92,26 +92,26 @@ stopifnot(!identical(restored_roots$first, first))
 
 ```{r}
 stopifnot(nrow(decoder$classMappings()) == 0L)
-all_classes <- decoder$classMappings(remove_default = FALSE)
+all_classes <- decoder$classMappings(include_automatic = TRUE)
 stopifnot(identical(all_classes$class_name, "RSString"))
 stopifnot(identical(all_classes$status, "automatic"))
 stopifnot(identical(all_classes$decoder_class[[1L]], RSString))
 stopifnot(identical(decoder$classMappingForKey(all_classes$class_key[[1L]])$status, "automatic"))
 ```
 
-この例で `classMappings(remove_default = FALSE)` を表示すると、主な列は次のようになります。
+この例で `classMappings(include_automatic = TRUE)` を表示すると、主な列は次のようになります。
 既定の `classMappings()` は、この自動解決済みの行を除いた 0 行の tibble です。
 
 | `class_key` | `class_name` | `version` | `decoder_name` | `status` |
 |:--|:--|:--|:--|:--|
-| C1 | RSString | 0.1.0 beta | RSString | automatic |
+| C1 | RSString | 0.2.0 | RSString | automatic |
 
 実際の tibble には、ここで省いた `package`、`class_id`、`kind`、`decoder_class` も含まれます。
 この表の `decoder_name` は表示用の名前で、復元に使うジェネレータは `decoder_class` に入っています。
 
 表の `class_name` と `version` は保存時の情報、`decoder_class` は復元先のジェネレータを保持する list 列です。
 `class_key` は対応を編集するときに使う、このアーカイブ内の識別子です。
-`remove_default = FALSE` で全件を表示できます。
+`include_automatic = TRUE` で全件を表示できます。
 `classMappingsAsDictionary()` は常に全件を `RSMutableDictionary` で返します。キーは `class_key` を包む `RSString`、値は復元先のジェネレータです。
 
 ```{r}

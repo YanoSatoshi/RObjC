@@ -23,6 +23,17 @@ mutable wrapper around the same data.
 }
 }
 
+\examples{
+people <- data.frame(name = c("Ada", "Ben"), score = c(8L, 9L),
+                     stringsAsFactors = FALSE)
+table <- RSDataFrame$new(people)
+table$getColumn("name")
+table$nrow()
+editable <- table$mutableCopy()
+editable$setColumn("score", c(10L, 9L))
+table$getColumn("score")  # The immutable receiver still has its original data.
+
+}
 \section{Super class}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{RSDataFrame}
 }

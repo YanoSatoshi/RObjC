@@ -30,10 +30,20 @@
 #' [RSSet_withSet()] creates an immutable shallow copy from a mutable set with
 #' independent native storage. An immutable set is returned as is.
 #'
+#' @examples
+#' members <- RSSet$new(list(RSString_withValue("Ada"),
+#'                           RSString_withValue("Ada")))
+#' members$count()  # Equal values appear once.
+#' members$containsObject(RSString_withValue("Ada"))
+#' extended <- members$setByAddingObject(RSString_withValue("Ben"))
+#' extended$count()
+#' members$count()  # The original set is unchanged.
+#' RSSet_withObject(RSNull$null)$containsObject(RSNull$null)
+#'
 #' @export
 RSSet <- RSObjectClass(
   "RSSet",
-  version = "0.1.1 beta",
+  version = "0.2.0",
   super_class = RSObject,
   protocols = list(RSCopying, RSMutableCopying, RSListing, RSCoding),
   private = list(

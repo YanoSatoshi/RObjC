@@ -142,7 +142,7 @@ loaded <- decoder$decode()
 
 The same mapping can be edited through `classMappingsAsDictionary()` and passed
 to `setClassMappings()`. Package-registered classes resolve automatically and are
-hidden by the default `classMappings(remove_default = TRUE)` view.
+hidden by the default `classMappings(include_automatic = FALSE)` view.
 
 ## Verify restored state and identity
 

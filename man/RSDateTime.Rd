@@ -33,9 +33,10 @@ Use \code{RSDateTime_withDateTime(val)} to construct from a POSIX scalar.
 }
 
 \examples{
-dt <- RSDateTime_withDateTime(Sys.time())
+dt <- RSDateTime_withDateTime(as.POSIXct("2024-01-01 12:00:00", tz = "UTC"))
 dt$value()
-dt$hash()
+dt$isEqual(RSDateTime$new(as.POSIXct("2024-01-01 12:00:00", tz = "UTC")))
+identical(RSDateTime_withDateTime(as.POSIXct(NA)), RSDateTime$na)
 
 }
 \seealso{

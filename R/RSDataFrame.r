@@ -22,10 +22,20 @@
 #' - [RSMutableCopying]
 #' - [RSCoding]
 #'
+#' @examples
+#' people <- data.frame(name = c("Ada", "Ben"), score = c(8L, 9L),
+#'                      stringsAsFactors = FALSE)
+#' table <- RSDataFrame$new(people)
+#' table$getColumn("name")
+#' table$nrow()
+#' editable <- table$mutableCopy()
+#' editable$setColumn("score", c(10L, 9L))
+#' table$getColumn("score")  # The immutable receiver still has its original data.
+#'
 #' @export
 RSDataFrame <- RSObjectClass(
   "RSDataFrame",
-  version = "0.1.1 beta",
+  version = "0.2.0",
   super_class = RSObject,
   protocols = list(RSCopying, RSMutableCopying, RSCoding),
   private = list(

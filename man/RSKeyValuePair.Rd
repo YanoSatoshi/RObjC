@@ -4,7 +4,7 @@
 \alias{RSKeyValuePair}
 \title{Key-Value Pair Class}
 \value{
-A concrete instance of \code{RSKeyValuePair}.
+The \code{RSKeyValuePair} class generator.
 }
 \description{
 \code{RSKeyValuePair} is a concrete class representing a key-value pair used in dictionary-like containers
@@ -51,13 +51,24 @@ Inherits from \code{\link{RSObject}}. Unlike earlier versions, this class is now
 }
 
 \examples{
+pair <- RSKeyValuePair$new(RSString_withValue("answer"),
+                           RSNumber_withValue(42L))
+pair$key()$value()
+pair$value()$value()
+pair$isEqual(RSKeyValuePair$new(RSString_withValue("answer"),
+                                RSNumber_withValue(0L)))
+
+dictionary <- RSMutableDictionary$new()
+dictionary$addEntry(pair)
+dictionary$objectForKey(RSString_withValue("answer"))$value()
+
 
 ## ------------------------------------------------
 ## Method `RSKeyValuePair$setKey()`
 ## ------------------------------------------------
 
 # A pair with an RSNull value permits replacing its key.
-pair <- robjc:::RSKeyValuePair$new(RSNull$null, RSNull$null)
+pair <- RSKeyValuePair$new(RSNull$null, RSNull$null)
 pair$setKey(RSString_withValue("some_key"))
 
 \dontrun{
@@ -205,7 +216,7 @@ the pair is in a reusable placeholder state.
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
     \preformatted{# A pair with an RSNull value permits replacing its key.
-pair <- robjc:::RSKeyValuePair$new(RSNull$null, RSNull$null)
+pair <- RSKeyValuePair$new(RSNull$null, RSNull$null)
 pair$setKey(RSString_withValue("some_key"))
 
 # This would raise an error

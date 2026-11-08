@@ -31,6 +31,13 @@ To create an instance, use the static constructor:
 \code{RSBoolean_withBoolean(val)}, which returns \code{RSNABoolean} if \code{val} is \code{NA}.
 }
 
+\examples{
+flag <- RSBoolean_withBoolean(TRUE)
+flag$value()
+flag$asNumber()$value()
+identical(RSBoolean_withBoolean(NA), RSBoolean$na)
+
+}
 \section{Super classes}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSScalar]{RSScalar}} -> \code{RSBoolean}
 }

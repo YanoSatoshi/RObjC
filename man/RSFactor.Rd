@@ -41,6 +41,9 @@ obj <- RSFactor_withFactor(f)
 obj$levels()      # "low" "medium" "high"
 obj$ordered()     # TRUE
 obj$asFactor()    # reconstructs original factor
+missing <- RSFactor_withFactor(factor(NA_character_, levels = levels(f)))
+missing$isMemberOf(RSNAFactor)
+missing$levels()
 
 }
 \seealso{

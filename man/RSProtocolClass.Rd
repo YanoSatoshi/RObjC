@@ -47,7 +47,13 @@ each protocol generator.
 }
 
 \examples{
-Printable <- RSProtocolClass("Printable", contract_methods = "print")
-Printable$classname
+Labeled <- RSProtocolClass("ExampleLabeled", contract_methods = "label")
+ExampleLabel <- RSObjectClass("ExampleLabel", protocols = list(Labeled),
+  public = list(label = function() "Ada")
+)
+item <- ExampleLabel$new()
+item$conformsTo(Labeled)
+item$label()
+protocol_getMissingContracts(ExampleLabel)
 
 }

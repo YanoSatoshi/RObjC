@@ -16,6 +16,20 @@
 #' @param dictionary An `RSDictionary` or `RSMutableDictionary` instance.
 #' @return A dictionary of the type named by the function, except that copying
 #'   an immutable dictionary may return that same instance.
+#' @examples
+#' one <- RSDictionary_withObjectForKey(
+#'   RSNumber_withValue(42L), RSString_withValue("answer")
+#' )
+#' one$objectForKey(RSString_withValue("answer"))$value()
+#' many <- RSDictionary_withObjectsForKeys(
+#'   list(RSNumber_withValue(1L), RSNumber_withValue(2L)),
+#'   list(RSString_withValue("a"), RSString_withValue("b"))
+#' )
+#' many$count()
+#' editable <- RSMutableDictionary_withDictionary(one)
+#' editable$setObjectForKey(RSNumber_withValue(43L),
+#'                          RSString_withValue("answer"))
+#' one$objectForKey(RSString_withValue("answer"))$value()
 #' @name dictionary_constructors
 NULL
 

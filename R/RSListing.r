@@ -14,5 +14,5 @@
 RSListing <- RSProtocolClass(
   "RSListing",
   contract_methods = c("asList"),
-  version = "0.1.1 beta"
+  version = "0.2.0"
 )

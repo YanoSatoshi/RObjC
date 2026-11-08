@@ -1,17 +1,25 @@
 Package: robjc
-Title: Objective-C Inspired OOP Framework for R using 'R6'
-Version: 0.1.1
+Title: Objective-C-Inspired Object System Built on 'R6'
+Version: 0.2.0
 Authors@R: c(
-    person("Satoshi", "Yano",
-           role = c("aut", "cre"),
-           email = "yanosatoshi@gmail.com"),
-    person(given = "R6 authors",
-           role = "cph",
-           comment = "Portions derived from the R6 package")
+    person(
+        given = "Satoshi",
+        family = "Yano",
+        role = c("aut", "cre", "cph"),
+        email = "yanosatoshi@gmail.com"),
+    person(
+        given = "R6 authors",
+        role = "cph",
+        comment = "Portions derived from the R6 package")
     )
-Description: Provides a lightweight object-oriented programming framework in R,
-    inspired by Objective-C, using 'R6' classes. Includes scalar wrappers,
-    dictionary and set structures, protocol, and safe copying.
+Description: Provides an object system for R built on 'R6' and inspired by
+    Objective-C. Class factories support inheritance, protocols, singletons,
+    and scalar wrappers with typed missing values. Mutable and immutable
+    arrays, vectors, sets, dictionaries, and data frame wrappers support
+    application objects; sets and dictionaries use class-defined equality and
+    hashing for lookup. Keyed archiving preserves shared references and
+    cycles when saving and restoring object graphs, and supports mapping
+    archived classes to current classes during restoration.
 License: MIT + file LICENSE
 URL: https://github.com/YanoSatoshi/RObjC
 BugReports: https://github.com/YanoSatoshi/RObjC/issues

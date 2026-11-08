@@ -33,10 +33,23 @@
 #' [RSDictionary_withDictionary()] creates an immutable shallow copy from a
 #' mutable dictionary. An immutable dictionary is returned unchanged.
 #'
+#' @examples
+#' lookup <- RSDictionary$new(objects_and_keys = list(
+#'   RSNumber_withValue(42L), RSString_withValue("answer")
+#' ))
+#' lookup$objectForKey(RSString_withValue("answer"))$value()
+#' lookup$containsKey(RSString_withValue("missing"))
+#' extended <- lookup$dictionaryByMergingDictionary(
+#'   RSDictionary_withObjectForKey(RSNumber_withValue(7L),
+#'                                 RSString_withValue("lucky"))
+#' )
+#' extended$count()
+#' lookup$count()  # The original dictionary is unchanged.
+#'
 #' @export
 RSDictionary <- RSObjectClass(
   "RSDictionary",
-  version = "0.1.1 beta",
+  version = "0.2.0",
   super_class = RSObject,
   protocols = list(RSMutableCopying, RSCopying, RSListing, RSCoding),
   private = list(

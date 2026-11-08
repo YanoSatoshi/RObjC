@@ -34,6 +34,18 @@ immutable \link{RSArray} container with the same element references.
 }
 }
 
+\examples{
+editable <- RSMutableArray$new(list(RSString_withValue("Ada")))
+snapshot <- editable$copy()
+editable$addObjectsFromArray(RSArray_withObject(RSString_withValue("Bea")))
+editable$replaceObjectAtIndex(RSString_withValue("Ben"), 2L)
+editable$objectAtIndex(2L)$value()
+snapshot$count()  # The immutable copy still has one element.
+another <- RSMutableArray_withArray(snapshot)
+another$addObject(RSString_withValue("Cy"))
+another$count()
+
+}
 \section{Super classes}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSArray]{RSArray}} -> \code{RSMutableArray}
 }
@@ -71,7 +83,7 @@ immutable \link{RSArray} container with the same element references.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="count"><a href='../../robjc/html/RSArray.html#method-RSArray-count'><code>RSArray$count()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="description"><a href='../../robjc/html/RSArray.html#method-RSArray-description'><code>RSArray$description()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="encodeWithCoder"><a href='../../robjc/html/RSArray.html#method-RSArray-encodeWithCoder'><code>RSArray$encodeWithCoder()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="filteredArrayWith"><a href='../../robjc/html/RSArray.html#method-RSArray-filteredArrayWith'><code>RSArray$filteredArrayWith()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="filteredArrayByFunction"><a href='../../robjc/html/RSArray.html#method-RSArray-filteredArrayByFunction'><code>RSArray$filteredArrayByFunction()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="hash"><a href='../../robjc/html/RSArray.html#method-RSArray-hash'><code>RSArray$hash()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="hashesOfObjects"><a href='../../robjc/html/RSArray.html#method-RSArray-hashesOfObjects'><code>RSArray$hashesOfObjects()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSArray" data-id="indexOfObject"><a href='../../robjc/html/RSArray.html#method-RSArray-indexOfObject'><code>RSArray$indexOfObject()</code></a></span></li>

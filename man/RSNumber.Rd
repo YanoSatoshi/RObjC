@@ -29,6 +29,13 @@ If \code{val} is \code{NA}, it returns \code{RSNANumber}.
 \link{RSNANumber} for handling NA values.
 }
 
+\examples{
+number <- RSNumber_withInteger(42L)
+number$value()
+number$isEqual(RSNumber_withDouble(42))
+identical(RSNumber$new(NA_real_), RSNumber$na)
+
+}
 \section{Super classes}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSScalar]{RSScalar}} -> \code{RSNumber}
 }

@@ -32,13 +32,25 @@ Hashes use the standard \link{RSHashOperator} instance.
 \item \code{lastObject()} — Retrieve the final element.
 \item \code{arrayByAddingObject()} and \code{arrayByAddingObjectsFromArray()} — Create
 a new array with additional elements.
-\item \code{filteredArrayWith()} — Create a new array with selected elements.
+\item \code{filteredArrayByFunction()} — Create a new array with selected elements.
 \item \code{indexOfObject(obj)} and \code{containsObject(obj)} — Search by equality.
 \item \code{asList()} — Return the element references in an R list.
 \item \code{copy()} and \code{mutableCopy()} — Reuse or copy the container.
 }
 }
 
+\examples{
+first <- RSString_withValue("Ada")
+ordered <- RSArray$new(list(first, RSNumber_withValue(2L)))
+ordered$objectAtIndex(1L)$value()
+ordered$objectsAtIndexes(c(2L, 1L))$count()
+extended <- RSArray_withArray(ordered)$arrayByAddingObject(
+  RSString_withValue("Bea")
+)
+extended$count()
+ordered$count()  # The original array still has two elements.
+
+}
 \section{Super class}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{RSArray}
 }
@@ -59,7 +71,7 @@ a new array with additional elements.
     \item \href{#method-RSArray-mutableCopy}{\code{RSArray$mutableCopy()}}
     \item \href{#method-RSArray-arrayByAddingObject}{\code{RSArray$arrayByAddingObject()}}
     \item \href{#method-RSArray-arrayByAddingObjectsFromArray}{\code{RSArray$arrayByAddingObjectsFromArray()}}
-    \item \href{#method-RSArray-filteredArrayWith}{\code{RSArray$filteredArrayWith()}}
+    \item \href{#method-RSArray-filteredArrayByFunction}{\code{RSArray$filteredArrayByFunction()}}
     \item \href{#method-RSArray-objectsForEncoding}{\code{RSArray$objectsForEncoding()}}
     \item \href{#method-RSArray-encodeWithCoder}{\code{RSArray$encodeWithCoder()}}
     \item \href{#method-RSArray-initWithCoder}{\code{RSArray$initWithCoder()}}
@@ -359,16 +371,16 @@ references are retained.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSArray-filteredArrayWith"></a>}}
-\if{latex}{\out{\hypertarget{method-RSArray-filteredArrayWith}{}}}
-\subsection{\code{RSArray$filteredArrayWith()}}{
+\if{html}{\out{<a id="method-RSArray-filteredArrayByFunction"></a>}}
+\if{latex}{\out{\hypertarget{method-RSArray-filteredArrayByFunction}{}}}
+\subsection{\code{RSArray$filteredArrayByFunction()}}{
   Creates an immutable array containing elements for which
 \code{lambda} returns one non-missing logical \code{TRUE}. The predicate is
 called once per element in order. The receiver and its elements are
 unchanged.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSArray$filteredArrayWith(lambda)}
+    \preformatted{RSArray$filteredArrayByFunction(lambda)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{

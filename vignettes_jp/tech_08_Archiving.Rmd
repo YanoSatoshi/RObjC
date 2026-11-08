@@ -109,13 +109,13 @@ Node を最初に発見
 
 ```{r}
 decoder <- RSKeyedUnarchiver$new(unserialize(serialize(archive, NULL)))
-mapping <- decoder$classMappings(remove_default = FALSE)
+mapping <- decoder$classMappings(include_automatic = TRUE)
 stopifnot(identical(mapping$class_name, "Tech08Node"))
 stopifnot(is.null(mapping$decoder_class[[1L]]))
 
 mapping$decoder_class[1L] <- list(Node)
 decoder$setClassMappings(mapping)
-stopifnot(identical(decoder$classMappings(remove_default = FALSE)$decoder_name,
+stopifnot(identical(decoder$classMappings(include_automatic = TRUE)$decoder_name,
                     "Tech08Node"))
 ```
 

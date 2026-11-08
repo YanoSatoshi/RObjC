@@ -19,6 +19,18 @@ access it through \code{RSHashOperator$instance}.
 }
 }
 
+\examples{
+operator <- RSHashOperator$instance
+operator$computeHashCodeWithString("Ada")
+identical(operator$hashForScalar(42L), operator$hashForScalar(42))
+
+objects <- list(RSString_withValue("Ada"), RSNumber_withValue(42L))
+operator$hashesOfObjects(objects)
+operator$combinedHashFromObjects(objects)
+identical(operator$combinedHashFromObjects(objects),
+          operator$combinedHashFromObjects(rev(objects)))
+
+}
 \section{Super class}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{RSHashOperator}
 }

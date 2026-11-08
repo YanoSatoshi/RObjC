@@ -22,16 +22,17 @@
 #' Use \code{RSDate_withDate(val)} to construct safely from a Date scalar.
 #' 
 #' @examples
-#' d <- RSDate_withDate(Sys.Date())
+#' d <- RSDate_withDate(as.Date("2024-01-01"))
 #' d$value()
-#' d$hash()
+#' d$isEqual(RSDate$new(as.Date("2024-01-01")))
+#' identical(RSDate_withDate(as.Date(NA)), RSDate$na)
 #'
 #' @seealso RSNADate
 #'
 #' @export
 RSDate <- RSScalarClass(
   "RSDate",
-  version     = "0.1.0 beta",
+  version     = "0.2.0",
   super_class = RSScalar,
   na_value    = as.Date(NA),
   public      = list(
@@ -76,6 +77,11 @@ RSDate <- RSScalarClass(
 #' - [RSComparable]
 #' - [RSCoding]
 #' - [RSCopying]
+#'
+#' @examples
+#' missing_date <- RSDate$na
+#' missing_date$isMemberOf(RSNADate)
+#' is.na(missing_date$value())
 #'
 #' @return The NA class generator.
 #' @export

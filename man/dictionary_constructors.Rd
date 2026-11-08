@@ -61,3 +61,18 @@ to \code{RSCopying} because insertion copies them; class and protocol generator
 keys are retained by identity. Use \code{RSNull$null} for null keys or values;
 R \code{NULL} is rejected.
 }
+\examples{
+one <- RSDictionary_withObjectForKey(
+  RSNumber_withValue(42L), RSString_withValue("answer")
+)
+one$objectForKey(RSString_withValue("answer"))$value()
+many <- RSDictionary_withObjectsForKeys(
+  list(RSNumber_withValue(1L), RSNumber_withValue(2L)),
+  list(RSString_withValue("a"), RSString_withValue("b"))
+)
+many$count()
+editable <- RSMutableDictionary_withDictionary(one)
+editable$setObjectForKey(RSNumber_withValue(43L),
+                         RSString_withValue("answer"))
+one$objectForKey(RSString_withValue("answer"))$value()
+}

@@ -21,6 +21,14 @@ default instance, with no input-specific metadata.
 }
 }
 
+\examples{
+missing_factor <- RSFactor_withFactor(
+  factor(NA_character_, levels = c("low", "high"))
+)
+missing_factor$isMemberOf(RSNAFactor)
+missing_factor$levels()
+
+}
 \section{Super classes}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSScalar]{RSScalar}} -> \code{\link[robjc:RSString]{RSString}} -> \code{\link[robjc:RSFactor]{RSFactor}} -> \code{RSNAFactor}
 }

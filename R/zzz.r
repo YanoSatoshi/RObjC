@@ -29,5 +29,5 @@
 }
 
 .onAttach <- function(libname, pkgname) {
-  packageStartupMessage("RObjC - version 0.1.1 beta")
+  packageStartupMessage("RObjC - version 0.2.0")
 }
