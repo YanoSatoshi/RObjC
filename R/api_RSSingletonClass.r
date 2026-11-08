@@ -32,9 +32,11 @@
 #' then locks the instance binding and class metadata.
 #'
 #' @examples
-#' ExampleSingleton <- RSSingletonClass("ExampleSingleton",
-#'   version = "0.1.0 beta")
-#' ExampleSingleton$instance$class()$classname
+#' ExampleService <- RSSingletonClass("ExampleService",
+#'   public = list(value = function() "shared")
+#' )
+#' ExampleService$instance$value()
+#' identical(ExampleService$new(), ExampleService$instance)
 #'
 #' @export
 RSSingletonClass <- function(
@@ -48,14 +50,26 @@ RSSingletonClass <- function(
   validate_protocols = TRUE
 ) {
   super_generator <- force(super_class)
+  if (!is.character(class_name) ||
+      length(class_name) != 1L ||
+      is.na(class_name) ||
+      !nzchar(class_name))
+    stop("\u0060class_name\u0060 must be one nonempty character string.", call. = FALSE)
+  if (!is.logical(validate_protocols) ||
+      length(validate_protocols) != 1L ||
+      is.na(validate_protocols))
+    stop("\u0060validate_protocols\u0060 must be TRUE or FALSE.", call. = FALSE)
   stopifnot(
     "`class_name` must be one nonempty character string." =
-      is.character(class_name) && length(class_name) == 1L &&
-      !is.na(class_name) && nzchar(class_name),
+      is.character(class_name) &&
+      length(class_name) == 1L &&
+      !is.na(class_name) &&
+      nzchar(class_name),
     "`super_class` must be a kind of RSObject." =
       robjc_isClass(super_generator),
     "`validate_protocols` must be TRUE or FALSE." =
-      is.logical(validate_protocols) && length(validate_protocols) == 1L &&
+      is.logical(validate_protocols) &&
+      length(validate_protocols) == 1L &&
       !is.na(validate_protocols)
   )
   klass <- do.call(

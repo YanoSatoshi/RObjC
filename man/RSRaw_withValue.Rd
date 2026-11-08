@@ -15,3 +15,6 @@ An \link{RSRaw} instance.
 \description{
 Wrap one base R raw byte. Raw values have no NA companion.
 }
+\examples{
+RSRaw_withValue(as.raw(0xFF))$value()
+}

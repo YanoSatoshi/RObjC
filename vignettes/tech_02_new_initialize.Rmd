@@ -137,7 +137,7 @@ See [note 06](tech_06_Scalars.Rmd) for automatic NA class creation and type-spec
 `initialize()` gives an allocated instance its meaningful state.
 `RSObject$initialize()` reads `isa`, sets `class(self)`, and returns `invisible(self)`.
 A subclass normally calls `super$initialize()`, sets its own fields, and returns `invisible(self)`.
-For example, `RSArray$initialize()` checks its arguments and hash operator, calls its parent, validates the elements, and fills private storage.
+For example, `RSArray$initialize()` checks its arguments, validates the elements, calls its parent, and fills private storage.
 `RSMutableArray$initialize()` delegates to its parent and then returns `invisible(self)`.
 
 There is an important exception to that final return pattern.

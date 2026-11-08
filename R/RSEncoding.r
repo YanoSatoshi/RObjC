@@ -7,8 +7,8 @@
 #' @export
 RSEncoderProtocol <- RSProtocolClass(
   "RSEncoderProtocol",
-  version = "0.1.0 beta",
-  contract_methods = "encodeWithCoder"
+  version = "0.2.0",
+  contract_methods = c("encodeWithCoder")
 )
 
 
@@ -23,8 +23,8 @@ RSEncoderProtocol <- RSProtocolClass(
 #' @export
 RSDecoderProtocol <- RSProtocolClass(
   "RSDecoderProtocol",
-  version = "0.1.0 beta",
-  contract_methods = "initWithCoder"
+  version = "0.2.0",
+  contract_methods = c("initWithCoder")
 )
 
 
@@ -39,5 +39,5 @@ RSDecoderProtocol <- RSProtocolClass(
 RSCoding <- RSProtocolClass(
   "RSCoding",
   super_protocols = c(RSEncoderProtocol, RSDecoderProtocol),
-  version = "0.1.0 beta"
+  version = "0.2.0"
 )

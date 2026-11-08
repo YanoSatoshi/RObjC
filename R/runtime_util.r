@@ -31,8 +31,6 @@ robjc_get_pointer <- function(some_obj) robjc_object_address(some_obj)
 
 
 
-
-
 #' @title Normalize a Hash Code
 #' @description Replace a missing hash code with `0L`. Call this on the
 #'   final result of a custom `hash()` method so it never returns R's
@@ -45,3 +43,13 @@ robjc_get_pointer <- function(some_obj) robjc_object_address(some_obj)
 #' @seealso [RSObject]
 #' @export
 robjc_normalize_hash <- function(hash_code) if (is.na(hash_code)) 0L else hash_code
+
+
+
+# Date and POSIXt are backed by numbers, but their is.nan methods are not
+# available consistently across supported R versions.
+robjc_is_nan_scalar <- function(value) {
+  if (inherits(value, "Date") || inherits(value, "POSIXt"))
+    return(is.nan(as.numeric(value)))
+  is.nan(value)
+}

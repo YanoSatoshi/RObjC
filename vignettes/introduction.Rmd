@@ -62,7 +62,7 @@ resolve automatically; extension packages can register their generators in
 [Archiving Guide](guide_10_Archiving.Rmd) and the
 [notebook example](appendix_practical_encoding.Rmd).
 
-The current package version is **0.1.1**. The keyed archive format and
-public APIs may evolve during beta development. Users extending the class
+The current package version is **0.2.0**. The keyed archive format and
+public APIs may evolve. Users extending the class
 system should understand object identity, equality, and hashing, particularly
 when using custom objects as dictionary keys or set members.

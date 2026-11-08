@@ -4,14 +4,29 @@
 # an unloaded package's old class alive and could be used after a reload.
 .robjc_class_registry <- new.env(hash = TRUE, parent = emptyenv())
 
-.robjc_registry_string <- function(value, label) {
-  if (!is.character(value) || length(value) != 1L || is.na(value) ||
+
+
+# Require a nonempty scalar name for registry package, ID, and binding fields.
+.robjc_registry_string <- function(
+  value,
+  label
+) {
+  if (!is.character(value) ||
+      length(value) != 1L ||
+      is.na(value) ||
       !nzchar(value))
     stop(sprintf("`%s` must be one nonempty string.", label), call. = FALSE)
   value
 }
 
-.robjc_registry_bucket <- function(package, kind, create = FALSE) {
+
+
+# Find or create the package-and-kind bucket holding registration metadata.
+.robjc_registry_bucket <- function(
+  package,
+  kind,
+  create = FALSE
+) {
   if (!exists(package, envir = .robjc_class_registry, inherits = FALSE)) {
     if (!create) return(NULL)
     .robjc_class_registry[[package]] <- new.env(hash = TRUE, parent = emptyenv())
@@ -24,9 +39,18 @@
   packages[[kind]]
 }
 
-.robjc_register_generator <- function(package, id, binding, generator, kind) {
+
+
+# Validate a namespace binding and register its stable archive ID.
+.robjc_register_generator <- function(
+  package,
+  id,
+  binding,
+  generator,
+  kind
+) {
   package <- .robjc_registry_string(package, "package")
-  id <- .robjc_registry_string(id, "id")
+  id      <- .robjc_registry_string(id, "id")
   binding <- .robjc_registry_string(binding, "binding")
   if (!isNamespaceLoaded(package))
     stop(sprintf("Package '%s' must be loaded before registration.", package), call. = FALSE)
@@ -34,7 +58,9 @@
   if (!exists(binding, envir = ns, inherits = FALSE) ||
       !identical(get(binding, envir = ns, inherits = FALSE), generator))
     stop("`generator` must be the named binding in the package namespace.", call. = FALSE)
-  valid <- if (identical(kind, "class")) robjc_isClass(generator) else robjc_isProtocol(generator)
+  valid <-
+    if (identical(kind, "class")) robjc_isClass(generator)
+    else robjc_isProtocol(generator)
   if (!valid)
     stop(sprintf("`generator` must be an RObjC %s generator.", kind), call. = FALSE)
 
@@ -56,6 +82,8 @@
   bucket[[id]] <- list(binding = binding, namespace_id = namespace_id)
   invisible(generator)
 }
+
+
 
 #' Register a package class for keyed archives
 #'
@@ -79,9 +107,16 @@
 #' @param generator The generator held by `binding`.
 #' @return `generator`, invisibly.
 #' @export
-robjc_register_class <- function(package, id, binding, generator) {
+robjc_register_class <- function(
+  package,
+  id,
+  binding,
+  generator
+) {
   .robjc_register_generator(package, id, binding, generator, "class")
 }
+
+
 
 #' Register a package protocol for keyed archives
 #'
@@ -91,21 +126,34 @@ robjc_register_class <- function(package, id, binding, generator) {
 #' @inheritParams robjc_register_class
 #' @return `generator`, invisibly.
 #' @export
-robjc_register_protocol <- function(package, id, binding, generator) {
+robjc_register_protocol <- function(
+  package,
+  id,
+  binding,
+  generator
+) {
   .robjc_register_generator(package, id, binding, generator, "protocol")
 }
 
+
+
+# Locate the current package and stable ID for a registered generator.
 .robjc_registered_identity <- function(generator) {
-  kind <- if (robjc_isClass(generator)) "class" else "protocol"
+  kind <-
+    if (robjc_isClass(generator)) "class"
+    else "protocol"
   for (package in ls(.robjc_class_registry, all.names = TRUE)) {
-    if (!isNamespaceLoaded(package)) next
+    if (!isNamespaceLoaded(package))
+      next
     ns <- asNamespace(package)
     bucket <- .robjc_registry_bucket(package, kind)
-    if (is.null(bucket)) next
+    if (is.null(bucket))
+      next
     for (id in ls(bucket, all.names = TRUE)) {
       entry <- bucket[[id]]
       if (!identical(entry$namespace_id, robjc_get_pointer(ns)) ||
-          !exists(entry$binding, envir = ns, inherits = FALSE)) next
+          !exists(entry$binding, envir = ns, inherits = FALSE))
+        next
       if (identical(get(entry$binding, envir = ns, inherits = FALSE), generator))
         return(list(package = package, id = id))
     }
@@ -113,13 +161,23 @@ robjc_register_protocol <- function(package, id, binding, generator) {
   NULL
 }
 
-.robjc_resolve_registered <- function(package, id, kind) {
+
+
+# Resolve an archive ID through the current loaded namespace and binding.
+.robjc_resolve_registered <- function(
+  package,
+  id,
+  kind
+) {
   package <- .robjc_registry_string(package, "package")
-  id <- .robjc_registry_string(id, "id")
+  id      <- .robjc_registry_string(id, "id")
   if (!isNamespaceLoaded(package) && !requireNamespace(package, quietly = TRUE))
     stop(sprintf("Package '%s' is unavailable for decoding.", package), call. = FALSE)
   ns <- asNamespace(package)
-  bucket <- .robjc_registry_bucket(package, if (identical(kind, "protocol")) "protocol" else "class")
+  bucket <- .robjc_registry_bucket(
+    package,
+    if (identical(kind, "protocol")) "protocol" else "class"
+  )
   if (is.null(bucket) || !exists(id, envir = bucket, inherits = FALSE))
     stop(sprintf("No registered generator for %s::%s.", package, id), call. = FALSE)
   entry <- bucket[[id]]

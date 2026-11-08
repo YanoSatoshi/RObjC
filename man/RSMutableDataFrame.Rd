@@ -11,13 +11,32 @@ structure-based hashing, and keyed archive support from its parent.
 \code{copy()} creates an immutable \link{RSDataFrame}; \code{mutableCopy()} is inherited
 and creates a separate mutable wrapper.
 }
+\section{Protocols}{
+
+\itemize{
+\item \link{RSCopying}
+\item \link{RSMutableCopying}
+\item \link{RSCoding}
+}
+}
+
+\examples{
+editable <- RSMutableDataFrame$new(
+  data.frame(name = c("Ada", "Ben"), stringsAsFactors = FALSE)
+)
+snapshot <- editable$copy()
+editable$setColumn("name", c("Ada", "Bea"))
+editable$getColumn("name")
+snapshot$getColumn("name")  # The immutable copy retains the earlier values.
+
+}
 \section{Super classes}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSDataFrame]{RSDataFrame}} -> \code{RSMutableDataFrame}
 }
 \section{Methods}{
 \subsection{Public methods}{
   \itemize{
-    \item \href{#method-RSMutableDataFrame-setData}{\code{RSMutableDataFrame$setData()}}
+    \item \href{#method-RSMutableDataFrame-setDataFrame}{\code{RSMutableDataFrame$setDataFrame()}}
     \item \href{#method-RSMutableDataFrame-setColumn}{\code{RSMutableDataFrame$setColumn()}}
     \item \href{#method-RSMutableDataFrame-copy}{\code{RSMutableDataFrame$copy()}}
   }
@@ -34,11 +53,11 @@ and creates a separate mutable wrapper.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superclass"><a href='../../robjc/html/RSObject.html#method-RSObject-superclass'><code>RSObject$superclass()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="colnames"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-colnames'><code>RSDataFrame$colnames()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="encodeWithCoder"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-encodeWithCoder'><code>RSDataFrame$encodeWithCoder()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="getColumn"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-getColumn'><code>RSDataFrame$getColumn()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="getData"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-getData'><code>RSDataFrame$getData()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="getDataFrame"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-getDataFrame'><code>RSDataFrame$getDataFrame()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="hash"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-hash'><code>RSDataFrame$hash()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="initWithCoder"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-initWithCoder'><code>RSDataFrame$initWithCoder()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSDataFrame" data-id="initialize"><a href='../../robjc/html/RSDataFrame.html#method-RSDataFrame-initialize'><code>RSDataFrame$initialize()</code></a></span></li>
@@ -50,13 +69,13 @@ and creates a separate mutable wrapper.
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSMutableDataFrame-setData"></a>}}
-\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-setData}{}}}
-\subsection{\code{RSMutableDataFrame$setData()}}{
+\if{html}{\out{<a id="method-RSMutableDataFrame-setDataFrame"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableDataFrame-setDataFrame}{}}}
+\subsection{\code{RSMutableDataFrame$setDataFrame()}}{
   Replaces the entire data frame, converting it to a tibble.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSMutableDataFrame$setData(df)}
+    \preformatted{RSMutableDataFrame$setDataFrame(df)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{

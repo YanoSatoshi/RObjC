@@ -28,8 +28,14 @@
 #' each protocol generator.
 #'
 #' @examples
-#' Printable <- RSProtocolClass("Printable", contract_methods = "print")
-#' Printable$classname
+#' Labeled <- RSProtocolClass("ExampleLabeled", contract_methods = "label")
+#' ExampleLabel <- RSObjectClass("ExampleLabel", protocols = list(Labeled),
+#'   public = list(label = function() "Ada")
+#' )
+#' item <- ExampleLabel$new()
+#' item$conformsTo(Labeled)
+#' item$label()
+#' protocol_getMissingContracts(ExampleLabel)
 #'
 #' @export
 RSProtocolClass <- function(
@@ -42,10 +48,21 @@ RSProtocolClass <- function(
   if (!is.list(super_protocols) || !all(vapply(super_protocols, robjc_isProtocol, logical(1))))
     stop("`super_protocols` must be a list of RObjC protocols.", call. = FALSE)
   # check contract_methods by char
+  if (!is.character(protocol_name) ||
+      length(protocol_name) != 1L ||
+      is.na(protocol_name) ||
+      !nzchar(protocol_name))
+    stop("\u0060protocol_name\u0060 must be one nonempty character string.", call. = FALSE)
+  if (!is.character(contract_methods) ||
+      anyNA(contract_methods) ||
+      any(!nzchar(contract_methods)))
+    stop("\u0060contract_methods\u0060 must contain nonempty character names.", call. = FALSE)
   stopifnot(
     "`protocol_name` must be one nonempty character string." =
-      is.character(protocol_name) && length(protocol_name) == 1L &&
-      !is.na(protocol_name) && nzchar(protocol_name),
+      is.character(protocol_name) &&
+      length(protocol_name) == 1L &&
+      !is.na(protocol_name) &&
+      nzchar(protocol_name),
     "`contract_methods` must contain nonempty character names." =
       is.character(contract_methods) &&
       all(!is.na(contract_methods) & nzchar(contract_methods))

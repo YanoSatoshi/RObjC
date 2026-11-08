@@ -11,6 +11,6 @@ RSComparable
 support three-way ordering. A conforming method returns \code{-1L}, \code{0L}, or
 \code{1L} for a comparable pair and may raise an error for incompatible values.
 Declaring conformance does not guarantee that every pair of values has an
-ordering. \link{RSRaw} inherits this protocol from \link{RSScalar}, but its
+ordering. \link{RSRaw} declares this protocol directly, but its
 \code{compare()} always raises an error because raw values have no sorting order.
 }

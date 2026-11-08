@@ -112,17 +112,17 @@ stopifnot(!robjc_isInstance(lookalike))
 この判定は robjc の通常の生成経路を識別するためのもので、任意の環境を敵対的に偽装できないという保証ではありません。
 内部構造を意図的に複製すれば、単純なマーカー判定の限界に達します。
 
-## `robjc_doesBelongToRobjc()` と使い分け
+## `robjc_isRObjC()` と使い分け
 
-`robjc_doesBelongToRobjc()` は `robjc_isMetaClass()` または `robjc_isInstance()` が真なら真を返します。
+`robjc_isRObjC()` は `robjc_isMetaClass()` または `robjc_isInstance()` が真なら真を返します。
 クラス、プロトコル、インスタンスのいずれも受け付ける入口に使えます。
 `isa` レコード自体は robjc の内部情報ですが、この関数が受け入れるオブジェクトではありません。
 
 ```{r}
-stopifnot(robjc_doesBelongToRobjc(Example))
-stopifnot(robjc_doesBelongToRobjc(Protocol))
-stopifnot(robjc_doesBelongToRobjc(instance))
-stopifnot(!robjc_doesBelongToRobjc(Example$robjc_isa))
+stopifnot(robjc_isRObjC(Example))
+stopifnot(robjc_isRObjC(Protocol))
+stopifnot(robjc_isRObjC(instance))
+stopifnot(!robjc_isRObjC(Example$robjc_isa))
 ```
 
 | 必要な対象 | 関数 |
@@ -131,7 +131,7 @@ stopifnot(!robjc_doesBelongToRobjc(Example$robjc_isa))
 | オブジェクトクラスのジェネレータ | `robjc_isClass()` |
 | プロトコルのジェネレータ | `robjc_isProtocol()` |
 | クラスのインスタンス | `robjc_isInstance()` |
-| 上記のジェネレータまたはインスタンス | `robjc_doesBelongToRobjc()` |
+| 上記のジェネレータまたはインスタンス | `robjc_isRObjC()` |
 
 種別を判定したあとに継承関係を調べる場合は `robjc_inheritChain()` やインスタンスの `isKindOf()` を使います。
 種別判定と継承判定を分けることで、文字列のクラス名だけに依存せずにランタイムの処理を組み立てられます。

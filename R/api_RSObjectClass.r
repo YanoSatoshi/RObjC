@@ -34,8 +34,20 @@
 #' to construct a usable object should return `self`.
 #'
 #' @examples
-#' ExampleObject <- RSObjectClass("ExampleObject", version = "0.1.0 beta")
-#' ExampleObject$new()$class()$classname
+#' ExamplePerson <- RSObjectClass("ExamplePerson",
+#'   private = list(.name = NULL),
+#'   public = list(
+#'     initialize = function(name) {
+#'       super$initialize()
+#'       private$.name <- name
+#'       invisible(self)
+#'     },
+#'     name = function() private$.name
+#'   )
+#' )
+#' person <- ExamplePerson$new("Ada")
+#' person$name()
+#' person$isKindOf(RSObject)
 #'
 #' @export
 RSObjectClass <- function(
@@ -50,6 +62,12 @@ RSObjectClass <- function(
 ) {
   # Get real-super-meta-class
   super_generator <- force(super_class)
+  if (!is.character(class_name) || length(class_name) != 1L ||
+      is.na(class_name) || !nzchar(class_name))
+    stop("\u0060class_name\u0060 must be one nonempty character string.", call. = FALSE)
+  if (!is.logical(validate_protocols) || length(validate_protocols) != 1L ||
+      is.na(validate_protocols))
+    stop("\u0060validate_protocols\u0060 must be TRUE or FALSE.", call. = FALSE)
   stopifnot(
     "`class_name` must be one nonempty character string." =
       is.character(class_name) && length(class_name) == 1L &&
@@ -83,7 +101,7 @@ RSObjectClass <- function(
     version   = version
   )
   if (validate_protocols) {
-    missing <- protocol_validateContracts(klass)
+    missing <- protocol_getMissingContracts(klass)
     if (length(missing))
       stop(sprintf("Class `%s` is missing protocol methods: %s.",
                    class_name, paste(missing, collapse = ", ")), call. = FALSE)

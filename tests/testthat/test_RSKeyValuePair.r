@@ -1,4 +1,5 @@
 test_that("RSKeyValuePair: can be created with RSObject key and value", {
+  expect_identical(getExportedValue("robjc", "RSKeyValuePair"), RSKeyValuePair)
   key <- RSString_withValue("id")
   value <- RSNumber_withValue(42)
   pair <- RSKeyValuePair$new(key, value)

@@ -1,29 +1,37 @@
 Package: robjc
-Title: Objective-C Inspired OOP Framework for R using 'R6'
-Version: 0.1.1
+Title: Objective-C-Inspired Object System Built on 'R6'
+Version: 0.2.0
 Authors@R: c(
     person(
-        "Satoshi", "Yano",
-        role = c("aut", "cre"),
-        email = "yanosatoshi@gmail.com"
-    ),
+        given = "Satoshi",
+        family = "Yano",
+        role = c("aut", "cre", "cph"),
+        email = "yanosatoshi@gmail.com"),
     person(
         given = "R6 authors",
         role = "cph",
-        comment = "Portions derived from the R6 package"
+        comment = "Portions derived from the R6 package")
     )
-    )
-Description: Provides a lightweight object-oriented programming framework in R,
-    inspired by Objective-C, using 'R6' classes. Includes scalar wrappers,
-    dictionary and set structures, protocol, and safe copying.
+Description: Provides an object system for R built on 'R6' and inspired by
+    Objective-C. Class factories support inheritance, protocols, singletons,
+    and scalar wrappers with typed missing values. Mutable and immutable
+    arrays, vectors, sets, dictionaries, and data frame wrappers support
+    application objects; sets and dictionaries use class-defined equality and
+    hashing for lookup. Keyed archiving preserves shared references and
+    cycles when saving and restoring object graphs, and supports mapping
+    archived classes to current classes during restoration.
 License: MIT + file LICENSE
+URL: https://github.com/YanoSatoshi/RObjC
+BugReports: https://github.com/YanoSatoshi/RObjC/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-Suggests: 
+Depends:
+    R (>= 3.6.3)
+Suggests:
     jsonlite,
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.1.5)
 Config/testthat/edition: 3
 Imports: utils, R6, tibble, Rcpp
 LinkingTo: Rcpp
@@ -52,6 +60,7 @@ Collate:
     'RSModule.r'
     'RSHashOperatorProtocol.r'
     'RSHashOperator.r'
+    'RSListing.r'
     'RSComparable.r'
     'RSMutableCopying.r'
     'RSArray.r'
@@ -76,12 +85,12 @@ Collate:
     'RSMutableDictionary.r'
     'RSSet.r'
     'RSMutableSet.r'
+    'RSVector.r'
     'RSMutableVector.r'
     'RSNull.r'
     'RSNumber.r'
     'RSRaw.r'
-    'RSVector.r'
-    'RcppExports.R'
+    'RcppExports.r'
     'api_RSArray.r'
     'api_RSBoolean.r'
     'api_RSComplex.r'
@@ -96,6 +105,6 @@ Collate:
     'api_RSSet.r'
     'robjc-classes.r'
     'robjc-factories.r'
-    'robjc-package.R'
+    'robjc-package.r'
     'zzz.r'
 Config/roxygen2/version: 8.1.1

@@ -43,7 +43,7 @@ class_isSingleton <- function(klass) {
 #' @param klass An RObjC class generator.
 #' @return The parent class generator, or `NULL` for a root class.
 #' @keywords internal
-class_getSuperClass <- function(klass) {
+class_getSuperclass <- function(klass) {
   class_check(klass)
   return(klass$robjc_isa$super)
 }
@@ -65,9 +65,8 @@ class_getInstanceMethod <- function(
   if (!is.character(method_name) ||
       length(method_name) != 1L ||
       is.na(method_name) ||
-      !nzchar(method_name)) {
+      !nzchar(method_name))
     stop("`method_name` must be one non-empty character string.", call. = FALSE)
-  }
   current <- klass
   while(!is.null(current)) {
     method <- current$public_methods[[method_name]]

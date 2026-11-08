@@ -31,13 +31,15 @@ protocol_make_isa <- function(
 }
 
 
+
 #' @title Get a Protocol's Direct Parents
 #' @description Returns the protocols named as direct parents when a protocol
 #'   was declared.
 #' @param protocol A protocol class generator.
 #' @return A list of direct parent protocol generators.
 #' @keywords internal
-protocol_getInheritProtocols <- function(protocol) protocol$robjc_isa$protocols
+protocol_getParents <- function(protocol) protocol$robjc_isa$protocols
+
 
 
 #' @title Get All Ancestor Protocols
@@ -46,14 +48,15 @@ protocol_getInheritProtocols <- function(protocol) protocol$robjc_isa$protocols
 #' @param protocol A protocol class generator.
 #' @return A list of ancestor protocol generators.
 #' @keywords internal
-protocol_getAllInheritProtocols <- function(protocol) {
+protocol_getAncestors <- function(protocol) {
   bucket <- list()
-  for (prtcl in protocol_getInheritProtocols(protocol)) {
+  for (prtcl in protocol_getParents(protocol)) {
     bucket[[length(bucket) + 1L]] <- prtcl
-    bucket <- c(bucket, protocol_getAllInheritProtocols(prtcl))
+    bucket <- c(bucket, protocol_getAncestors(prtcl))
   }
   bucket[!duplicated(bucket)]
 }
+
 
 
 #' @title Check Protocol Inheritance
@@ -71,13 +74,15 @@ protocol_conformsTo <- function(protocol, target) {
 }
 
 
+
 #' @title Get a Protocol's Directly Declared Method Names
 #' @description Returns method names declared directly by a protocol, excluding
 #'   method names declared by parent protocols.
 #' @param protocol A protocol class generator.
 #' @return A character vector of method names.
 #' @keywords internal
-protocol_getContract <- function(protocol) protocol$robjc_isa$slot
+protocol_getContracts <- function(protocol) protocol$robjc_isa$slot
+
 
 
 #' @title Get Inherited Protocol Method Names
@@ -85,17 +90,18 @@ protocol_getContract <- function(protocol) protocol$robjc_isa$slot
 #' @param protocol A protocol class generator.
 #' @return A character vector of inherited method names.
 #' @keywords internal
-protocol_getAllInheritContracts <- function(protocol) {
-  inherit_protocols <- protocol_getAllInheritProtocols(protocol)
+protocol_getInheritedContracts <- function(protocol) {
+  inherit_protocols <- protocol_getAncestors(protocol)
   unique(
     as.character(
       unlist(
-        lapply(inherit_protocols, protocol_getContract),
+        lapply(inherit_protocols, protocol_getContracts),
         use.names = FALSE
       )
     )
   )
 }
+
 
 
 #' @title Get All Declared Protocol Method Names
@@ -108,11 +114,12 @@ protocol_getAllInheritContracts <- function(protocol) {
 #' robjc:::protocol_getAllContracts(Printable)
 #' @keywords internal
 protocol_getAllContracts <- function(protocol) {
-  inherits  <- protocol_getAllInheritContracts(protocol)
-  domestic  <- protocol_getContract(protocol)
+  inherits  <- protocol_getInheritedContracts(protocol)
+  domestic  <- protocol_getContracts(protocol)
   merged    <- unique(c(domestic, inherits))
   return(merged)
 }
+
 
 
 #' @title Find Missing Protocol Contract Methods
@@ -130,9 +137,9 @@ protocol_getAllContracts <- function(protocol) {
 #' Named <- RSProtocolClass("ValidateNamed", contract_methods = "name")
 #' Item <- RSObjectClass("ValidateItem", protocols = list(Named),
 #'                       validate_protocols = FALSE)
-#' protocol_validateContracts(Item)  # "name"
+#' protocol_getMissingContracts(Item)  # "name"
 #' @export
-protocol_validateContracts <- function(klass) {
+protocol_getMissingContracts <- function(klass) {
   if (!robjc_isClass(klass))
     stop("`klass` must be an RObjC object class generator.", call. = FALSE)
   protocols <- class_getWholeProtocols(klass)

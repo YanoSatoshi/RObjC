@@ -6,6 +6,34 @@ test_that("RSMutableArray: addObject and count work", {
   expect_equal(ary$count(), 2)
 })
 
+test_that("addObjectsFromArray appends references and returns the receiver", {
+  first <- RSString_withValue("a")
+  second <- RSString_withValue("b")
+  receiver <- RSMutableArray$new(list(first))
+  other <- RSArray$new(list(second, first))
+
+  expect_identical(receiver$addObjectsFromArray(other), receiver)
+  expect_identical(receiver$asList(), list(first, second, first))
+  expect_identical(other$asList(), list(second, first))
+  expect_identical(receiver$addObjectsFromArray(RSArray$new()), receiver)
+  expect_identical(receiver$asList(), list(first, second, first))
+
+  receiver$addObjectsFromArray(receiver)
+  expect_identical(receiver$asList(), list(first, second, first,
+                                           first, second, first))
+})
+
+test_that("addObjectsFromArray validates its source before mutation", {
+  first <- RSString_withValue("a")
+  second <- RSString_withValue("b")
+  receiver <- RSMutableArray$new(list(first))
+  other <- RSArray$new(list(second))
+  expect_error(receiver$addObjectsFromArray(NULL),
+               "`other` must be a kind of RSArray.", fixed = TRUE)
+  expect_identical(receiver$addObjectsFromArray(other), receiver)
+  expect_identical(receiver$asList(), list(first, second))
+})
+
 test_that("array search treats an indeterminate isEqual result as no match", {
   IndeterminateEqual <- RSObjectClass(
     "ArrayIndeterminateEqual",
@@ -37,49 +65,20 @@ test_that("arrays discard input list names before storing elements", {
   }
 })
 
-test_that("arrays validate the supplied hash operator at construction", {
-  PartialOperator <- RSObjectClass(
-    "ArrayPartialHashOperator",
-    public = list(hashFromObjects = function(objects) 0L)
-  )
-  for (operator in list(NULL, list(), RSObject$new(), PartialOperator$new())) {
-    expect_error(
-      RSMutableArray$new(hash_operator = operator),
-      "must provide `hashFromObjects()` and `hashesOfEachObject()`",
-      fixed = TRUE
-    )
-    expect_error(
-      RSArray$new(hash_operator = operator),
-      "must provide `hashFromObjects()` and `hashesOfEachObject()`",
-      fixed = TRUE
-    )
-  }
+test_that("arrays use the standard hash operator", {
   array <- RSMutableArray$new(list(RSNumber_withValue(1L)))
-  expect_identical(array$hashOperator(), RSHashOperator$instance)
   expect_identical(array$hashesOfObjects(), 49L)
-  expect_identical(array$copy()$hashOperator(), RSHashOperator$instance)
+  expect_identical(array$hash(), array$copy()$hash())
 })
 
-test_that("array equality includes the hash operator instance", {
-  ConstantOperator <- RSObjectClass(
-    "ArrayEqualityHashOperator",
-    public = list(
-      hashFromObjects = function(objects) 1L,
-      hashesOfEachObject = function(objects) rep.int(1L, length(objects))
-    )
-  )
-  operator <- ConstantOperator$new()
+test_that("array equality follows element values", {
   item <- RSString_withValue("a")
   standard <- RSArray$new(list(item))
-  custom <- RSMutableArray$new(list(item), hash_operator = operator)
-  same_operator <- RSArray$new(list(item), hash_operator = operator)
-
-  expect_false(standard$isEqual(custom))
-  expect_false(custom$isEqual(standard))
-  expect_true(custom$isEqual(same_operator))
-  expect_true(custom$isEqual(custom$copy()))
-  expect_identical(custom$hash(), same_operator$hash())
-  expect_false(RSMutableSet$new(list(standard))$containsObject(custom))
+  mutable <- RSMutableArray$new(list(item))
+  expect_true(standard$isEqual(mutable))
+  expect_true(mutable$isEqual(standard))
+  expect_identical(standard$hash(), mutable$hash())
+  expect_true(RSMutableSet$new(list(standard))$containsObject(mutable))
 })
 
 test_that("RSMutableArray rejects non-object mutations without changing contents", {
@@ -112,16 +111,28 @@ test_that("RSMutableArray rejects invalid indices before reading or mutating", {
     RSString_withValue("a"), RSString_withValue("b")
   ))
   item <- RSString_withValue("x")
-  for (index in list(1.9, NA_real_, Inf, c(1, 2), "1", 0, 4)) {
-    expect_error(ary$objectAtIndex(index), "Index out of bounds or not a whole number", fixed = TRUE)
-    expect_error(ary$insertObjectAtIndex(item, index), "Index out of bounds or not a whole number", fixed = TRUE)
-    expect_error(ary$replaceObjectAtIndex(item, index), "Index out of bounds or not a whole number", fixed = TRUE)
-    expect_error(ary$removeObjectAtIndex(index), "Index out of bounds or not a whole number", fixed = TRUE)
+  for (index in list(0.9, NA_real_, Inf, c(1, 2), "1", 0, 4, 2^31)) {
+    expect_error(ary$objectAtIndex(index), "Index out of bounds", fixed = TRUE)
+    expect_error(ary$insertObjectAtIndex(item, index), "Index out of bounds", fixed = TRUE)
+    expect_error(ary$replaceObjectAtIndex(item, index), "Index out of bounds", fixed = TRUE)
+    expect_error(ary$removeObjectAtIndex(index), "Index out of bounds", fixed = TRUE)
   }
   expect_identical(vapply(ary$asList(), function(x) x$value(), character(1)), c("a", "b"))
   expect_identical(ary$objectAtIndex(1.0)$value(), "a")
   ary$insertObjectAtIndex(item, 3.0)
   expect_identical(vapply(ary$asList(), function(x) x$value(), character(1)), c("a", "b", "x"))
+})
+
+test_that("Array index access truncates numeric positions", {
+  array <- RSMutableArray$new(list(RSString_withValue("a"), RSString_withValue("b")))
+  expect_identical(array$objectAtIndex(1.9)$value(), "a")
+  array$replaceObjectAtIndex(RSString_withValue("x"), 2.9)
+  expect_identical(array$objectAtIndex(2L)$value(), "x")
+  array$insertObjectAtIndex(RSString_withValue("y"), 3.9)
+  expect_identical(array$objectAtIndex(3L)$value(), "y")
+  array$removeObjectAtIndex(1.9)
+  expect_identical(vapply(array$asList(), function(x) x$value(), character(1)),
+                   c("x", "y"))
 })
 
 test_that("RSMutableArray: objectAtIndex returns correct element", {

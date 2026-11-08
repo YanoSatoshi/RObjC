@@ -16,7 +16,7 @@ We start with a built-in class, then move to shared references and a graph conta
 
 ## Archive and restore built-in classes
 
-`RSKeyedArchiver$new()$archive(root)` creates an archive from the supplied root value.
+`RSKeyedArchiver$new()$encode(root)` creates an archive from the supplied root value.
 To restore it, pass the archive to `RSKeyedUnarchiver$new()` and call `decode()`.
 Built-in robjc classes resolve automatically, so they need no manual class mapping.
 
@@ -24,7 +24,7 @@ Built-in robjc classes resolve automatically, so they need no manual class mappi
 library(robjc)
 
 original <- RSString$new("saved text")
-archive <- RSKeyedArchiver$new()$archive(original)
+archive <- RSKeyedArchiver$new()$encode(original)
 stopifnot(is.list(archive))
 
 path <- tempfile(fileext = ".rds")
@@ -48,7 +48,7 @@ Both elements of the following list point to `shared`. After restoration, they p
 
 ```{r}
 shared <- RSString$new("shared")
-shared_archive <- RSKeyedArchiver$new()$archive(list(shared, shared))
+shared_archive <- RSKeyedArchiver$new()$encode(list(shared, shared))
 shared_decoder <- RSKeyedUnarchiver$new(shared_archive)
 loaded <- shared_decoder$decode()
 
@@ -71,7 +71,7 @@ first <- RSString$new("first")
 second <- RSNumber$new(2L)
 roots <- list(first = first, second = second, first_again = first)
 
-roots_archive <- RSKeyedArchiver$new()$archive(roots)
+roots_archive <- RSKeyedArchiver$new()$encode(roots)
 restored_roots <- RSKeyedUnarchiver$new(roots_archive)$decode()
 
 stopifnot(identical(names(restored_roots), names(roots)))
@@ -88,34 +88,34 @@ Because `first_again` refers to the same source object as `first`, both entries 
 
 `RSKeyedUnarchiver$new(archive)` loads the data but does not yet restore instances.
 Follow its prompt to inspect or adjust class mappings, if needed, before calling `decode()`.
-`showAllClasses()` returns a tibble of classes that need attention. By default, it omits classes that resolved automatically.
+`classMappings()` returns a tibble of classes that need attention. By default, it omits classes that resolved automatically.
 
 ```{r}
-stopifnot(nrow(decoder$showAllClasses()) == 0L)
-all_classes <- decoder$showAllClasses(remove_default = FALSE)
+stopifnot(nrow(decoder$classMappings()) == 0L)
+all_classes <- decoder$classMappings(include_automatic = TRUE)
 stopifnot(identical(all_classes$class_name, "RSString"))
 stopifnot(identical(all_classes$status, "automatic"))
 stopifnot(identical(all_classes$decoder_class[[1L]], RSString))
-stopifnot(identical(decoder$showClass(all_classes$class_key[[1L]])$status, "automatic"))
+stopifnot(identical(decoder$classMappingForKey(all_classes$class_key[[1L]])$status, "automatic"))
 ```
 
-For this example, selected columns of `showAllClasses(remove_default = FALSE)` look like this.
-The default `showAllClasses()` view is a zero-row tibble because it omits this automatically resolved row.
+For this example, selected columns of `classMappings(include_automatic = TRUE)` look like this.
+The default `classMappings()` view is a zero-row tibble because it omits this automatically resolved row.
 
 | `class_key` | `class_name` | `version` | `decoder_name` | `status` |
 |:--|:--|:--|:--|:--|
-| C1 | RSString | 0.1.0 beta | RSString | automatic |
+| C1 | RSString | 0.2.0 | RSString | automatic |
 
 The actual tibble also includes `package`, `class_id`, `kind`, and `decoder_class`, which are omitted here.
 `decoder_name` is for display; `decoder_class` holds the generator used to restore the object.
 
 `class_name` and `version` describe the saved class. `decoder_class` is a list column of destination generators.
 `class_key` identifies a class mapping within this archive when you edit it.
-Use `remove_default = FALSE` to display all classes.
-`dictionaryWithAllClasses()` always returns every class as an `RSMutableDictionary`. Its keys are `RSString` objects wrapping `class_key` values, and its values are destination generators.
+Use `include_automatic = TRUE` to display all classes.
+`classMappingsAsDictionary()` always returns every class as an `RSMutableDictionary`. Its keys are `RSString` objects wrapping `class_key` values, and its values are destination generators.
 
 ```{r}
-class_dictionary <- decoder$dictionaryWithAllClasses()
+class_dictionary <- decoder$classMappingsAsDictionary()
 stopifnot(class_dictionary$isKindOf(RSMutableDictionary))
 stopifnot(identical(
   class_dictionary$objectForKey(RSString$new(all_classes$class_key[[1L]])),
@@ -126,10 +126,10 @@ stopifnot(identical(
 ## Map custom classes
 
 A class defined only in a script cannot resolve through package registration.
-For such a class, put its current generator in the `showAllClasses()` result and pass the edited table to `setClasses()`.
+For such a class, put its current generator in the `classMappings()` result and pass the edited table to `setClassMappings()`.
 The saved class name and destination class name need not match.
 The destination's `initWithCoder()` must, however, understand the saved fields.
-**`setClasses()` selects a destination class; it does not transform the fields.**
+**`setClassMappings()` selects a destination class; it does not transform the fields.**
 Implement migration between versions or classes in the destination's `initWithCoder()`.
 The next example moves an old `text` field to a new `title` field.
 During restoration, `savedClassVersion()` returns the saved class version.
@@ -180,46 +180,46 @@ CurrentNote <- RSObjectClass(
 ```
 
 The old archive appears as unresolved. Set its `decoder_class` to `CurrentNote` before restoring it.
-`setClasses()` accepts a tibble with `class_key` and `decoder_class` columns.
-Use `showClass()` to inspect one mapping.
+`setClassMappings()` accepts a tibble with `class_key` and `decoder_class` columns.
+Use `classMappingForKey()` to inspect one mapping.
 
 ```{r}
-legacy_archive <- RSKeyedArchiver$new()$archive(LegacyNote$new("draft"))
+legacy_archive <- RSKeyedArchiver$new()$encode(LegacyNote$new("draft"))
 custom_decoder <- RSKeyedUnarchiver$new(legacy_archive)
-classes <- custom_decoder$showAllClasses()
+classes <- custom_decoder$classMappings()
 stopifnot(identical(classes$class_name, "Guide10LegacyNote"))
 stopifnot(identical(classes$status, "unresolved"))
 
 classes$decoder_class[1L] <- list(CurrentNote)
-custom_decoder$setClasses(classes)
-stopifnot(identical(custom_decoder$showClass(classes$class_key[[1L]])$status, "manual"))
+custom_decoder$setClassMappings(classes)
+stopifnot(identical(custom_decoder$classMappingForKey(classes$class_key[[1L]])$status, "manual"))
 
 current <- custom_decoder$decode()
 stopifnot(current$isMemberOf(CurrentNote))
 stopifnot(identical(current$title, "draft"))
 ```
 
-Before mapping, selected columns of `custom_decoder$showAllClasses()` contain this row.
+Before mapping, selected columns of `custom_decoder$classMappings()` contain this row.
 `NA` in `decoder_name` means that no destination has been selected.
 
 | `class_key` | `class_name` | `version` | `decoder_name` | `status` |
 |:--|:--|:--|:--|:--|
 | C1 | Guide10LegacyNote | 1.0 | NA | unresolved |
 
-After `setClasses(classes)`, `decoder_name` becomes `Guide10CurrentNote` and `status` becomes `manual`.
+After `setClassMappings(classes)`, `decoder_name` becomes `Guide10CurrentNote` and `status` becomes `manual`.
 `class_name` and `version` retain their saved values.
 
 You can also supply an `RSMutableDictionary` mapping.
-An unresolved class has `RSNull$null` as its value. The returned dictionary is an independent mapping snapshot, so call `setClasses()` after editing it.
+An unresolved class has `RSNull$null` as its value. The returned dictionary is an independent mapping snapshot, so call `setClassMappings()` after editing it.
 
 ```{r}
 other_decoder <- RSKeyedUnarchiver$new(legacy_archive)
-mapping <- other_decoder$dictionaryWithAllClasses()
+mapping <- other_decoder$classMappingsAsDictionary()
 key <- RSString$new(classes$class_key[[1L]])
 stopifnot(identical(mapping$objectForKey(key), RSNull$null))
 
 mapping$setObjectForKey(CurrentNote, key)
-other_decoder$setClasses(mapping)
+other_decoder$setClassMappings(mapping)
 stopifnot(identical(other_decoder$decode()$title, "draft"))
 ```
 
@@ -234,13 +234,13 @@ The arguments needed for ordinary construction may no longer be available, and t
 Implement migration in `initWithCoder()`, as shown above.
 
 An extension package can register a class with `robjc_register_class()` in its `.onLoad()` function.
-Registered classes generally need no manual `setClasses()` call. Keep the registration `id` stable independently of the class name and version.
+Registered classes generally need no manual `setClassMappings()` call. Keep the registration `id` stable independently of the class name and version.
 See `?robjc_register_class` for the registration arguments and procedure.
 
 ## Handle unresolved classes and invalid archives
 
 Calling `decode()` with an unresolved class raises an error listing its unresolved `class_key`.
-Inspect the row with `showAllClasses()` and assign an appropriate generator.
+Inspect the row with `classMappings()` and assign an appropriate generator.
 An archive with an unsupported format fails when the Unarchiver is created; a broken reference or field can fail during restoration.
 
 ```{r}

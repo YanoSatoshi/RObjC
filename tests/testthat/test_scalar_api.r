@@ -6,6 +6,7 @@ test_that("scalar APIs route native values and missing values", {
   expect_true(RSScalar_withValue(factor("x"))$isKindOf(RSFactor))
   expect_true(RSScalar_withValue(as.Date("2024-01-01"))$isKindOf(RSDate))
   expect_true(RSScalar_withValue(as.POSIXct("2024-01-01", tz = "UTC"))$isKindOf(RSDateTime))
+  expect_error(RSScalar_withValue(as.raw(0xFF)), "Unsupported scalar type: raw", fixed = TRUE)
 
   expect_true(RSBoolean_withBoolean(NA)$isMemberOf(RSNABoolean))
   expect_true(RSNumber_withValue(NA_real_)$isMemberOf(RSNANumber))
@@ -28,13 +29,18 @@ test_that("Date and date-time NaN values survive direct and convenience construc
     expect_false(wrapped$isEqual(RSDate$na))
   }
   for (native in list(nan_time, as.POSIXlt(nan_time))) {
+    # Older R versions (<= 4.0) may turn a NaN into NA while converting to POSIXlt.
+    native_nan <- is.nan(as.numeric(as.POSIXct(native)))
     for (wrapped in list(
       RSDateTime$new(native), RSDateTime_withDateTime(native),
       RSScalar_withValue(native)
     )) {
-      expect_true(wrapped$isMemberOf(RSDateTime))
-      expect_true(is.nan(wrapped$nativeValue()))
-      expect_false(wrapped$isEqual(RSDateTime$na))
+      if (native_nan)
+        expect_true(wrapped$isMemberOf(RSDateTime))
+      else
+        expect_identical(wrapped, RSDateTime$na)
+      expect_true(is.na(wrapped$nativeValue()))
+      expect_identical(wrapped$isEqual(RSDateTime$na), !native_nan)
     }
   }
 

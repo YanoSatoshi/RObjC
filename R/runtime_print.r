@@ -39,7 +39,7 @@ format.RSObject <- function(x, method = FALSE, ...) {
     )
   )
   private_members <- x$.__enclos_env__$private
-  private_lines <- robjc_member_summaries(
+  private_lines   <- robjc_member_summaries(
     private_members,
     exclude = ".__isa",
     include_methods = method
@@ -58,6 +58,9 @@ print.RSObject <- function(x, ...) {
   invisible(x)
 }
 
+
+
+# Render one identity-record field without expanding nested RObjC objects.
 robjc_isa_value_summary <- function(value) {
   if (is.null(value))
     return(
@@ -122,11 +125,11 @@ robjc_isa_value_summary <- function(value) {
 #' #   protocols: list()
 #' #   slot: NULL
 #' #   super: <RSScalar>
-#' #   version: 0.1.0 beta
+#' #   version: 0.2.0
 #' @export
 format.RSIsA <- function(x, ...) {
   generator <- x$class
-  kind <- if (inherits(x, ISA_PROTOCOL)) "protocol" else "object"
+  kind  <- if (inherits(x, ISA_PROTOCOL)) "protocol" else "object"
   lines <- c(paste0(
     "<", generator$classname, "> RObjC ", kind, " identity"
   ))
@@ -164,7 +167,7 @@ print.RSIsA <- function(x, ...) {
 #' print(RSString)
 #' # <RSString> RObjC object generator
 #' #   Inherits from: <RSScalar>
-#' #   Version: 0.1.0 beta
+#' #   Version: 0.2.0
 #' #   Public:
 #' #     initialize: function (val)
 #' #   Parent env: <environment: namespace:robjc>
@@ -173,7 +176,7 @@ print.RSIsA <- function(x, ...) {
 #' #   Portable: TRUE
 #' @export
 format.RobjcClass <- function(x, ...) {
-  kind <- if (inherits(x$robjc_isa, ISA_PROTOCOL)) "protocol" else "object"
+  kind  <- if (inherits(x$robjc_isa, ISA_PROTOCOL)) "protocol" else "object"
   lines <- c(
     paste0("<", x$classname, "> RObjC ", kind, " generator")
   )

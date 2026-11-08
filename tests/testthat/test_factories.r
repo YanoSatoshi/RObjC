@@ -24,7 +24,7 @@ test_that("RSProtocolClass stores only newly declared requirements", {
   )
 
   expect_true(robjc_isProtocol(Child))
-  expect_identical(robjc:::protocol_getContract(Child), "bar")
+  expect_identical(robjc:::protocol_getContracts(Child), "bar")
   expect_setequal(robjc:::protocol_getAllContracts(Child), c("foo", "bar"))
   expect_true(robjc:::protocol_conformsTo(Child, Parent))
   expect_null(Parent$new)
@@ -53,7 +53,7 @@ test_that("instances inherit protocol conformance from parent classes", {
 })
 
 test_that("RSSingletonClass creates and locks its shared instance", {
-  Shared <- RSSingletonClass("SharedWidget", version = "0.1.0 beta")
+  Shared <- RSSingletonClass("SharedWidget", version = "0.2.0")
 
   expect_identical(Shared$instance$class(), Shared)
   expect_identical(Shared$instance, Shared$robjc_isa$slot)

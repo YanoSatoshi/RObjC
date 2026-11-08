@@ -20,3 +20,8 @@ An \link{RSDate} or \link{RSNADate} instance.
 Construct a date wrapper. \code{NA} produces \link{RSNADate}, while
 \code{NaN} remains an \link{RSDate} value.
 }
+\examples{
+RSDate_today()$value()
+RSDate_withDate(as.Date("2024-01-01"))$value()
+identical(RSDate_withDate(as.Date(NA)), RSDate$na)
+}

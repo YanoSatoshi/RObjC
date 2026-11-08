@@ -90,7 +90,7 @@ Record <- RSObjectClass(
 )
 
 record <- Record$new()
-stopifnot(identical(protocol_validateContracts(Record), character(0)))
+stopifnot(identical(protocol_getMissingContracts(Record), character(0)))
 stopifnot(record$conformsTo(Detailed))
 stopifnot(record$conformsTo(Named))
 stopifnot(record$respondsTo("name"))
@@ -179,7 +179,7 @@ DeclaredOnly <- RSObjectClass(
 incomplete <- DeclaredOnly$new()
 stopifnot(incomplete$conformsTo(Named))
 stopifnot(!incomplete$respondsTo("name"))
-stopifnot(identical(protocol_validateContracts(DeclaredOnly), "name"))
+stopifnot(identical(protocol_getMissingContracts(DeclaredOnly), "name"))
 
 Undeclared <- RSObjectClass(
   "Guide03Undeclared",
@@ -194,11 +194,11 @@ Use the three checks for different questions:
 
 | Question | Check | What it tells you |
 |:--|:--|:--|
-| During class development, are all declared protocol methods present? | `protocol_validateContracts(Class)` | Names of missing methods, or `character(0)` if none are missing |
+| During class development, are all declared protocol methods present? | `protocol_getMissingContracts(Class)` | Names of missing methods, or `character(0)` if none are missing |
 | Does an object declare that it serves a particular role? | `object$conformsTo(Protocol)` | Whether adoption was declared; it does not inspect methods |
 | Can an object respond to a particular public method? | `object$respondsTo("method")` | Whether that instance has the method; it does not inspect adoption |
 
-`protocol_validateContracts()` takes one class generator.
+`protocol_getMissingContracts()` takes one class generator.
 Above, `DeclaredOnly` declares adoption but lacks `name()`.
 By contrast, `Undeclared` implements `name()` but does not declare adoption.
 Thus, `conformsTo()` and `respondsTo()` answer different questions.

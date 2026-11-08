@@ -16,9 +16,8 @@
 # any duplicated names in a or b, only the last one with that name is kept.
 merge_vectors <- function(a, b) {
   if ((!is.null(a) && length(a) > 1 && is.null(names(a))) ||
-      (!is.null(b) && length(b) > 1 && is.null(names(b)))) {
+      (!is.null(b) && length(b) > 1 && is.null(names(b))))
     stop("merge_vectors: vectors must be either NULL or named vectors")
-  }
 
   x <- c(a, b)
   drop_idx <- duplicated(names(x), fromLast = TRUE)
@@ -26,6 +25,8 @@ merge_vectors <- function(a, b) {
 }
 
 
+
+# Merge a generator field or method list with its ancestors, child last.
 recursive_merge <- function(ClassObj, which) {
   if (is.null(ClassObj)) return(NULL)
   merge_vectors(
@@ -33,12 +34,10 @@ recursive_merge <- function(ClassObj, which) {
     ClassObj[[which]]
   )
 }
+
+
+
 ###########################################################################?
-
-
-
-
-
 
 #' @include primary_class_setup.r
 #' @title Allocate an RObjC Instance Without Running Its Initializer
@@ -54,11 +53,14 @@ recursive_merge <- function(ClassObj, which) {
 #' @return An instance of `ClassObj`, invisibly.
 #' @export
 robjc_allocate <- function(ClassObj) {
-  # util
+  # Bind each inherited method to the enclosure for its defining class.
   assign_methods2env <- function(methods, bind_env) {
     lapply(
       methods,
-      function(fn) {environment(fn) <- bind_env; return(fn);}
+      function(fn) {
+        environment(fn) <- bind_env
+        return(fn)
+      }
     )
   }
   
@@ -146,6 +148,7 @@ robjc_allocate <- function(ClassObj) {
 
   # GC
   if (is.function(private_bind_env[["finalize"]])) {
+    # Invoke the private finalizer when the allocated public environment dies.
     finalizer_wrapper <- function(e) {
       e$`.__enclos_env__`$private$finalize()
     }
@@ -157,6 +160,7 @@ robjc_allocate <- function(ClassObj) {
     )
   }
   if (is.function(public_bind_env[["finalize"]])) {
+    # Invoke the public finalizer when the allocated public environment dies.
     finalizer_wrapper <- function(e) {
       e$`.__enclos_env__`$self$finalize()
     }
@@ -171,6 +175,7 @@ robjc_allocate <- function(ClassObj) {
 
   invisible(public_bind_env)
 }
+
 
 
 # Install the RObjC construction path after a generator has its identity record.

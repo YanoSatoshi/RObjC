@@ -9,6 +9,15 @@ inheriting common scalar behavior from \code{RSScalar}.
 \code{RSNumber$new(NA)} returns the shared \code{RSNANumber} instance. \code{NaN} is
 retained as a regular \code{RSNumber} value.
 }
+\section{Protocols}{
+
+\itemize{
+\item \link{RSComparable}
+\item \link{RSCoding}
+\item \link{RSCopying}
+}
+}
+
 \section{Usage}{
 
 Use \code{RSNumber_withValue(val)} to safely construct from a numeric scalar.
@@ -20,6 +29,13 @@ If \code{val} is \code{NA}, it returns \code{RSNANumber}.
 \link{RSNANumber} for handling NA values.
 }
 
+\examples{
+number <- RSNumber_withInteger(42L)
+number$value()
+number$isEqual(RSNumber_withDouble(42))
+identical(RSNumber$new(NA_real_), RSNumber$na)
+
+}
 \section{Super classes}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSScalar]{RSScalar}} -> \code{RSNumber}
 }
@@ -41,7 +57,7 @@ If \code{val} is \code{NA}, it returns \code{RSNANumber}.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superclass"><a href='../../robjc/html/RSObject.html#method-RSObject-superclass'><code>RSObject$superclass()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="compare"><a href='../../robjc/html/RSScalar.html#method-RSScalar-compare'><code>RSScalar$compare()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="description"><a href='../../robjc/html/RSScalar.html#method-RSScalar-description'><code>RSScalar$description()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="encodeWithCoder"><a href='../../robjc/html/RSScalar.html#method-RSScalar-encodeWithCoder'><code>RSScalar$encodeWithCoder()</code></a></span></li>

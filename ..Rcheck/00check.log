@@ -1,0 +1,9 @@
+* using log directory ‘/Users/satoshi/Documents/GitHub/RObjC/..Rcheck’
+* using R version 3.6.3 (2020-02-29)
+* using platform: x86_64-apple-darwin15.6.0 (64-bit)
+* using session charset: UTF-8
+* checking for file ‘./DESCRIPTION’ ... ERROR
+ 必要なフィールドがないか、空です: 
+  ‘Author’ ‘Maintainer’
+* DONE
+Status: 1 ERROR

@@ -87,7 +87,7 @@ It also adds the `RSObjectIsA` or `RSProtocolIsA` S3 marker to `isa`, and the `R
 See [note 03](tech_03_ObjectType.Rmd) for the type predicates that use these markers.
 
 An ordinary class records adopted protocols, including inherited declarations, in `isa$protocols`.
-When `validate_protocols = TRUE`, `protocol_validateContracts(klass)` finds missing public method names and stops class declaration if any are absent.
+When `validate_protocols = TRUE`, `protocol_getMissingContracts(klass)` finds missing public method names and stops class declaration if any are absent.
 This check does not verify method signatures or behavior.
 
 ```{r}
@@ -96,7 +96,7 @@ Runner <- RSObjectClass("Tech04Runner",
   protocols = list(Runnable),
   public = list(run = function() "done")
 )
-stopifnot(identical(protocol_validateContracts(Runner), character(0)))
+stopifnot(identical(protocol_getMissingContracts(Runner), character(0)))
 stopifnot(Runner$new()$conformsTo(Runnable))
 ```
 

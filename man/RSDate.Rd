@@ -11,6 +11,15 @@ use in hash-based containers such as \code{RSSet} and \code{RSDictionary}.
 The constructor ensures that the value is a numeric \code{"Date"}. To construct
 safely from a value that may include \code{NA}, use the factory method \code{RSDate_withDate()}.
 }
+\section{Protocols}{
+
+\itemize{
+\item \link{RSComparable}
+\item \link{RSCoding}
+\item \link{RSCopying}
+}
+}
+
 \section{Methods}{
 
 \itemize{
@@ -25,9 +34,10 @@ Use \code{RSDate_withDate(val)} to construct safely from a Date scalar.
 }
 
 \examples{
-d <- RSDate_withDate(Sys.Date())
+d <- RSDate_withDate(as.Date("2024-01-01"))
 d$value()
-d$hash()
+d$isEqual(RSDate$new(as.Date("2024-01-01")))
+identical(RSDate_withDate(as.Date(NA)), RSDate$na)
 
 }
 \seealso{
@@ -55,7 +65,7 @@ RSNADate
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superclass"><a href='../../robjc/html/RSObject.html#method-RSObject-superclass'><code>RSObject$superclass()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="compare"><a href='../../robjc/html/RSScalar.html#method-RSScalar-compare'><code>RSScalar$compare()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="description"><a href='../../robjc/html/RSScalar.html#method-RSScalar-description'><code>RSScalar$description()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="encodeWithCoder"><a href='../../robjc/html/RSScalar.html#method-RSScalar-encodeWithCoder'><code>RSScalar$encodeWithCoder()</code></a></span></li>

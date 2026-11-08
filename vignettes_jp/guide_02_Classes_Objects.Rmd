@@ -76,7 +76,7 @@ stopifnot(is.null(invalid))
 
 ## クラスと継承関係を調べる
 
-インスタンスの `class()` は所属するクラスの**ジェネレータ**を、`superClass()` は直接の親クラスのジェネレータを返します。
+インスタンスの `class()` は所属するクラスの**ジェネレータ**を、`superclass()` は直接の親クラスのジェネレータを返します。
 これらはクラス名の文字列を返す base R の `class(object)` とは異なります。
 `isMemberOf(Class)` はそのクラスに直接属するかを、`isKindOf(Class)` は親クラスを含む継承関係にあるかを判定します。
 
@@ -89,7 +89,7 @@ TaggedRecord <- RSObjectClass(
 
 tagged <- TaggedRecord$new("second")
 stopifnot(identical(tagged$class(), TaggedRecord))
-stopifnot(identical(tagged$superClass(), Record))
+stopifnot(identical(tagged$superclass(), Record))
 stopifnot(tagged$isMemberOf(TaggedRecord))
 stopifnot(!tagged$isMemberOf(Record))
 stopifnot(tagged$isKindOf(Record))

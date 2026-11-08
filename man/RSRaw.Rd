@@ -2,22 +2,47 @@
 % Please edit documentation in R/RSRaw.r
 \name{RSRaw}
 \alias{RSRaw}
-\title{RSRaw: Raw Scalar Wrapper}
+\title{RSRaw: Raw Byte Wrapper}
 \value{
 The \code{RSRaw} class generator.
 }
 \description{
-\code{RSRaw} wraps one byte as a base R \code{raw} value. Base R has no missing raw
-value, so this class has no NA companion.
+\code{RSRaw} wraps one byte as a base R \code{raw} value. It inherits directly from
+\link{RSObject}, not \link{RSScalar}. Base R has no missing raw value, so this class
+has no NA companion.
 }
-\section{Super classes}{
-\code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSScalar]{RSScalar}} -> \code{RSRaw}
+\section{Protocols}{
+
+\itemize{
+\item \link{RSComparable}
+\item \link{RSCoding}
+\item \link{RSCopying}
+}
+}
+
+\examples{
+byte <- RSRaw_withValue(as.raw(0xFF))
+byte$value()
+byte$isEqual(RSRaw$new(as.raw(0xFF)))
+byte$isKindOf(RSObject)
+
+}
+\section{Super class}{
+\code{\link[robjc:RSObject]{RSObject}} -> \code{RSRaw}
 }
 \section{Methods}{
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-RSRaw-initialize}{\code{RSRaw$new()}}
+    \item \href{#method-RSRaw-encodeWithCoder}{\code{RSRaw$encodeWithCoder()}}
+    \item \href{#method-RSRaw-initWithCoder}{\code{RSRaw$initWithCoder()}}
     \item \href{#method-RSRaw-compare}{\code{RSRaw$compare()}}
+    \item \href{#method-RSRaw-nativeCompare}{\code{RSRaw$nativeCompare()}}
+    \item \href{#method-RSRaw-value}{\code{RSRaw$value()}}
+    \item \href{#method-RSRaw-nativeValue}{\code{RSRaw$nativeValue()}}
+    \item \href{#method-RSRaw-isEqual}{\code{RSRaw$isEqual()}}
+    \item \href{#method-RSRaw-hash}{\code{RSRaw$hash()}}
+    \item \href{#method-RSRaw-description}{\code{RSRaw$description()}}
   }
 }
 \if{html}{\out{<details><summary>Inherited methods</summary>
@@ -32,15 +57,7 @@ value, so this class has no NA companion.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="description"><a href='../../robjc/html/RSScalar.html#method-RSScalar-description'><code>RSScalar$description()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="encodeWithCoder"><a href='../../robjc/html/RSScalar.html#method-RSScalar-encodeWithCoder'><code>RSScalar$encodeWithCoder()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="hash"><a href='../../robjc/html/RSScalar.html#method-RSScalar-hash'><code>RSScalar$hash()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="initWithCoder"><a href='../../robjc/html/RSScalar.html#method-RSScalar-initWithCoder'><code>RSScalar$initWithCoder()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="isEqual"><a href='../../robjc/html/RSScalar.html#method-RSScalar-isEqual'><code>RSScalar$isEqual()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="nativeCompare"><a href='../../robjc/html/RSScalar.html#method-RSScalar-nativeCompare'><code>RSScalar$nativeCompare()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="nativeValue"><a href='../../robjc/html/RSScalar.html#method-RSScalar-nativeValue'><code>RSScalar$nativeValue()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="value"><a href='../../robjc/html/RSScalar.html#method-RSScalar-value'><code>RSScalar$value()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superclass"><a href='../../robjc/html/RSObject.html#method-RSObject-superclass'><code>RSObject$superclass()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
@@ -66,6 +83,50 @@ value, so this class has no NA companion.
 }
 
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSRaw-encodeWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSRaw-encodeWithCoder}{}}}
+\subsection{\code{RSRaw$encodeWithCoder()}}{
+  Encode the wrapped byte.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSRaw$encodeWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedArchiver}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSRaw-initWithCoder"></a>}}
+\if{latex}{\out{\hypertarget{method-RSRaw-initWithCoder}{}}}
+\subsection{\code{RSRaw$initWithCoder()}}{
+  Restore the wrapped byte without calling \code{initialize()}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSRaw$initWithCoder(coder)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{coder}}{An \link{RSKeyedUnarchiver}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSRaw-compare"></a>}}
 \if{latex}{\out{\hypertarget{method-RSRaw-compare}{}}}
 \subsection{\code{RSRaw$compare()}}{
@@ -85,6 +146,111 @@ value, so this class has no NA companion.
   }
   \subsection{Returns}{
     Never returns; raises an error.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSRaw-nativeCompare"></a>}}
+\if{latex}{\out{\hypertarget{method-RSRaw-nativeCompare}{}}}
+\subsection{\code{RSRaw$nativeCompare()}}{
+  Compare the native raw bytes using base R ordering.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSRaw$nativeCompare(other, na.last = TRUE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{Another \code{RSRaw} instance.}
+      \item{\code{na.last}}{Unused; retained for the native comparison signature.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{-1L}, \code{0L}, or \code{1L}.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSRaw-value"></a>}}
+\if{latex}{\out{\hypertarget{method-RSRaw-value}{}}}
+\subsection{\code{RSRaw$value()}}{
+  Return the wrapped byte as a native R raw value.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSRaw$value()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A length-one raw value.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSRaw-nativeValue"></a>}}
+\if{latex}{\out{\hypertarget{method-RSRaw-nativeValue}{}}}
+\subsection{\code{RSRaw$nativeValue()}}{
+  Return the wrapped byte as a native R raw value.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSRaw$nativeValue()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A length-one raw value.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSRaw-isEqual"></a>}}
+\if{latex}{\out{\hypertarget{method-RSRaw-isEqual}{}}}
+\subsection{\code{RSRaw$isEqual()}}{
+  Compare two wrapped raw bytes for value equality.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSRaw$isEqual(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{An object to compare.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} for the same raw byte, otherwise \code{FALSE}.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSRaw-hash"></a>}}
+\if{latex}{\out{\hypertarget{method-RSRaw-hash}{}}}
+\subsection{\code{RSRaw$hash()}}{
+  Hash the wrapped byte.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSRaw$hash()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A non-missing integer hash.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSRaw-description"></a>}}
+\if{latex}{\out{\hypertarget{method-RSRaw-description}{}}}
+\subsection{\code{RSRaw$description()}}{
+  Describe the wrapped byte.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSRaw$description()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A character scalar.
   }
 }
 

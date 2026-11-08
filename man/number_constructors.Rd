@@ -26,3 +26,9 @@ An \link{RSNumber} or \link{RSNANumber} instance.
 Wrap a numeric scalar. \code{NA} produces \link{RSNANumber}; \code{NaN}
 remains an \link{RSNumber} value.
 }
+\examples{
+RSNumber_withValue(2.5)$value()
+RSNumber_withInteger(2L)$value()
+RSNumber_withDouble(2.5)$value()
+identical(RSNumber_withValue(NA_real_), RSNumber$na)
+}

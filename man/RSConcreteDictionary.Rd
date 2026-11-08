@@ -19,6 +19,11 @@ This class provides storage semantics only. It does not inherit from
 immutable behavior. Those responsibilities belong to the public dictionary
 wrappers.
 }
+\section{Protocols}{
+
+None.
+}
+
 \section{Methods}{
 
 \itemize{

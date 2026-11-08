@@ -109,7 +109,7 @@ notebook <- Notebook$new(list(
   Section$new("Archive", list(shared_note))
 ))
 
-archive <- RSKeyedArchiver$new()$archive(notebook)
+archive <- RSKeyedArchiver$new()$encode(notebook)
 stopifnot(length(archive$records) == 5L)
 
 path <- tempfile(fileext = ".rds")
@@ -121,7 +121,7 @@ unlink(path)
 ## Inspect and map classes
 
 `RSKeyedUnarchiver$new()` reads the archive without constructing any notebook
-objects. `showAllClasses()` returns a tibble containing the saved class names,
+objects. `classMappings()` returns a tibble containing the saved class names,
 versions, resolution status, and a `decoder_class` list column. These
 script-defined classes are unresolved, so map each to its current generator.
 
@@ -132,17 +132,17 @@ available <- list(
   EncodingGuideNotebook = Notebook
 )
 decoder <- RSKeyedUnarchiver$new(saved)
-classes <- decoder$showAllClasses()
+classes <- decoder$classMappings()
 stopifnot(nrow(classes) == 3L)
 stopifnot(all(classes$status == "unresolved"))
 classes$decoder_class <- unname(available[classes$class_name])
-decoder$setClasses(classes)
+decoder$setClassMappings(classes)
 loaded <- decoder$decode()
 ```
 
-The same mapping can be edited through `dictionaryWithAllClasses()` and passed
-to `setClasses()`. Package-registered classes resolve automatically and are
-hidden by the default `showAllClasses(remove_default = TRUE)` view.
+The same mapping can be edited through `classMappingsAsDictionary()` and passed
+to `setClassMappings()`. Package-registered classes resolve automatically and are
+hidden by the default `classMappings(include_automatic = FALSE)` view.
 
 ## Verify restored state and identity
 

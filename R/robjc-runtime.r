@@ -17,7 +17,7 @@
 #' - [robjc_isClass()] recognizes object class generators.
 #' - [robjc_isProtocol()] recognizes protocol generators.
 #' - [robjc_isInstance()] recognizes instances.
-#' - [robjc_doesBelongToRobjc()] recognizes instances or generators.
+#' - [robjc_isRObjC()] recognizes instances or generators.
 #' - [robjc_inheritChain()] follows the classes in an ISA record.
 #' - [R6GENERATOR] documents the runtime's type markers.
 #' - RObjC generators expose `$isEqual(other)` for reference identity and
@@ -31,7 +31,7 @@
 #' - [class_check()] validates a class generator.
 #' - [class_getName()] returns its name.
 #' - [class_isSingleton()] checks the singleton marker.
-#' - [class_getSuperClass()] returns its direct parent.
+#' - [class_getSuperclass()] returns its direct parent.
 #' - [class_getInstanceMethod()] searches for a public instance method.
 #' - [class_getWholeProtocols()] collects adopted protocols across ancestors.
 #'
@@ -39,11 +39,11 @@
 #' - [object_getClass()] returns an instance's class generator.
 #'
 #' @section Protocol inspection (internal):
-#' - [protocol_getInheritProtocols()] returns direct parent protocols.
-#' - [protocol_getAllInheritProtocols()] returns all parent protocols.
+#' - [protocol_getParents()] returns direct parent protocols.
+#' - [protocol_getAncestors()] returns all parent protocols.
 #' - [protocol_conformsTo()] checks protocol inheritance.
-#' - [protocol_getContract()] returns directly declared method names.
-#' - [protocol_getAllInheritContracts()] returns inherited method names.
+#' - [protocol_getContracts()] returns directly declared method names.
+#' - [protocol_getInheritedContracts()] returns inherited method names.
 #' - [protocol_getAllContracts()] returns all declared method names.
 #'
 #' @section Object identity (internal):

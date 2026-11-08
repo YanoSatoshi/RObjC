@@ -112,17 +112,17 @@ stopifnot(!robjc_isInstance(lookalike))
 This predicate recognizes objects produced through ordinary robjc construction; it is not a security boundary against deliberately forged environments.
 A caller that reproduces the internal markers can reach the limits of a marker-based check.
 
-## `robjc_doesBelongToRobjc()` and choosing a predicate
+## `robjc_isRObjC()` and choosing a predicate
 
-`robjc_doesBelongToRobjc()` returns true when either `robjc_isMetaClass()` or `robjc_isInstance()` does.
+`robjc_isRObjC()` returns true when either `robjc_isMetaClass()` or `robjc_isInstance()` does.
 It suits an entry point that accepts classes, protocols, and instances.
 An `isa` record is internal robjc metadata but is not itself accepted by this predicate.
 
 ```{r}
-stopifnot(robjc_doesBelongToRobjc(Example))
-stopifnot(robjc_doesBelongToRobjc(Protocol))
-stopifnot(robjc_doesBelongToRobjc(instance))
-stopifnot(!robjc_doesBelongToRobjc(Example$robjc_isa))
+stopifnot(robjc_isRObjC(Example))
+stopifnot(robjc_isRObjC(Protocol))
+stopifnot(robjc_isRObjC(instance))
+stopifnot(!robjc_isRObjC(Example$robjc_isa))
 ```
 
 | Accepted value | Predicate |
@@ -131,7 +131,7 @@ stopifnot(!robjc_doesBelongToRobjc(Example$robjc_isa))
 | Object class generator | `robjc_isClass()` |
 | Protocol generator | `robjc_isProtocol()` |
 | Class instance | `robjc_isInstance()` |
-| Any of those generators or an instance | `robjc_doesBelongToRobjc()` |
+| Any of those generators or an instance | `robjc_isRObjC()` |
 
 After classifying a value, use `robjc_inheritChain()` or an instance's `isKindOf()` to inspect inheritance.
 Keeping classification separate from inheritance lets the runtime work with generator references instead of relying solely on class-name strings.

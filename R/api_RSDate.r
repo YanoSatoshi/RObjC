@@ -4,12 +4,18 @@
 #'   `NaN` remains an [RSDate] value.
 #' @param val A scalar with the standard `Date` class, including `NA` and `NaN`.
 #' @return An [RSDate] or [RSNADate] instance.
+#' @examples
+#' RSDate_today()$value()
+#' RSDate_withDate(as.Date("2024-01-01"))$value()
+#' identical(RSDate_withDate(as.Date(NA)), RSDate$na)
 #' @name date_constructors
 NULL
 
 #' @rdname date_constructors
 #' @export
 RSDate_today <- function() RSDate$new(Sys.Date())
+
+
 
 #' @rdname date_constructors
 #' @export
@@ -18,6 +24,6 @@ RSDate_withDate <- function(val) {
     stop("`val` must be a Date scalar.", call. = FALSE)
   if (!(typeof(val) %in% c("integer", "double")))
     stop("`val` must be a numeric Date.", call. = FALSE)
-  if (is.na(val) && !is.nan(val)) return(RSDate$na)
+  if (is.na(val) && !robjc_is_nan_scalar(val)) return(RSDate$na)
   RSDate$new(val)
 }

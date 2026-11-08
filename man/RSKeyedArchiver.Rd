@@ -12,6 +12,28 @@ addresses of restored objects.
 Lists are traversed to preserve references inside collection fields; other
 base R values form the R serialization boundary.
 }
+\section{Protocols}{
+
+\itemize{
+\item \link{RSCopying}
+}
+}
+
+\examples{
+# Archive one root object.
+original <- RSString$new("saved text")
+archive <- RSKeyedArchiver$new()$encode(original)
+stopifnot(is.list(archive), length(archive$records) == 1L)
+# saveRDS(archive, save_to_path)
+
+# A list supplies multiple named roots. Shared objects are recorded once.
+shared <- RSString$new("shared")
+roots <- list(first = shared, second = RSNumber$new(2L), again = shared)
+multiple <- RSKeyedArchiver$new()$encode(roots)
+stopifnot(length(multiple$records) == 2L)
+# saveRDS(multiple, save_to_path)
+
+}
 \section{Super classes}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSCoder]{RSCoder}} -> \code{RSKeyedArchiver}
 }
@@ -20,7 +42,7 @@ base R values form the R serialization boundary.
   \itemize{
     \item \href{#method-RSKeyedArchiver-initialize}{\code{RSKeyedArchiver$new()}}
     \item \href{#method-RSKeyedArchiver-encodeObjectForKey}{\code{RSKeyedArchiver$encodeObjectForKey()}}
-    \item \href{#method-RSKeyedArchiver-archive}{\code{RSKeyedArchiver$archive()}}
+    \item \href{#method-RSKeyedArchiver-encode}{\code{RSKeyedArchiver$encode()}}
   }
 }
 \if{html}{\out{<details><summary>Inherited methods</summary>
@@ -38,7 +60,7 @@ base R values form the R serialization boundary.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superclass"><a href='../../robjc/html/RSObject.html#method-RSObject-superclass'><code>RSObject$superclass()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSCoder" data-id="decodeObjectForKey"><a href='../../robjc/html/RSCoder.html#method-RSCoder-decodeObjectForKey'><code>RSCoder$decodeObjectForKey()</code></a></span></li>
 </ul>
 </details>}}
@@ -78,13 +100,13 @@ base R values form the R serialization boundary.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSKeyedArchiver-archive"></a>}}
-\if{latex}{\out{\hypertarget{method-RSKeyedArchiver-archive}{}}}
-\subsection{\code{RSKeyedArchiver$archive()}}{
+\if{html}{\out{<a id="method-RSKeyedArchiver-encode"></a>}}
+\if{latex}{\out{\hypertarget{method-RSKeyedArchiver-encode}{}}}
+\subsection{\code{RSKeyedArchiver$encode()}}{
   Encodes a root value as a portable record graph.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSKeyedArchiver$archive(object)}
+    \preformatted{RSKeyedArchiver$encode(object)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{

@@ -20,6 +20,7 @@ Collection の検索や変更操作は[Collection のガイド](guide_07_Collect
 
 長さ 1 の R の値を包むときは、型が分かっていれば `RSNumber$new()` や `RSString_withValue()` のような型別の入口を使います。
 入力の型に応じてクラスを選びたい場合は `RSScalar_withValue()` を使います。
+raw 値は `RSScalar` 系列に含まれないため、`RSRaw_withValue()` を使います。
 包んだ値は `value()` で取り出せます。
 
 ```{r}
@@ -84,6 +85,7 @@ stopifnot(is.null(fields$objectForKey(RSString$new("absent"))))
 ## ベクトルを包む
 
 `RSVector` と `RSMutableVector` は、R の atomic vector を一つの robjc オブジェクトに包みます。
+`RSVector` が読み取り専用の親クラスで、`RSMutableVector` は読み取り・比較メソッドを継承し、変更メソッドを追加します。
 各要素を `RSNumber` などに変換して保持するわけではありません。
 `asVector()` で通常の R のベクトルを取り出し、`valueAtIndex()` で 1 始まりの位置にある値を読みます。
 ベクトル内の `NA` もそのまま保持できます。

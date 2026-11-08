@@ -30,3 +30,10 @@ Construct string and factor wrappers. Missing values produce
 the corresponding \verb{RSNA*} class. \code{RSFactor_withFactor()} creates a new
 \code{RSNAFactor} for each missing input, preserving its levels and ordering.
 }
+\examples{
+RSString_empty()$value()
+RSString_withValue("Ada")$value()
+RSString_withString(RSString_withValue("Ada"))$value()
+RSFactor_withFactor(factor("red", levels = c("red", "blue")))$value()
+identical(RSString_withValue(NA_character_), RSString$na)
+}

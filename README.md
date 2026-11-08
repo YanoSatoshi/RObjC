@@ -1,61 +1,56 @@
-# Introduction to robjc
+# robjc
 
-Documentation: [English vignette contents](vignettes/contents.Rmd) · [日本語の記事一覧](vignettes_jp/contents.Rmd)
+[日本語](README.ja.md)
 
-`robjc` grew from a need for a dictionary whose keys could be application
-objects. Such a dictionary needs a clear account of object identity, value
-equality, and hashing. Those requirements led to a small shared object model,
-protocols, scalar wrappers, and collections inspired by Objective-C's
-Foundation framework.
+`robjc` is an Objective-C inspired object framework for R, built on R6.
+It provides class factories, protocols, scalar wrappers, mutable and immutable
+collections, and archiving for object graphs. It is intended for applications
+that manage connected domain objects and need explicit identity, equality, and
+hashing rules.
 
-The package complements ordinary R values and data frames. It is designed for
-programs that manage connected, mutable domain objects: an object can have a
-class, implement a protocol, appear in several collections, and be referenced
-from more than one place. `robjc` does not aim to accelerate numerical
-computation or replace R's usual data analysis tools.
+## Installation
 
-## Objects and contracts
+The development version is available from GitHub. Once the package is on
+CRAN, it can also be installed with `install.packages("robjc")`.
 
-Class factories create R6 generators with explicit class identity and
-inheritance. `RSObjectClass()` declares an ordinary class;
-`RSProtocolClass()` declares methods that conforming classes must provide;
-`RSSingletonClass()` creates one shared instance; and `RSScalarClass()` creates
-a scalar class with an NA companion. The [class factory guide](vignettes/guide_05_ClassFactory.Rmd)
-shows each declaration. The [classes and objects guide](vignettes/guide_02_Classes_Objects.Rmd)
-introduces class introspection and reference identity.
+```r
+install.packages("remotes")  # If remotes is not installed
+remotes::install_github("YanoSatoshi/RObjC")
+```
 
-`RSObject` distinguishes identity from equality. Classes can implement
-`isEqual()` and `hash()` to give objects value semantics. Dictionary keys and
-set members rely on this pair: equal objects must have the same hash, and
-values used for lookup must retain the relevant state while stored. See the
-[equality and hashing guide](vignettes/guide_08_Hash_isEqual.Rmd).
+## Quick example
 
-## Values and collections
+Collections store `robjc` objects. Wrap ordinary R values in scalar objects
+before inserting them. Dictionary keys are looked up using `hash()` and
+`isEqual()`.
 
-Built-in scalar classes wrap logical, numeric, complex, character, factor,
-date, and date-time values. Typed NA companions represent missing scalar
-values; `RSNull` represents R's `NULL`. `RSScalar_withValue()` selects a
-wrapper from an R value, while typed `$new()` calls can be used when the type
-is known. The [values and copying guide](vignettes/guide_06_Values_Copying.Rmd) explains missing values
-and the special handling of factor metadata.
+```r
+library(robjc)
 
-Arrays, vectors, sets, dictionaries, and data frames have mutable and
-immutable forms. Dictionaries and sets use native tables behind RObjC
-interfaces. The [collections guide](vignettes/guide_07_Collections.Rmd)
-describes their behavior and copying rules.
+items <- RSMutableArray$new()
+items$addObject(RSString$new("Ada"))
+items$addObject(RSNumber$new(42L))
+items$count()
+#> [1] 2
 
-## Saving object state
+lookup <- RSMutableDictionary$new()
+lookup$setObjectForKey(RSNumber$new(42L), RSString$new("answer"))
+lookup$objectForKey(RSString$new("answer"))$value()
+#> [1] 42
 
-Keyed archives store fields selected by an object's `encodeWithCoder()` method.
-When an archive is loaded, the caller can inspect its class mappings before
-`decode()` allocates current instances and invokes `initWithCoder()`. Repeated
-references to the same object remain shared after decoding. Built-in classes
-resolve automatically; extension packages can register their generators in
-`.onLoad()`; classes created in scripts can be mapped manually. See the
-[Archiving Guide](vignettes/guide_10_Archiving.Rmd) and the
-[notebook example](vignettes/appendix_practical_encoding.Rmd).
+saved_items <- items$copy()  # Immutable RSArray
+```
 
-The current package version is **0.1.1**. The keyed archive format and
-public APIs may evolve during beta development. Users extending the class
-system should understand object identity, equality, and hashing, particularly
-when using custom objects as dictionary keys or set members.
+Custom objects used as Dictionary keys or Set members must implement
+compatible `isEqual()` and `hash()` methods. A hash must remain stable while
+the object is stored in a hash collection. `NULL` is not inserted
+automatically; use `RSNull$null` when a null object is needed.
+
+## Documentation
+
+- [English vignette contents](vignettes/contents.Rmd)
+- [Quick Start](vignettes/guide_01_QuickStart.Rmd)
+- [Collections](vignettes/guide_07_Collections.Rmd)
+- [Archiving](vignettes/guide_10_Archiving.Rmd)
+
+Please report bugs and feature requests in [GitHub Issues](https://github.com/YanoSatoshi/RObjC/issues).

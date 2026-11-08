@@ -11,6 +11,22 @@ The \code{RSComplex} class generator.
 \link{RSNAComplex} instance, available as \code{RSComplex$na}. Values containing
 \code{NaN} remain regular \code{RSComplex} objects.
 }
+\section{Protocols}{
+
+\itemize{
+\item \link{RSComparable}
+\item \link{RSCoding}
+\item \link{RSCopying}
+}
+}
+
+\examples{
+z <- RSComplex_withValue(1 + 2i)
+z$value()
+z$isEqual(RSComplex$new(1 + 2i))
+identical(RSComplex$new(NA_complex_), RSComplex$na)
+
+}
 \section{Super classes}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSScalar]{RSScalar}} -> \code{RSComplex}
 }
@@ -33,7 +49,7 @@ The \code{RSComplex} class generator.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superclass"><a href='../../robjc/html/RSObject.html#method-RSObject-superclass'><code>RSObject$superclass()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="description"><a href='../../robjc/html/RSScalar.html#method-RSScalar-description'><code>RSScalar$description()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="encodeWithCoder"><a href='../../robjc/html/RSScalar.html#method-RSScalar-encodeWithCoder'><code>RSScalar$encodeWithCoder()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="hash"><a href='../../robjc/html/RSScalar.html#method-RSScalar-hash'><code>RSScalar$hash()</code></a></span></li>

@@ -16,12 +16,33 @@ sets without changing either operand.
 \code{copy()} returns the receiver. \code{mutableCopy()} creates independent native
 storage that initially references the same member objects.
 }
+\section{Protocols}{
+
+\itemize{
+\item \link{RSCopying}
+\item \link{RSMutableCopying}
+\item \link{RSListing}
+\item \link{RSCoding}
+}
+}
+
 \section{Convenience Constructor}{
 
 \code{\link[=RSSet_withSet]{RSSet_withSet()}} creates an immutable shallow copy from a mutable set with
 independent native storage. An immutable set is returned as is.
 }
 
+\examples{
+members <- RSSet$new(list(RSString_withValue("Ada"),
+                          RSString_withValue("Ada")))
+members$count()  # Equal values appear once.
+members$containsObject(RSString_withValue("Ada"))
+extended <- members$setByAddingObject(RSString_withValue("Ben"))
+extended$count()
+members$count()  # The original set is unchanged.
+RSSet_withObject(RSNull$null)$containsObject(RSNull$null)
+
+}
 \section{Super class}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{RSSet}
 }
@@ -38,13 +59,17 @@ independent native storage. An immutable set is returned as is.
     \item \href{#method-RSSet-allObjects}{\code{RSSet$allObjects()}}
     \item \href{#method-RSSet-hash}{\code{RSSet$hash()}}
     \item \href{#method-RSSet-isEqual}{\code{RSSet$isEqual()}}
+    \item \href{#method-RSSet-isSubsetOfSet}{\code{RSSet$isSubsetOfSet()}}
+    \item \href{#method-RSSet-setByAddingObject}{\code{RSSet$setByAddingObject()}}
+    \item \href{#method-RSSet-setByAddingObjectsFromSet}{\code{RSSet$setByAddingObjectsFromSet()}}
+    \item \href{#method-RSSet-setByAddingObjectsFromArray}{\code{RSSet$setByAddingObjectsFromArray()}}
     \item \href{#method-RSSet-objectsForEncoding}{\code{RSSet$objectsForEncoding()}}
     \item \href{#method-RSSet-encodeWithCoder}{\code{RSSet$encodeWithCoder()}}
     \item \href{#method-RSSet-initWithCoder}{\code{RSSet$initWithCoder()}}
     \item \href{#method-RSSet-prepareForSerialization}{\code{RSSet$prepareForSerialization()}}
-    \item \href{#method-RSSet-uniteSet}{\code{RSSet$uniteSet()}}
-    \item \href{#method-RSSet-intersectSet}{\code{RSSet$intersectSet()}}
-    \item \href{#method-RSSet-subtractSet}{\code{RSSet$subtractSet()}}
+    \item \href{#method-RSSet-setByUnitingSet}{\code{RSSet$setByUnitingSet()}}
+    \item \href{#method-RSSet-setByIntersectingSet}{\code{RSSet$setByIntersectingSet()}}
+    \item \href{#method-RSSet-setBySubtractingSet}{\code{RSSet$setBySubtractingSet()}}
     \item \href{#method-RSSet-copy}{\code{RSSet$copy()}}
     \item \href{#method-RSSet-mutableCopy}{\code{RSSet$mutableCopy()}}
   }
@@ -60,7 +85,7 @@ independent native storage. An immutable set is returned as is.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superclass"><a href='../../robjc/html/RSObject.html#method-RSObject-superclass'><code>RSObject$superclass()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
@@ -247,6 +272,99 @@ The final result passes through \code{\link[=robjc_normalize_hash]{robjc_normali
 }
 
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSSet-isSubsetOfSet"></a>}}
+\if{latex}{\out{\hypertarget{method-RSSet-isSubsetOfSet}{}}}
+\subsection{\code{RSSet$isSubsetOfSet()}}{
+  Tests whether every member of the receiver belongs to
+\code{other}. The empty set is a subset of every set.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSSet$isSubsetOfSet(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{An \link{RSSet} or \link{RSMutableSet}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A logical scalar.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSSet-setByAddingObject"></a>}}
+\if{latex}{\out{\hypertarget{method-RSSet-setByAddingObject}{}}}
+\subsection{\code{RSSet$setByAddingObject()}}{
+  Returns a new immutable set containing the receiver's
+members and \code{object}. Existing equal members remain unchanged.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSSet$setByAddingObject(object)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{object}}{An RObjC object, class generator, or protocol generator
+with a valid integer \code{hash()}. R \code{NULL} is rejected.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \link{RSSet}.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSSet-setByAddingObjectsFromSet"></a>}}
+\if{latex}{\out{\hypertarget{method-RSSet-setByAddingObjectsFromSet}{}}}
+\subsection{\code{RSSet$setByAddingObjectsFromSet()}}{
+  Returns a new immutable set containing members of both
+sets. The receiver and \code{other} remain unchanged.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSSet$setByAddingObjectsFromSet(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{An \link{RSSet} or \link{RSMutableSet}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \link{RSSet}.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSSet-setByAddingObjectsFromArray"></a>}}
+\if{latex}{\out{\hypertarget{method-RSSet-setByAddingObjectsFromArray}{}}}
+\subsection{\code{RSSet$setByAddingObjectsFromArray()}}{
+  Returns a new immutable set containing the receiver's
+members and all elements of \code{other}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSSet$setByAddingObjectsFromArray(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{An \link{RSArray} or \link{RSMutableArray}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \link{RSSet}.
+  }
+}
+
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-RSSet-objectsForEncoding"></a>}}
 \if{latex}{\out{\hypertarget{method-RSSet-objectsForEncoding}{}}}
 \subsection{\code{RSSet$objectsForEncoding()}}{
@@ -324,13 +442,13 @@ This serves both immutable and mutable sets.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSSet-uniteSet"></a>}}
-\if{latex}{\out{\hypertarget{method-RSSet-uniteSet}{}}}
-\subsection{\code{RSSet$uniteSet()}}{
+\if{html}{\out{<a id="method-RSSet-setByUnitingSet"></a>}}
+\if{latex}{\out{\hypertarget{method-RSSet-setByUnitingSet}{}}}
+\subsection{\code{RSSet$setByUnitingSet()}}{
   Returns the union with \code{other} without changing either set.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSSet$uniteSet(other)}
+    \preformatted{RSSet$setByUnitingSet(other)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -346,13 +464,13 @@ This serves both immutable and mutable sets.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSSet-intersectSet"></a>}}
-\if{latex}{\out{\hypertarget{method-RSSet-intersectSet}{}}}
-\subsection{\code{RSSet$intersectSet()}}{
+\if{html}{\out{<a id="method-RSSet-setByIntersectingSet"></a>}}
+\if{latex}{\out{\hypertarget{method-RSSet-setByIntersectingSet}{}}}
+\subsection{\code{RSSet$setByIntersectingSet()}}{
   Returns the intersection with \code{other} without changing either set.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSSet$intersectSet(other)}
+    \preformatted{RSSet$setByIntersectingSet(other)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -368,13 +486,13 @@ This serves both immutable and mutable sets.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSSet-subtractSet"></a>}}
-\if{latex}{\out{\hypertarget{method-RSSet-subtractSet}{}}}
-\subsection{\code{RSSet$subtractSet()}}{
+\if{html}{\out{<a id="method-RSSet-setBySubtractingSet"></a>}}
+\if{latex}{\out{\hypertarget{method-RSSet-setBySubtractingSet}{}}}
+\subsection{\code{RSSet$setBySubtractingSet()}}{
   Returns the members not present in \code{other}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSSet$subtractSet(other)}
+    \preformatted{RSSet$setBySubtractingSet(other)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{

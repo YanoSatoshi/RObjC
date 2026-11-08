@@ -16,3 +16,7 @@ An \link{RSComplex} or \link{RSNAComplex} instance.
 Wrap one base R complex value. \code{NA} values return the shared
 \link{RSNAComplex} instance; values containing \code{NaN} remain \link{RSComplex} values.
 }
+\examples{
+RSComplex_withValue(1 + 2i)$value()
+identical(RSComplex_withValue(NA_complex_), RSComplex$na)
+}

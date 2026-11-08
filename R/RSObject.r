@@ -12,6 +12,9 @@
 #' intended to be used directly by end users. It supports type checking via `isMemberOf()` and `isKindOf()`,
 #' enabling class-based introspection and inheritance-aware comparisons.
 #'
+#' @section Protocols:
+#' - [RSCopying]
+#'
 #' @section Public Methods:
 #' - `initialize()` – Internal constructor that assigns class metadata.
 #' - `class()` – Returns the internal class object of the instance.
@@ -65,14 +68,17 @@ RSObject <- R6::R6Class(
     },
 
 
+
     #' @description Returns the class-object.
     #' @return The class-object (generator).
     class = function() private$.__isa$class,
 
 
+
     #' @description Returns the super-class.
     #' @return The object's super-class (generator).
-    superClass = function() self$class()$robjc_isa$super,
+    superclass = function() self$class()$robjc_isa$super,
+
 
 
     #' @description Checks whether the object's class declared adoption of a
@@ -98,10 +104,11 @@ RSObject <- R6::R6Class(
     #' @param method One non-empty, non-missing character string naming the method.
     #' @return TRUE if the method is publicly callable.
     respondsTo = function(method) {
-      if (!is.character(method) || length(method) != 1L ||
-          is.na(method) || !nzchar(method)) {
+      if (!is.character(method) ||
+          length(method) != 1L ||
+          is.na(method) ||
+          !nzchar(method))
         stop("`method` must be one non-empty character string.", call. = FALSE)
-      }
       exists(method, where = self, inherits = TRUE) && is.function(self[[method]])
     },
 
@@ -229,7 +236,6 @@ RSObject <- R6::R6Class(
     #' the current R session, the address serves as a pointer-like identity.
     #' @return A hexadecimal address string.
     objectID = function() robjc_get_pointer(self),
-
 
 
 

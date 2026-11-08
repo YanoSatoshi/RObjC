@@ -27,7 +27,7 @@ test_that("keyed coding preserves shared and self references", {
   source <- Node$new("hello")
   expect_identical(initialize_calls, 1L)
   source$next_node <- source
-  archive <- RSKeyedArchiver$new()$archive(list(source, source))
+  archive <- RSKeyedArchiver$new()$encode(list(source, source))
   expect_identical(archive$format, "robjc-keyed-1")
   expect_length(archive$records, 1L)
   expect_identical(archive$root$values[[1L]]$id, robjc_get_pointer(source))
@@ -41,7 +41,7 @@ test_that("keyed coding preserves shared and self references", {
       expect_identical(kind, "instance")
       Node
     }
-  )$unarchive()
+  )$decode()
   expect_identical(restored[[1L]], restored[[2L]])
   expect_identical(restored[[1L]], restored[[1L]]$next_node)
   expect_identical(restored[[1L]]$value, "hello")
@@ -51,7 +51,7 @@ test_that("keyed coding preserves shared and self references", {
 test_that("keyed coding validates fields and missing references", {
   coder <- RSKeyedArchiver$new()
   expect_error(coder$encodeObjectForKey(1L, "x"), "No object")
-  expect_error(coder$archive(RSObject$new()), "encodeWithCoder")
+  expect_error(coder$encode(RSObject$new()), "encodeWithCoder")
 
   broken <- list(
     format = "robjc-keyed-1",
@@ -59,7 +59,7 @@ test_that("keyed coding validates fields and missing references", {
     records = list()
   )
   expect_error(
-    RSKeyedUnarchiver$new(broken, function(...) RSObject)$unarchive(),
+    RSKeyedUnarchiver$new(broken, function(...) RSObject)$decode(),
     "Missing archive record"
   )
 })

@@ -25,6 +25,7 @@
 #' - [RSVector] and [RSMutableVector] wrap atomic vectors.
 #' - [RSSet] and [RSMutableSet] store unique objects.
 #' - [RSDictionary] and [RSMutableDictionary] store key-value pairs.
+#' - [RSKeyValuePair] represents a dictionary entry.
 #' - [RSDataFrame] and [RSMutableDataFrame] wrap data frames.
 #'
 #' @section Protocols:

@@ -118,10 +118,11 @@ stopifnot(identical(first$asFactor(), low_high))
 stopifnot(identical(second$asFactor(), small_large))
 ```
 
-## Scalars without an NA subclass
+## Raw values without an NA subclass
 
 Base R's `raw` type has no NA value.
-`RSRaw` is therefore declared with `RSObjectClass()` rather than `RSScalarClass()` and has no NA subclass.
+`RSRaw` therefore inherits directly from `RSObject`, is declared with `RSObjectClass()`, and has no NA subclass.
+Construct it with `RSRaw$new()` or `RSRaw_withValue()`; `RSScalar_withValue()` rejects raw input.
 `RSNull` is a separate Singleton representing R's `NULL`; its role differs from a Scalar NA class.
 
 A class cluster selects a construction path that preserves type-specific information, in addition to representing missing values with a separate class.

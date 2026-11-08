@@ -10,6 +10,11 @@
 #' [RSSingletonClass()] creates the shared instance when `RSNull` is declared.
 #' Access it through `RSNull$null` (an alias of `RSNull$instance`).
 #'
+#' @section Protocols:
+#' - [RSComparable]
+#' - [RSCoding]
+#' - [RSCopying]
+#'
 #' @section Methods:
 #' - `value()` – Always returns `NULL`
 #' - `hash()` – Always returns `0L`
@@ -34,7 +39,7 @@
 RSNull <- RSSingletonClass(
   "RSNull",
   super_class = RSScalar,
-  version     = "0.1.1 beta",
+  version     = "0.2.0",
   public      = list(
     #' @description
     #' Initializes an `RSNull` instance. The factory invokes it to create the
@@ -54,10 +59,14 @@ RSNull <- RSSingletonClass(
       invisible(self)
     },
 
+
+
     #' @description Encodes the null singleton without scalar value fields.
     #' @param coder An [RSKeyedArchiver] recording keyed values.
     #' @return `self`, invisibly.
     encodeWithCoder = function(coder) invisible(self),
+
+
 
     #' @description Returns the already shared null singleton.
     #' @param coder An [RSKeyedUnarchiver] reading keyed values.
@@ -87,17 +96,13 @@ RSNull <- RSSingletonClass(
     #' @param other An object to compare with.
     #' @param na.last Whether missing values sort last.
     #' @return `0L` for the shared `RSNull` instance; otherwise an error.
-    nativeCompare = function(other, na.last = TRUE) {
-      self$compare(other, na.last = na.last)
-    },
+    nativeCompare = function(other, na.last = TRUE) self$compare(other, na.last = na.last),
 
 
 
     #' @description Return a one-line description of the null singleton.
     #' @return A character scalar containing the class name, pointer, and `NULL`.
-    description = function() {
-      sprintf("<%s %s> NULL", self$class()$classname, robjc_get_pointer(self))
-    },
+    description = function() sprintf("<%s %s> NULL", self$class()$classname, robjc_get_pointer(self)),
 
 
 

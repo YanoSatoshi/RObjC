@@ -15,7 +15,7 @@ internal are documented for developers but are not exported.
 \item \code{\link[=robjc_isClass]{robjc_isClass()}} recognizes object class generators.
 \item \code{\link[=robjc_isProtocol]{robjc_isProtocol()}} recognizes protocol generators.
 \item \code{\link[=robjc_isInstance]{robjc_isInstance()}} recognizes instances.
-\item \code{\link[=robjc_doesBelongToRobjc]{robjc_doesBelongToRobjc()}} recognizes instances or generators.
+\item \code{\link[=robjc_isRObjC]{robjc_isRObjC()}} recognizes instances or generators.
 \item \code{\link[=robjc_inheritChain]{robjc_inheritChain()}} follows the classes in an ISA record.
 \item \link{R6GENERATOR} documents the runtime's type markers.
 \item RObjC generators expose \verb{$isEqual(other)} for reference identity and
@@ -33,7 +33,7 @@ lock ISA records for the class factories.
 \item \code{\link[=class_check]{class_check()}} validates a class generator.
 \item \code{\link[=class_getName]{class_getName()}} returns its name.
 \item \code{\link[=class_isSingleton]{class_isSingleton()}} checks the singleton marker.
-\item \code{\link[=class_getSuperClass]{class_getSuperClass()}} returns its direct parent.
+\item \code{\link[=class_getSuperclass]{class_getSuperclass()}} returns its direct parent.
 \item \code{\link[=class_getInstanceMethod]{class_getInstanceMethod()}} searches for a public instance method.
 \item \code{\link[=class_getWholeProtocols]{class_getWholeProtocols()}} collects adopted protocols across ancestors.
 }
@@ -49,11 +49,11 @@ lock ISA records for the class factories.
 \section{Protocol inspection (internal)}{
 
 \itemize{
-\item \code{\link[=protocol_getInheritProtocols]{protocol_getInheritProtocols()}} returns direct parent protocols.
-\item \code{\link[=protocol_getAllInheritProtocols]{protocol_getAllInheritProtocols()}} returns all parent protocols.
+\item \code{\link[=protocol_getParents]{protocol_getParents()}} returns direct parent protocols.
+\item \code{\link[=protocol_getAncestors]{protocol_getAncestors()}} returns all parent protocols.
 \item \code{\link[=protocol_conformsTo]{protocol_conformsTo()}} checks protocol inheritance.
-\item \code{\link[=protocol_getContract]{protocol_getContract()}} returns directly declared method names.
-\item \code{\link[=protocol_getAllInheritContracts]{protocol_getAllInheritContracts()}} returns inherited method names.
+\item \code{\link[=protocol_getContracts]{protocol_getContracts()}} returns directly declared method names.
+\item \code{\link[=protocol_getInheritedContracts]{protocol_getInheritedContracts()}} returns inherited method names.
 \item \code{\link[=protocol_getAllContracts]{protocol_getAllContracts()}} returns all declared method names.
 }
 }

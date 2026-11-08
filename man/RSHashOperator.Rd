@@ -2,14 +2,34 @@
 % Please edit documentation in R/RSHashOperator.r
 \name{RSHashOperator}
 \alias{RSHashOperator}
-\title{RSHashOperator: Shared Hash and Set Operations}
+\title{RSHashOperator: Shared Hash Computation}
 \value{
 The \code{RSHashOperator} class generator.
 }
 \description{
-\code{RSHashOperator} provides scalar hashing and operations on lists of hashable
+\code{RSHashOperator} hashes scalar values and aggregates hashes of lists of
 RObjC objects or Class/Protocol generators. \code{RSSingletonClass()} creates the shared instance eagerly;
 access it through \code{RSHashOperator$instance}.
+}
+\section{Protocols}{
+
+\itemize{
+\item \link{RSHashOperatorProtocol}
+\item \link{RSCopying}
+}
+}
+
+\examples{
+operator <- RSHashOperator$instance
+operator$computeHashCodeWithString("Ada")
+identical(operator$hashForScalar(42L), operator$hashForScalar(42))
+
+objects <- list(RSString_withValue("Ada"), RSNumber_withValue(42L))
+operator$hashesOfObjects(objects)
+operator$combinedHashFromObjects(objects)
+identical(operator$combinedHashFromObjects(objects),
+          operator$combinedHashFromObjects(rev(objects)))
+
 }
 \section{Super class}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{RSHashOperator}
@@ -20,14 +40,8 @@ access it through \code{RSHashOperator$instance}.
     \item \href{#method-RSHashOperator-initialize}{\code{RSHashOperator$new()}}
     \item \href{#method-RSHashOperator-hashForScalar}{\code{RSHashOperator$hashForScalar()}}
     \item \href{#method-RSHashOperator-computeHashCodeWithString}{\code{RSHashOperator$computeHashCodeWithString()}}
-    \item \href{#method-RSHashOperator-hashesOfEachObject}{\code{RSHashOperator$hashesOfEachObject()}}
-    \item \href{#method-RSHashOperator-hashFromObjects}{\code{RSHashOperator$hashFromObjects()}}
-    \item \href{#method-RSHashOperator-areEqualSets}{\code{RSHashOperator$areEqualSets()}}
-    \item \href{#method-RSHashOperator-objectsAlsoIn}{\code{RSHashOperator$objectsAlsoIn()}}
-    \item \href{#method-RSHashOperator-objectsNotIn}{\code{RSHashOperator$objectsNotIn()}}
-    \item \href{#method-RSHashOperator-unionOfSets}{\code{RSHashOperator$unionOfSets()}}
-    \item \href{#method-RSHashOperator-intersectionOfSets}{\code{RSHashOperator$intersectionOfSets()}}
-    \item \href{#method-RSHashOperator-differenceOfSets}{\code{RSHashOperator$differenceOfSets()}}
+    \item \href{#method-RSHashOperator-hashesOfObjects}{\code{RSHashOperator$hashesOfObjects()}}
+    \item \href{#method-RSHashOperator-combinedHashFromObjects}{\code{RSHashOperator$combinedHashFromObjects()}}
   }
 }
 \if{html}{\out{<details><summary>Inherited methods</summary>
@@ -45,7 +59,7 @@ access it through \code{RSHashOperator$instance}.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superclass"><a href='../../robjc/html/RSObject.html#method-RSObject-superclass'><code>RSObject$superclass()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
@@ -111,14 +125,14 @@ Intermediate calculations use doubles to avoid R integer overflow.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSHashOperator-hashesOfEachObject"></a>}}
-\if{latex}{\out{\hypertarget{method-RSHashOperator-hashesOfEachObject}{}}}
-\subsection{\code{RSHashOperator$hashesOfEachObject()}}{
+\if{html}{\out{<a id="method-RSHashOperator-hashesOfObjects"></a>}}
+\if{latex}{\out{\hypertarget{method-RSHashOperator-hashesOfObjects}{}}}
+\subsection{\code{RSHashOperator$hashesOfObjects()}}{
   Computes a hash for each object in a list using its \code{hash()} method.
 Rejects a missing hash returned by any object.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSHashOperator$hashesOfEachObject(objects)}
+    \preformatted{RSHashOperator$hashesOfObjects(objects)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -134,16 +148,16 @@ Rejects a missing hash returned by any object.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSHashOperator-hashFromObjects"></a>}}
-\if{latex}{\out{\hypertarget{method-RSHashOperator-hashFromObjects}{}}}
-\subsection{\code{RSHashOperator$hashFromObjects()}}{
+\if{html}{\out{<a id="method-RSHashOperator-combinedHashFromObjects"></a>}}
+\if{latex}{\out{\hypertarget{method-RSHashOperator-combinedHashFromObjects}{}}}
+\subsection{\code{RSHashOperator$combinedHashFromObjects()}}{
   Computes a single aggregate hash value by XOR-ing the hashes of a list of objects.
 A missing component hash is rejected before aggregation.
 The result passes through \code{\link[=robjc_normalize_hash]{robjc_normalize_hash()}}, mapping R's
 \code{NA_integer_} bit pattern to \code{0L}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{RSHashOperator$hashFromObjects(objects)}
+    \preformatted{RSHashOperator$combinedHashFromObjects(objects)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -155,154 +169,6 @@ The result passes through \code{\link[=robjc_normalize_hash]{robjc_normalize_has
   }
   \subsection{Returns}{
     One non-missing aggregate integer hash code.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSHashOperator-areEqualSets"></a>}}
-\if{latex}{\out{\hypertarget{method-RSHashOperator-areEqualSets}{}}}
-\subsection{\code{RSHashOperator$areEqualSets()}}{
-  Determines whether two object lists represent the same set.
-Uses both hash comparison and \code{isEqual()} for deep equivalence. Missing
-object hashes raise an error. List names do not affect equality.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSHashOperator$areEqualSets(obj1, obj2)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{obj1}}{A list of hashable RObjC objects or Class/Protocol generators.}
-      \item{\code{obj2}}{Another such list to compare against.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    \code{TRUE} if the sets are equal in content and order-independent; otherwise \code{FALSE}.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSHashOperator-objectsAlsoIn"></a>}}
-\if{latex}{\out{\hypertarget{method-RSHashOperator-objectsAlsoIn}{}}}
-\subsection{\code{RSHashOperator$objectsAlsoIn()}}{
-  Returns the subset of objects in \code{obj1} that are also present in \code{obj2}.
-Matching is determined via both hash equality and \code{isEqual()}. Missing
-object hashes raise an error.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSHashOperator$objectsAlsoIn(obj1, obj2)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{obj1}}{A list of hashable RObjC objects or Class/Protocol generators to filter.}
-      \item{\code{obj2}}{Another such list to match against.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A list of objects from \code{obj1} that are also found in \code{obj2}.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSHashOperator-objectsNotIn"></a>}}
-\if{latex}{\out{\hypertarget{method-RSHashOperator-objectsNotIn}{}}}
-\subsection{\code{RSHashOperator$objectsNotIn()}}{
-  Returns the subset of objects in \code{obj1} that are not present in \code{obj2}.
-Uses hash filtering for early rejection and \code{isEqual()} for final match
-checking. Missing object hashes raise an error.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSHashOperator$objectsNotIn(obj1, obj2)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{obj1}}{A list of hashable RObjC objects or Class/Protocol generators to filter.}
-      \item{\code{obj2}}{Another such list used as the exclusion base.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A list of objects in \code{obj1} not found in \code{obj2}.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSHashOperator-unionOfSets"></a>}}
-\if{latex}{\out{\hypertarget{method-RSHashOperator-unionOfSets}{}}}
-\subsection{\code{RSHashOperator$unionOfSets()}}{
-  Returns the union of two sets, combining all unique elements from \code{obj1} and \code{obj2}.
-This is a non-destructive operation: the result includes all elements of \code{obj2},
-plus elements of \code{obj1} not found in \code{obj2}.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSHashOperator$unionOfSets(obj1, obj2)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{obj1}}{A list of hashable RObjC objects or Class/Protocol generators.}
-      \item{\code{obj2}}{Another such list.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A list representing the union of both sets.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSHashOperator-intersectionOfSets"></a>}}
-\if{latex}{\out{\hypertarget{method-RSHashOperator-intersectionOfSets}{}}}
-\subsection{\code{RSHashOperator$intersectionOfSets()}}{
-  Returns the intersection of two sets — i.e., elements common to both \code{obj1} and \code{obj2}.
-Matching is based on both hash and \code{isEqual()} checks.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSHashOperator$intersectionOfSets(obj1, obj2)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{obj1}}{A list of hashable RObjC objects or Class/Protocol generators.}
-      \item{\code{obj2}}{Another such list.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A list of objects present in both \code{obj1} and \code{obj2}.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-RSHashOperator-differenceOfSets"></a>}}
-\if{latex}{\out{\hypertarget{method-RSHashOperator-differenceOfSets}{}}}
-\subsection{\code{RSHashOperator$differenceOfSets()}}{
-  Returns the difference of two sets — i.e., elements in \code{obj1} that are not in \code{obj2}.
-Functionally equivalent to \code{objectsNotIn()}.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{RSHashOperator$differenceOfSets(obj1, obj2)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{obj1}}{A list of hashable RObjC objects or Class/Protocol generators.}
-      \item{\code{obj2}}{Another such list to exclude.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A list of objects in \code{obj1} but not in \code{obj2}.
   }
 }
 

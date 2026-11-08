@@ -2,101 +2,28 @@
 % Please edit documentation in R/RSHashOperatorProtocol.r
 \name{RSHashOperatorProtocol}
 \alias{RSHashOperatorProtocol}
-\title{RSHashOperatorProtocol Protocol}
+\title{RSHashOperatorProtocol: Hash Computation Contract}
 \usage{
 RSHashOperatorProtocol
 }
 \description{
-The \code{RSHashOperatorProtocol} protocol names hash operator methods.
-A class can declare adoption of this protocol without implementing every
-method; \code{conformsTo()} checks the declaration. An operator must implement
-the methods required by the operation that uses it. For example,
-\link{RSMutableVector} needs \code{hashForScalar()}, while \link{RSMutableArray} needs
-\code{hashFromObjects()} and \code{hashesOfEachObject()}.
-
-The protocol declares these method names:
-}
-\note{
-All methods must be deterministic and consistent with the semantics of
-\code{hash()} and \code{isEqual()} on RS objects. Protocol conformance
-checks the adoption declaration, not method presence or return types.
-Concrete consumers impose additional requirements: \link{RSMutableVector} collects
-\code{hashForScalar()} results as integers, while \link{RSMutableArray} documents
-\code{hashesOfEachObject()} as an integer vector and \code{hashFromObjects()} as one
-integer hash. When an array is stored as a dictionary key or set member,
-its \code{hash()} must return one nonmissing integer. A custom \code{hash()} should
-return \code{\link[=robjc_normalize_hash]{robjc_normalize_hash()}} applied to its final computed value.
-Modules implementing this protocol are used by scalar, array, set, and
-dictionary classes.
+\code{RSHashOperatorProtocol} declares the four hash computation methods
+implemented by \link{RSHashOperator}. Collection classes use the shared
+\code{RSHashOperator$instance}; they do not accept per-instance operators.
 }
 \section{Declared Methods}{
 
-\describe{
-
-\item{\code{hashForScalar(val)}}{
-Computes a deterministic hash value from a scalar input such as a string, number, or logical.
-The output must support equality comparison and be stable across sessions.
-The specific format (e.g., integer, string, raw vector) is left to the implementation.
+\itemize{
+\item \code{hashForScalar(val)} returns one integer hash for a scalar R value.
+\item \code{computeHashCodeWithString(string)} returns one integer hash for a string.
+\item \code{hashesOfObjects(objects)} returns an integer hash for each object.
+\item \code{combinedHashFromObjects(objects)} returns one aggregate integer hash.
 }
 
-\item{\code{computeHashCodeWithString(string)}}{
-Generates a hash value from a UTF-8 string input.
-This method is typically used to create hashes from textual keys or labels.
-The return value may be of any hashable type (e.g., numeric, uint64) as long as equality semantics apply.
-}
-
-\item{\code{hashesOfEachObject(objects)}}{
-Given a list of objects that implement a \code{hash()} method, this method returns
-their respective hash values in a vector or list.
-The return type must support element-wise equality comparison and must align with how object identity is determined.
-}
-
-\item{\code{hashFromObjects(objects)}}{
-Computes an aggregate hash value from a set of objects.
-This is used to represent the collective identity of a group of elements.
-The method must return a deterministic and comparable value (e.g., using reduction, XOR, concatenation, etc.).
-The internal strategy is implementation-dependent.
-}
-
-\item{\code{areEqualSets(obj1, obj2)}}{
-Returns \code{TRUE} if two object lists represent the same unordered set.
-Internally, the function must compare both hash values and the results of
-each element’s \code{isEqual()} method.
-This method is available for comparing lists of hashable objects independently
-of the native-backed set and dictionary implementations.
-}
-
-\item{\code{objectsAlsoIn(obj1, obj2)}}{
-Returns the list of objects in \code{obj1} that are also present in \code{obj2}.
-Matching requires both hash equality and \code{isEqual()} returning \code{TRUE}.
-This is used for set intersection.
-}
-
-\item{\code{objectsNotIn(obj1, obj2)}}{
-Returns a list of objects from \code{obj1} that are not in \code{obj2}.
-Objects are excluded if both hash and \code{isEqual()} match against any element in \code{obj2}.
-Used for set difference and filtering.
-}
-
-\item{\code{unionOfSets(obj1, obj2)}}{
-Returns the union of two object sets.
-This includes all elements of \code{obj2} and any unique elements from \code{obj1}.
-Duplicates are avoided based on hash and equality semantics.
-}
-
-\item{\code{intersectionOfSets(obj1, obj2)}}{
-Returns objects common to both \code{obj1} and \code{obj2}.
-Equivalent to \code{objectsAlsoIn(obj1, obj2)}; provided for semantic clarity.
-}
-
-\item{\code{differenceOfSets(obj1, obj2)}}{
-Returns objects in \code{obj1} that are not found in \code{obj2}.
-Equivalent to \code{objectsNotIn(obj1, obj2)}; included for expressiveness.
-}
-
-}
+Hashes must agree with the equality semantics of their inputs. Aggregate
+hashes should pass through \code{\link[=robjc_normalize_hash]{robjc_normalize_hash()}} to avoid \code{NA_integer_}.
 }
 
 \seealso{
-\code{\link{RSHashOperator}} for a reference implementation.
+\link{RSHashOperator}
 }

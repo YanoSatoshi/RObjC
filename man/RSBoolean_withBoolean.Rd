@@ -15,3 +15,7 @@ An \link{RSBoolean} or \link{RSNABoolean} instance.
 \description{
 Wrap a logical scalar. Missing values produce \link{RSNABoolean}.
 }
+\examples{
+RSBoolean_withBoolean(TRUE)$value()
+identical(RSBoolean_withBoolean(NA), RSBoolean$na)
+}

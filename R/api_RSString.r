@@ -8,6 +8,12 @@
 #'   `RSString_withValue`; a standard factor scalar for `RSFactor_withFactor`.
 #' @param string A character scalar or an `RSString` instance.
 #' @return The corresponding scalar wrapper.
+#' @examples
+#' RSString_empty()$value()
+#' RSString_withValue("Ada")$value()
+#' RSString_withString(RSString_withValue("Ada"))$value()
+#' RSFactor_withFactor(factor("red", levels = c("red", "blue")))$value()
+#' identical(RSString_withValue(NA_character_), RSString$na)
 #' @name string_constructors
 NULL
 
@@ -15,39 +21,45 @@ NULL
 #' @export
 RSString_empty <- function() RSString$new("")
 
+
+
 #' @rdname string_constructors
 #' @export
 RSString_withValue <- function(val) {
-  valid_class <- (is.character(val) && !is.object(val)) ||
+  valid_class <-
+    (is.character(val) && !is.object(val)) ||
     identical(class(val), "factor") ||
     identical(class(val), c("ordered", "factor"))
-  if (!valid_class || length(val) != 1L || !is.null(dim(val))) {
+  if (!valid_class || length(val) != 1L || !is.null(dim(val)))
     stop("`val` must be a character or factor scalar.", call. = FALSE)
-  }
   if (is.na(val)) return(RSString$na)
   RSString$new(val)
 }
 
+
+
 #' @rdname string_constructors
 #' @export
 RSString_withString <- function(string) {
-  if (robjc_isInstance(string) && string$isKindOf(RSString)) {
+  if (robjc_isInstance(string) && string$isKindOf(RSString))
     return(RSString_withValue(as.character(string$value())))
-  }
-  if (!is.character(string) || length(string) != 1L) {
+  if (!is.character(string) || length(string) != 1L)
     stop("`string` must be a character scalar or RSString.", call. = FALSE)
-  }
   RSString_withValue(string)
 }
+
+
 
 #' @rdname string_constructors
 #' @export
 RSFactor_withFactor <- function(val) {
-  standard_class <- identical(class(val), "factor") ||
+  standard_class <-
+    identical(class(val), "factor") ||
     identical(class(val), c("ordered", "factor"))
-  if (!standard_class || length(val) != 1L || !is.null(dim(val))) {
+  if (!standard_class ||
+      length(val) != 1L ||
+      !is.null(dim(val)))
     stop("`val` must be a factor scalar.", call. = FALSE)
-  }
   if (is.na(val)) return(RSNAFactor$new(val))
   RSFactor$new(val)
 }

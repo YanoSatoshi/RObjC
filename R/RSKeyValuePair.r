@@ -9,6 +9,10 @@
 #' The class provides read-only accessors for the key and value. Equality and hashing are based
 #' solely on the key, which allows consistent behavior in hashed containers such as dictionaries or sets.
 #'
+#' @section Protocols:
+#' - [RSCoding]
+#' - [RSCopying]
+#'
 #' @section Inheritance:
 #' Inherits from [`RSObject`]. Unlike earlier versions, this class is now concrete and can be instantiated directly.
 #'
@@ -23,13 +27,26 @@
 #' - `encodeWithCoder()` and `initWithCoder()`: Preserve the key and value references.
 #' - `objectsForEncoding()`: Returns instance members for legacy serialization hooks.
 #'
-#' @return A concrete instance of `RSKeyValuePair`.
+#' @examples
+#' pair <- RSKeyValuePair$new(RSString_withValue("answer"),
+#'                            RSNumber_withValue(42L))
+#' pair$key()$value()
+#' pair$value()$value()
+#' pair$isEqual(RSKeyValuePair$new(RSString_withValue("answer"),
+#'                                 RSNumber_withValue(0L)))
+#'
+#' dictionary <- RSMutableDictionary$new()
+#' dictionary$addEntry(pair)
+#' dictionary$objectForKey(RSString_withValue("answer"))$value()
+#'
+#' @return The `RSKeyValuePair` class generator.
 #'
 #' @seealso [RSObject], [RSMutableDictionary]
 #'
+#' @export
 RSKeyValuePair <- RSObjectClass(
   "RSKeyValuePair",
-  version = "0.1.0 beta",
+  version = "0.2.0",
   super_class = RSObject,
   protocols = list(RSCoding),
   private     = list(
@@ -45,18 +62,17 @@ RSKeyValuePair <- RSObjectClass(
     #' @param value An RObjC object, class generator, or protocol generator.
     #' @return A new `RSKeyValuePair` instance.
     initialize = function(key, value) {
-      stopifnot(
-        "Key must be an RObjC object, class, or protocol." =
-          robjc_isInstance(key) || robjc_isMetaClass(key),
-        "Value must be an RObjC object, class, or protocol." =
-          robjc_isInstance(value) || robjc_isClass(value) ||
-          robjc_isProtocol(value)
-      )
+      if (!robjc_isRObjC(key))
+        stop("Key must be an RObjC object, class, or protocol.", call. = FALSE)
+      if (!robjc_isRObjC(value))
+        stop("Value must be an RObjC object, class, or protocol.", call. = FALSE)
       super$initialize()
       private$.key <- key
       private$.value <- value
       invisible(self)
     },
+
+
 
     #' @description Encodes the key and value as separate references.
     #' @param coder An [RSKeyedArchiver] recording keyed values.
@@ -67,23 +83,22 @@ RSKeyValuePair <- RSObjectClass(
       invisible(self)
     },
 
+
+
     #' @description Restores the key and value without calling `initialize()`.
     #' @param coder An [RSKeyedUnarchiver] reading keyed values.
     #' @return `self`, invisibly.
     initWithCoder = function(coder) {
       key <- coder$decodeObjectForKey("key")
       value <- coder$decodeObjectForKey("value")
-      if (!robjc_isInstance(key) && !robjc_isMetaClass(key))
-        stop("Decoded key must be an RObjC object, class, or protocol.",
-             call. = FALSE)
-      if (!robjc_isInstance(value) && !robjc_isMetaClass(value))
-        stop("Decoded value must be an RObjC object, class, or protocol.",
-             call. = FALSE)
+      if (!robjc_isRObjC(key))
+        stop("Decoded key must be an RObjC object, class, or protocol.", call. = FALSE)
+      if (!robjc_isRObjC(value))
+        stop("Decoded value must be an RObjC object, class, or protocol.", call. = FALSE)
       private$.key <- key
       private$.value <- value
       invisible(self)
     },
-
 
 
 
@@ -107,7 +122,7 @@ RSKeyValuePair <- RSObjectClass(
     #'
     #' @examples
     #' # A pair with an RSNull value permits replacing its key.
-    #' pair <- robjc:::RSKeyValuePair$new(RSNull$null, RSNull$null)
+    #' pair <- RSKeyValuePair$new(RSNull$null, RSNull$null)
     #' pair$setKey(RSString_withValue("some_key"))
     #'
     #' \dontrun{
@@ -116,7 +131,7 @@ RSKeyValuePair <- RSObjectClass(
     #' pair$setKey(RSString$new("b"))         # Error: not allowed when value is non-null
     #' }
     setKey = function(key) {
-      if (!robjc_isInstance(key) && !robjc_isMetaClass(key))
+      if (!robjc_isRObjC(key))
         stop("Key must be an RObjC object, class, or protocol.", call. = FALSE)
       if (!identical(private$.value, RSNull$null)) {
         stop("Key replacing available only when value is RSNull. RSKeyValuePair")
@@ -131,7 +146,6 @@ RSKeyValuePair <- RSObjectClass(
     #' Returns the value object associated with this pair.
     #' @return The stored RObjC object, class generator, or protocol generator.
     value = function() private$.value,
-
 
 
 

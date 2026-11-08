@@ -6,13 +6,20 @@
 #'   including `NA` and `NaN`.
 #' @param value An unclassed integer or double scalar as specified by the function name.
 #' @return An [RSNumber] or [RSNANumber] instance.
+#' @examples
+#' RSNumber_withValue(2.5)$value()
+#' RSNumber_withInteger(2L)$value()
+#' RSNumber_withDouble(2.5)$value()
+#' identical(RSNumber_withValue(NA_real_), RSNumber$na)
 #' @name number_constructors
 NULL
 
 #' @rdname number_constructors
 #' @export
 RSNumber_withValue <- function(val) {
-  if (!is.numeric(val) || length(val) != 1L || !is.null(dim(val)) ||
+  if (!is.numeric(val) ||
+      length(val) != 1L ||
+      !is.null(dim(val)) ||
       !(typeof(val) %in% c("integer", "double")))
     stop("`val` must be an integer or double scalar.", call. = FALSE)
   if (is.object(val))
@@ -21,6 +28,8 @@ RSNumber_withValue <- function(val) {
   RSNumber$new(val)
 }
 
+
+
 #' @rdname number_constructors
 #' @export
 RSNumber_withInteger <- function(value) {
@@ -28,6 +37,8 @@ RSNumber_withInteger <- function(value) {
     stop("`value` must be an integer scalar.", call. = FALSE)
   RSNumber_withValue(value)
 }
+
+
 
 #' @rdname number_constructors
 #' @export

@@ -27,13 +27,13 @@
 #' Printable <- RSProtocolClass(
 #'   "Printable",
 #'   contract_methods = "description",
-#'   version = "0.1.0 beta"
+#'   version = "0.2.0"
 #' )
 #' robjc_isProtocol(Printable)
 #' PrintableObject <- RSObjectClass(
 #'   "PrintableObject",
 #'   protocols = list(Printable),
-#'   version = "0.1.0 beta"
+#'   version = "0.2.0"
 #' )
 #' PrintableObject$new()$conformsTo(Printable)
 #'

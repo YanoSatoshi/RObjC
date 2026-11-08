@@ -8,6 +8,11 @@
 #' storing it in private `.val`. Generated NA subclasses receive `na_value`
 #' through their initializer.
 #'
+#' @section Protocols:
+#' - [RSComparable]
+#' - [RSCoding]
+#' - [RSCopying]
+#'
 #' @details
 #' A regular subclass may define `initialize(val)` to validate its value type
 #' and return `super$initialize(val)` so `$new(NA)` can return the companion.
@@ -19,12 +24,18 @@
 #' class's `$na` instance. A non-singleton NA companion accepts only an `NA`
 #' value when constructed directly. `NaN` remains a regular scalar value.
 #'
+#' @examples
+#' value <- RSScalar_withValue(42L)
+#' value$isKindOf(RSScalar)
+#' value$value()
+#' identical(RSScalar_withValue(NA_integer_), RSNumber$na)
+#'
 #' @return The `RSScalar` class generator.
 #'
 #' @export
 RSScalar <- RSObjectClass(
   "RSScalar",
-  version     = "0.1.0 beta",
+  version     = "0.2.0",
   super_class = RSObject,
   protocols   = list(RSComparable, RSCoding),
   public      = list(
@@ -37,21 +48,19 @@ RSScalar <- RSObjectClass(
     #' @return The initialized instance or its NA companion, invisibly.
     initialize = function(val) {
       if (self$isMemberOf(RSScalar))
-        stop(
-          "RSScalar is abstract and cannot be instantiated directly.",
-          call. = FALSE
-        )
+        stop("RSScalar is abstract and cannot be instantiated directly.", call. = FALSE)
       super$initialize()
       if ((!is.atomic(val) && !inherits(val, "POSIXlt")) ||
-          length(val) != 1L || !is.null(dim(val)))
+          length(val) != 1L ||
+          !is.null(dim(val)))
         stop("`val` must be a scalar.", call. = FALSE)
       if (isTRUE(self$class()$isNAClass) &&
-          !(isTRUE(is.na(val)) && !isTRUE(is.nan(val)))) {
+          !(isTRUE(is.na(val)) && !isTRUE(robjc_is_nan_scalar(val))))
         stop("NA companion classes require an NA value.", call. = FALSE)
-      }
       if (isTRUE(is.na(val)) &&
-          !isTRUE(is.nan(val)) &&
-          !isTRUE(self$class()$isNAClass)) {
+          !isTRUE(robjc_is_nan_scalar(val)) &&
+          !isTRUE(self$class()$isNAClass))
+      {
         na_slot <- self$class()$robjc_isa$slot
         if (robjc_isInstance(na_slot))
           return(invisible(na_slot))
@@ -62,6 +71,7 @@ RSScalar <- RSObjectClass(
     },
 
 
+
     #' @description Encodes the underlying R scalar as logical state.
     #' @param coder An [RSKeyedArchiver] recording keyed values.
     #' @return `self`, invisibly.
@@ -69,6 +79,7 @@ RSScalar <- RSObjectClass(
       coder$encodeObjectForKey(private$.val, "value")
       invisible(self)
     },
+
 
 
     #' @description Restores the underlying R scalar without calling
@@ -81,14 +92,14 @@ RSScalar <- RSObjectClass(
           length(val) != 1L || !is.null(dim(val)))
         stop("Decoded scalar value must be a scalar.", call. = FALSE)
       if (isTRUE(self$class()$isNAClass) &&
-          !(isTRUE(is.na(val)) && !isTRUE(is.nan(val))))
+          !(isTRUE(is.na(val)) && !isTRUE(robjc_is_nan_scalar(val))))
         stop("NA companion classes require an NA value.", call. = FALSE)
-      if (isTRUE(is.na(val)) && !isTRUE(is.nan(val)) &&
+      if (isTRUE(is.na(val)) &&
+          !isTRUE(robjc_is_nan_scalar(val)) &&
           !isTRUE(self$class()$isNAClass) &&
           !identical(self$class(), RSFactor))
         stop("A regular scalar class cannot decode an NA value.", call. = FALSE)
-      if (inherits(self$class(), ROBJC_SINGLETON) &&
-          !identical(private$.val, val))
+      if (inherits(self$class(), ROBJC_SINGLETON) && !identical(private$.val, val))
         stop("A singleton scalar cannot be changed during decoding.", call. = FALSE)
       private$.val <- val
       invisible(self)
@@ -109,14 +120,14 @@ RSScalar <- RSObjectClass(
         stop("`na.last` must be TRUE or FALSE.", call. = FALSE)
       if (!private$.comparable(other))
         stop("Scalar classes are not comparable.", call. = FALSE)
-      self_na <- isTRUE(is.na(self$value()))
-      other_na <- isTRUE(is.na(other$value()))
-      if (self_na && other_na) return(0L)
-      if (self_na) return(if (na.last) 1L else -1L)
-      if (other_na) return(if (na.last) -1L else 1L)
+      self_na   <- isTRUE(is.na(self$value()))
+      other_na  <- isTRUE(is.na(other$value()))
+      if (self_na && other_na)          return(0L)
+      if (self_na)                      return(if (na.last) 1L else -1L)
+      if (other_na)                     return(if (na.last) -1L else 1L)
       values <- xtfrm(c(self$nativeValue(), other$nativeValue()))
-      if (values[[1L]] < values[[2L]]) return(-1L)
-      if (values[[1L]] > values[[2L]]) return(1L)
+      if (values[[1L]] < values[[2L]])  return(-1L)
+      if (values[[1L]] > values[[2L]])  return(1L)
       0L
     },
 
@@ -141,8 +152,8 @@ RSScalar <- RSObjectClass(
     isEqual = function(other) {
       if (!private$.comparable(other))
         return(FALSE)
-      self_nan  <- isTRUE(is.nan(self$value()))
-      other_nan <- isTRUE(is.nan(other$value()))
+      self_nan  <- isTRUE(robjc_is_nan_scalar(self$value()))
+      other_nan <- isTRUE(robjc_is_nan_scalar(other$value()))
       if (self_nan || other_nan)
         return(self_nan && other_nan && identical(self$value(), other$value()))
       self_na   <- isTRUE(is.na(self$value()))
@@ -176,22 +187,22 @@ RSScalar <- RSObjectClass(
         stop("`na.last` must be TRUE or FALSE.", call. = FALSE)
       if (!robjc_isInstance(other) || !other$isKindOf(RSScalar))
         stop("`other` must be an RSScalar object.", call. = FALSE)
-      left <- self$nativeValue()
+      left  <- self$nativeValue()
       right <- other$nativeValue()
       if (is.null(left) || is.null(right))
         stop("Null objects are not comparable.", call. = FALSE)
-      left_na <- isTRUE(is.na(left))
+      left_na   <- isTRUE(is.na(left))
       right_na <- isTRUE(is.na(right))
-      if (left_na && right_na) return(0L)
-      if (left_na) return(if (na.last) 1L else -1L)
-      if (right_na) return(if (na.last) -1L else 1L)
-      if (isTRUE(left == right)) return(0L)
+      if (left_na && right_na)    return(0L)
+      if (left_na)                return(if (na.last) 1L  else -1L)
+      if (right_na)               return(if (na.last) -1L else 1L)
+      if (isTRUE(left == right))  return(0L)
       less <- left < right
-      if (isTRUE(less)) return(-1L)
+      if (isTRUE(less))           return(-1L)
       if (length(less) != 1L || is.na(less))
         stop("Native values have no ordering.", call. = FALSE)
       greater <- left > right
-      if (isTRUE(greater)) return(1L)
+      if (isTRUE(greater))        return(1L)
       stop("Native values have no ordering.", call. = FALSE)
     },
 
@@ -201,8 +212,9 @@ RSScalar <- RSObjectClass(
     #' The result passes through [robjc_normalize_hash()].
     #' @return One non-missing integer hash code.
     hash = function() {
-      hash_code <- if (isTRUE(is.na(private$.val))) 0L else
-        RSHashOperator$instance$hashForScalar(private$.val)
+      hash_code <-
+        if (isTRUE(is.na(private$.val))) 0L
+        else RSHashOperator$instance$hashForScalar(private$.val)
       robjc_normalize_hash(hash_code)
     },
 
@@ -215,8 +227,9 @@ RSScalar <- RSObjectClass(
   private = list(
     .val = NULL,
     .comparable = function(other) {
-      robjc_isInstance(other) && other$isKindOf(RSScalar) &&
-        (self$isKindOf(other$class()) || other$isKindOf(self$class()))
+      robjc_isInstance(other) &&
+      other$isKindOf(RSScalar) &&
+      (self$isKindOf(other$class()) || other$isKindOf(self$class()))
     }
   )
 )

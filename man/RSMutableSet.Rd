@@ -8,16 +8,37 @@
 It shares the native storage, membership, equality, coding, and set
 operations of its parent. Inserted objects are retained rather than copied.
 }
+\section{Protocols}{
+
+\itemize{
+\item \link{RSCopying}
+\item \link{RSMutableCopying}
+\item \link{RSListing}
+\item \link{RSCoding}
+}
+}
+
 \section{Key Operations}{
 
 \itemize{
 \item \code{addObject()} adds an object if no equal member is present.
 \item \code{removeObject()} and \code{removeAllObjects()} remove members.
+\item \code{uniteSet()}, \code{intersectSet()}, and \code{subtractSet()} update membership
+using another set.
 \item \code{copy()} returns an independent immutable \link{RSSet}.
 \item \code{mutableCopy()} returns an independent mutable set.
 }
 }
 
+\examples{
+editable <- RSMutableSet$new(list(RSString_withValue("Ada")))
+snapshot <- editable$copy()
+editable$addObject(RSString_withValue("Ben"))
+editable$uniteSet(RSSet_withObject(RSString_withValue("Cy")))
+editable$containsObject(RSString_withValue("Cy"))
+snapshot$count()  # The immutable copy still has one member.
+
+}
 \section{Super classes}{
 \code{\link[robjc:RSObject]{RSObject}} -> \code{\link[robjc:RSSet]{RSSet}} -> \code{RSMutableSet}
 }
@@ -28,6 +49,9 @@ operations of its parent. Inserted objects are retained rather than copied.
     \item \href{#method-RSMutableSet-addObject}{\code{RSMutableSet$addObject()}}
     \item \href{#method-RSMutableSet-removeObject}{\code{RSMutableSet$removeObject()}}
     \item \href{#method-RSMutableSet-removeAllObjects}{\code{RSMutableSet$removeAllObjects()}}
+    \item \href{#method-RSMutableSet-uniteSet}{\code{RSMutableSet$uniteSet()}}
+    \item \href{#method-RSMutableSet-intersectSet}{\code{RSMutableSet$intersectSet()}}
+    \item \href{#method-RSMutableSet-subtractSet}{\code{RSMutableSet$subtractSet()}}
     \item \href{#method-RSMutableSet-copy}{\code{RSMutableSet$copy()}}
   }
 }
@@ -42,7 +66,7 @@ operations of its parent. Inserted objects are retained rather than copied.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="isMemberOf"><a href='../../robjc/html/RSObject.html#method-RSObject-isMemberOf'><code>RSObject$isMemberOf()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superclass"><a href='../../robjc/html/RSObject.html#method-RSObject-superclass'><code>RSObject$superclass()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="allObjects"><a href='../../robjc/html/RSSet.html#method-RSSet-allObjects'><code>RSSet$allObjects()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="allObjectsAsList"><a href='../../robjc/html/RSSet.html#method-RSSet-allObjectsAsList'><code>RSSet$allObjectsAsList()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="anyObject"><a href='../../robjc/html/RSSet.html#method-RSSet-anyObject'><code>RSSet$anyObject()</code></a></span></li>
@@ -52,14 +76,18 @@ operations of its parent. Inserted objects are retained rather than copied.
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="encodeWithCoder"><a href='../../robjc/html/RSSet.html#method-RSSet-encodeWithCoder'><code>RSSet$encodeWithCoder()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="hash"><a href='../../robjc/html/RSSet.html#method-RSSet-hash'><code>RSSet$hash()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="initWithCoder"><a href='../../robjc/html/RSSet.html#method-RSSet-initWithCoder'><code>RSSet$initWithCoder()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="intersectSet"><a href='../../robjc/html/RSSet.html#method-RSSet-intersectSet'><code>RSSet$intersectSet()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="isEqual"><a href='../../robjc/html/RSSet.html#method-RSSet-isEqual'><code>RSSet$isEqual()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="isSubsetOfSet"><a href='../../robjc/html/RSSet.html#method-RSSet-isSubsetOfSet'><code>RSSet$isSubsetOfSet()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="member"><a href='../../robjc/html/RSSet.html#method-RSSet-member'><code>RSSet$member()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="mutableCopy"><a href='../../robjc/html/RSSet.html#method-RSSet-mutableCopy'><code>RSSet$mutableCopy()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="objectsForEncoding"><a href='../../robjc/html/RSSet.html#method-RSSet-objectsForEncoding'><code>RSSet$objectsForEncoding()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="prepareForSerialization"><a href='../../robjc/html/RSSet.html#method-RSSet-prepareForSerialization'><code>RSSet$prepareForSerialization()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="subtractSet"><a href='../../robjc/html/RSSet.html#method-RSSet-subtractSet'><code>RSSet$subtractSet()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="uniteSet"><a href='../../robjc/html/RSSet.html#method-RSSet-uniteSet'><code>RSSet$uniteSet()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="setByAddingObject"><a href='../../robjc/html/RSSet.html#method-RSSet-setByAddingObject'><code>RSSet$setByAddingObject()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="setByAddingObjectsFromArray"><a href='../../robjc/html/RSSet.html#method-RSSet-setByAddingObjectsFromArray'><code>RSSet$setByAddingObjectsFromArray()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="setByAddingObjectsFromSet"><a href='../../robjc/html/RSSet.html#method-RSSet-setByAddingObjectsFromSet'><code>RSSet$setByAddingObjectsFromSet()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="setByIntersectingSet"><a href='../../robjc/html/RSSet.html#method-RSSet-setByIntersectingSet'><code>RSSet$setByIntersectingSet()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="setBySubtractingSet"><a href='../../robjc/html/RSSet.html#method-RSSet-setBySubtractingSet'><code>RSSet$setBySubtractingSet()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSSet" data-id="setByUnitingSet"><a href='../../robjc/html/RSSet.html#method-RSSet-setByUnitingSet'><code>RSSet$setByUnitingSet()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
@@ -139,6 +167,72 @@ with a valid integer \code{hash()}. R \code{NULL} is rejected.}
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{RSMutableSet$removeAllObjects()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSMutableSet-uniteSet"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableSet-uniteSet}{}}}
+\subsection{\code{RSMutableSet$uniteSet()}}{
+  Adds every member of \code{other} to the receiver.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$uniteSet(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{An \link{RSSet} or \link{RSMutableSet}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSMutableSet-intersectSet"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableSet-intersectSet}{}}}
+\subsection{\code{RSMutableSet$intersectSet()}}{
+  Retains only members also present in \code{other}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$intersectSet(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{An \link{RSSet} or \link{RSMutableSet}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{self}, invisibly.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RSMutableSet-subtractSet"></a>}}
+\if{latex}{\out{\hypertarget{method-RSMutableSet-subtractSet}{}}}
+\subsection{\code{RSMutableSet$subtractSet()}}{
+  Removes members also present in \code{other}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{RSMutableSet$subtractSet(other)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{other}}{An \link{RSSet} or \link{RSMutableSet}.}
+    }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{

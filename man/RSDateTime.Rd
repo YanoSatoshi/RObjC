@@ -11,6 +11,15 @@ represented instant and the input's time zone when one is specified.
 Values can be hashed and compared, and the class is suitable for use in
 collections such as \code{RSSet} or \code{RSDictionary}.
 }
+\section{Protocols}{
+
+\itemize{
+\item \link{RSComparable}
+\item \link{RSCoding}
+\item \link{RSCopying}
+}
+}
+
 \section{Methods}{
 
 \itemize{
@@ -24,9 +33,10 @@ Use \code{RSDateTime_withDateTime(val)} to construct from a POSIX scalar.
 }
 
 \examples{
-dt <- RSDateTime_withDateTime(Sys.time())
+dt <- RSDateTime_withDateTime(as.POSIXct("2024-01-01 12:00:00", tz = "UTC"))
 dt$value()
-dt$hash()
+dt$isEqual(RSDateTime$new(as.POSIXct("2024-01-01 12:00:00", tz = "UTC")))
+identical(RSDateTime_withDateTime(as.POSIXct(NA)), RSDateTime$na)
 
 }
 \seealso{
@@ -54,7 +64,7 @@ RSNADateTime
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectID"><a href='../../robjc/html/RSObject.html#method-RSObject-objectID'><code>RSObject$objectID()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="objectsForEncoding"><a href='../../robjc/html/RSObject.html#method-RSObject-objectsForEncoding'><code>RSObject$objectsForEncoding()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="respondsTo"><a href='../../robjc/html/RSObject.html#method-RSObject-respondsTo'><code>RSObject$respondsTo()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superClass"><a href='../../robjc/html/RSObject.html#method-RSObject-superClass'><code>RSObject$superClass()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="robjc" data-topic="RSObject" data-id="superclass"><a href='../../robjc/html/RSObject.html#method-RSObject-superclass'><code>RSObject$superclass()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="compare"><a href='../../robjc/html/RSScalar.html#method-RSScalar-compare'><code>RSScalar$compare()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="description"><a href='../../robjc/html/RSScalar.html#method-RSScalar-description'><code>RSScalar$description()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="robjc" data-topic="RSScalar" data-id="encodeWithCoder"><a href='../../robjc/html/RSScalar.html#method-RSScalar-encodeWithCoder'><code>RSScalar$encodeWithCoder()</code></a></span></li>

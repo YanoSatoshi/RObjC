@@ -45,7 +45,7 @@ test_that("dictionary values accept RObjC class and protocol generators", {
   expect_equal(dictionary$allValues()$count(), 2L)
   expect_equal(dictionary$allEntries()$count(), 2L)
   expect_equal(RSMutableDictionary$new()$
-                 dictionaryByMergingWithDictionary(dictionary)$count(), 2L)
+                 dictionaryByMergingDictionary(dictionary)$count(), 2L)
   expect_error(dictionary$setObjectForKey(1L, class_key),
                "Unsupported value type", fixed = TRUE)
 })
@@ -203,9 +203,9 @@ test_that("RSMutableDictionary: union and difference with another dictionary", {
   d1$setObjectForKey(RSString_withValue("2"), RSString_withValue("b"))
   d2$setObjectForKey(RSString_withValue("3"), RSString_withValue("b"))
   d2$setObjectForKey(RSString_withValue("4"), RSString_withValue("c"))
-  u <- d1$dictionaryByMergingWithDictionary(d2)
+  u <- d1$dictionaryByMergingDictionary(d2)
   expect_equal(u$count(), 3)
-  diff <- d1$dictionaryByExcludingWithDictionary(d2)
+  diff <- d1$dictionaryByExcludingDictionary(d2)
   expect_equal(diff$count(), 1)
   expect_equal(diff$objectForKey(RSString_withValue("a"))$value(), "1")
 })

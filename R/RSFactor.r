@@ -9,6 +9,11 @@
 #' During initialization, the factor is converted to a character string for value storage,
 #' while `levels()` and `ordered()` provide access to the original factor metadata.
 #'
+#' @section Protocols:
+#' - [RSComparable]
+#' - [RSCoding]
+#' - [RSCopying]
+#'
 #' @section Methods:
 #' - `asFactor()` – Reconstructs the original factor with levels and ordering
 #' - `levels()` – Returns the vector of factor levels
@@ -24,13 +29,16 @@
 #' obj$levels()      # "low" "medium" "high"
 #' obj$ordered()     # TRUE
 #' obj$asFactor()    # reconstructs original factor
+#' missing <- RSFactor_withFactor(factor(NA_character_, levels = levels(f)))
+#' missing$isMemberOf(RSNAFactor)
+#' missing$levels()
 #'
 #' @seealso RSNAFactor
 #'
 #' @export
 RSFactor <- RSScalarClass(
   "RSFactor",
-  version     = "0.1.0 beta",
+  version     = "0.2.0",
   super_class = RSString,
   na_value    = factor(NA_character_),
   na_singleton = FALSE,
@@ -58,6 +66,8 @@ RSFactor <- RSScalarClass(
       invisible(self)
     },
 
+
+
     #' @description Encodes the scalar label and its factor metadata.
     #' @param coder An [RSKeyedArchiver] recording keyed values.
     #' @return `self`, invisibly.
@@ -68,6 +78,8 @@ RSFactor <- RSScalarClass(
       invisible(self)
     },
 
+
+
     #' @description Restores the factor label, levels, and ordering without
     #'   calling `initialize()`. Also serves non-singleton [RSNAFactor].
     #' @param coder An [RSKeyedUnarchiver] reading keyed values.
@@ -76,11 +88,17 @@ RSFactor <- RSScalarClass(
       value <- coder$decodeObjectForKey("value")
       levels <- coder$decodeObjectForKey("levels")
       ordered <- coder$decodeObjectForKey("ordered")
-      if (!is.character(value) || is.object(value) || length(value) != 1L ||
+      if (!is.character(value) ||
+          is.object(value) ||
+          length(value) != 1L ||
           !is.null(dim(value)) ||
-          !is.character(levels) || is.object(levels) || anyNA(levels) ||
+          !is.character(levels) ||
+          is.object(levels) ||
+          anyNA(levels) ||
           anyDuplicated(levels) ||
-          !is.logical(ordered) || length(ordered) != 1L || is.na(ordered) ||
+          !is.logical(ordered) ||
+          length(ordered) != 1L ||
+          is.na(ordered) ||
           (!is.na(value) && !value %in% levels))
         stop("Decoded factor state is invalid.", call. = FALSE)
       super$initWithCoder(coder)
@@ -116,9 +134,7 @@ RSFactor <- RSScalarClass(
     #' Returns the vector of levels associated with the original factor.
     #'
     #' @return A character vector of levels, or `NULL` if unavailable.
-    levels = function() {
-      private$.levels
-    },
+    levels = function() private$.levels,
 
 
 
@@ -128,7 +144,7 @@ RSFactor <- RSScalarClass(
     #' @return `TRUE` if the factor was ordered; otherwise `FALSE`.
     ordered = function() {
       if (is.null(private$.ordered)) return(FALSE)
-      return(private$.ordered)
+      else return(private$.ordered)
     },
 
 
@@ -173,6 +189,18 @@ RSFactor <- RSScalarClass(
 #'   `RSFactor` is declared. `RSFactor_withFactor()` creates an instance that
 #'   retains the input's levels and ordering. `RSFactor$na` is the factory's
 #'   default instance, with no input-specific metadata.
+#' @section Protocols:
+#' - [RSComparable]
+#' - [RSCoding]
+#' - [RSCopying]
+#'
+#' @examples
+#' missing_factor <- RSFactor_withFactor(
+#'   factor(NA_character_, levels = c("low", "high"))
+#' )
+#' missing_factor$isMemberOf(RSNAFactor)
+#' missing_factor$levels()
+#'
 #' @return The NA class generator.
 #' @export
 RSNAFactor <- RSFactor$na$class()

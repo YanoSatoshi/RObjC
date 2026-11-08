@@ -13,6 +13,9 @@
 #' The set operations mutate the receiver. They correspond to the operations
 #' provided by Foundation's mutable set: union, intersection, and subtraction.
 #'
+#' @section Protocols:
+#' None.
+#'
 #' @section Methods:
 #' - `duplicate()` returns an independent shallow copy of the native table.
 #' - `add(item)` inserts an item when no equal member exists.
@@ -86,6 +89,8 @@ RSConcreteSet <- R6::R6Class(
       invisible(self)
     },
 
+
+
     #' @description Creates an independent shallow copy of the storage.
     #' @return A new `RSConcreteSet` containing the same object references.
     duplicate = function() {
@@ -93,6 +98,8 @@ RSConcreteSet <- R6::R6Class(
         .native_ptr = set_clone(private$.native())
       )
     },
+
+
 
     #' @description Adds an object if no equal member is present.
     #' @param item A hashable RObjC object or Class/Protocol generator. It is
@@ -103,32 +110,34 @@ RSConcreteSet <- R6::R6Class(
       invisible(self)
     },
 
+
+
     #' @description Returns the stored object equal to `item`.
     #' @param item A hashable RObjC object or Class/Protocol generator used for lookup.
     #' @return The stored member, or `NULL` when absent.
-    member = function(item) {
-      set_member(private$.native(), item)
-    },
+    member = function(item) set_member(private$.native(), item),
+
+
 
     #' @description Returns an arbitrary stored member.
     #' @return A stored member, or `NULL` when the set is empty.
-    anyObject = function() {
-      set_any_object(private$.native())
-    },
+    anyObject = function() set_any_object(private$.native()),
+
+
 
     #' @description Tests whether an equal member is present.
     #' @param item A hashable RObjC object or Class/Protocol generator used for lookup.
     #' @return A logical scalar.
-    contains = function(item) {
-      set_contains(private$.native(), item)
-    },
+    contains = function(item) set_contains(private$.native(), item),
+
+
 
     #' @description Removes the member equal to `item`.
     #' @param item A hashable RObjC object or Class/Protocol generator used for lookup.
     #' @return `TRUE` if a member was removed; otherwise `FALSE`.
-    remove = function(item) {
-      set_remove(private$.native(), item)
-    },
+    remove = function(item) set_remove(private$.native(), item),
+
+
 
     #' @description Removes every member.
     #' @return `self`, invisibly.
@@ -137,17 +146,19 @@ RSConcreteSet <- R6::R6Class(
       invisible(self)
     },
 
+
+
     #' @description Returns all stored members.
     #' @return A list in unspecified order.
-    allObjects = function() {
-      set_values(private$.native())
-    },
+    allObjects = function() set_values(private$.native()),
+
+
 
     #' @description Returns the number of members.
     #' @return A non-negative numeric scalar.
-    count = function() {
-      set_size(private$.native())
-    },
+    count = function() set_size(private$.native()),
+
+
 
     #' @description Adds every member of `other` to this storage.
     #' @param other Another `RSConcreteSet`.
@@ -157,6 +168,8 @@ RSConcreteSet <- R6::R6Class(
       invisible(self)
     },
 
+
+
     #' @description Retains only members also present in `other`.
     #' @param other Another `RSConcreteSet`.
     #' @return `self`, invisibly.
@@ -164,6 +177,8 @@ RSConcreteSet <- R6::R6Class(
       set_intersect_with(private$.native(), private$.nativeFrom(other))
       invisible(self)
     },
+
+
 
     #' @description Removes every member also present in `other`.
     #' @param other Another `RSConcreteSet`.
@@ -174,11 +189,12 @@ RSConcreteSet <- R6::R6Class(
     },
 
 
+
     #' @description Computes an order-independent aggregate member hash.
     #' @return An integer hash value.
-    contentHash = function() {
-      RSHashOperator$instance$hashFromObjects(self$allObjects())
-    },
+    contentHash = function() RSHashOperator$instance$combinedHashFromObjects(self$allObjects()),
+
+
 
     #' @description Captures data needed to rebuild storage after serialization.
     #' @return `self`, invisibly.

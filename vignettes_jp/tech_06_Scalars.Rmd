@@ -119,10 +119,11 @@ stopifnot(identical(first$asFactor(), low_high))
 stopifnot(identical(second$asFactor(), small_large))
 ```
 
-## NA 子クラスを作らない Scalar
+## NA 子クラスを作らない raw 値
 
 base R の `raw` 型には NA 値がありません。
-そのため `RSRaw` は `RSScalarClass()` ではなく `RSObjectClass()` で宣言され、NA 子クラスを持ちません。
+そのため `RSRaw` は `RSObject` を直接継承し、`RSScalarClass()` ではなく `RSObjectClass()` で宣言され、NA 子クラスを持ちません。
+生成には `RSRaw$new()` または `RSRaw_withValue()` を使い、`RSScalar_withValue()` に raw 値を渡すとエラーになります。
 また `RSNull` は R の `NULL` を表す独立した Singleton クラスであり、Scalar の NA クラスとは役割が異なります。
 
 クラスクラスタは「欠損値を別クラスにする」だけでなく、型ごとの情報を失わないように生成経路を選ぶ仕組みです。

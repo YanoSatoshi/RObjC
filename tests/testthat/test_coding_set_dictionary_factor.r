@@ -18,11 +18,11 @@ resolve_coding_collection_class <- function(class_name, version, kind) {
 }
 
 round_trip_coding_collection <- function(object) {
-  archive <- RSKeyedArchiver$new()$archive(object)
+  archive <- RSKeyedArchiver$new()$encode(object)
   RSKeyedUnarchiver$new(
     unserialize(serialize(archive, NULL)),
     resolve_coding_collection_class
-  )$unarchive()
+  )$decode()
 }
 
 test_that("mutable and immutable sets restore members and shared references", {
@@ -69,7 +69,7 @@ test_that("dictionaries restore keys, values, cycles and immutability", {
 })
 
 test_that("dictionary restores the stored key without copying it again", {
-  CopyKey <- RSObjectClass("CopyKeyForCoding", version = "0.1.0 beta",
+  CopyKey <- RSObjectClass("CopyKeyForCoding", version = "0.2.0",
     public = list(
       initialize = function(value) {
         super$initialize()
@@ -90,11 +90,11 @@ test_that("dictionary restores the stored key without copying it again", {
   dictionary <- RSMutableDictionary$new()
   dictionary$setObjectForKey(RSNumber$new(1L), CopyKey$new(12L))
   stored_key <- dictionary$allKeysAsList()[[1L]]
-  archive <- RSKeyedArchiver$new()$archive(list(dictionary, stored_key))
+  archive <- RSKeyedArchiver$new()$encode(list(dictionary, stored_key))
   restored <- RSKeyedUnarchiver$new(archive, function(name, version, kind) {
     if (identical(name, "CopyKeyForCoding")) CopyKey else
       resolve_coding_collection_class(name, version, kind)
-  })$unarchive()
+  })$decode()
   expect_identical(restored[[1L]]$allKeysAsList()[[1L]], restored[[2L]])
 })
 
@@ -108,26 +108,18 @@ test_that("factor metadata and null singleton survive keyed coding", {
   expect_identical(restored[[3L]], restored[[4L]])
 })
 
-test_that("RSNull archives record the current version and restore older records", {
-  archive <- RSKeyedArchiver$new()$archive(RSNull$null)
+test_that("RSNull archives record the current version", {
+  archive <- RSKeyedArchiver$new()$encode(RSNull$null)
   id <- archive$root$id
-  expect_identical(archive$records[[id]]$version, "0.1.1 beta")
+  expect_identical(archive$records[[id]]$version, "0.2.0")
 
   decoder <- suppressMessages(RSKeyedUnarchiver$new(archive))
-  classes <- decoder$showAllClasses(remove_default = FALSE)
+  classes <- decoder$classMappings(include_automatic = TRUE)
   expect_identical(classes$class_name, "RSNull")
-  expect_identical(classes$version, "0.1.1 beta")
+  expect_identical(classes$version, "0.2.0")
   expect_identical(classes$status, "automatic")
   expect_identical(decoder$decode(), RSNull$null)
 
-  older_archive <- unserialize(serialize(archive, NULL))
-  older_archive$records[[id]]$version <- "0.1.0 beta"
-  older_decoder <- suppressMessages(RSKeyedUnarchiver$new(older_archive))
-  expect_identical(
-    older_decoder$showAllClasses(remove_default = FALSE)$version,
-    "0.1.0 beta"
-  )
-  expect_identical(older_decoder$decode(), RSNull$null)
 })
 
 test_that("scalar subclasses retain native values and NA companions", {
@@ -154,11 +146,11 @@ test_that("scalar subclasses retain native values and NA companions", {
     RSNAComplex = RSNAComplex, RSNADate = RSNADate,
     RSNADateTime = RSNADateTime
   )
-  archive <- RSKeyedArchiver$new()$archive(values)
+  archive <- RSKeyedArchiver$new()$encode(values)
   restored <- RSKeyedUnarchiver$new(
     unserialize(serialize(archive, NULL)),
     function(name, version, kind) generators[[name]]
-  )$unarchive()
+  )$decode()
   for (i in seq_along(values)) {
     expect_identical(restored[[i]]$class(), values[[i]]$class())
     expect_identical(restored[[i]]$value(), values[[i]]$value())

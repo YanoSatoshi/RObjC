@@ -1,8 +1,13 @@
 test_that("RSRaw wraps every raw byte without an NA companion", {
   zero <- RSRaw_withValue(as.raw(0))
-  high <- RSScalar_withValue(as.raw(255))
+  high <- RSRaw_withValue(as.raw(255))
   expect_true(zero$isMemberOf(RSRaw))
   expect_true(high$isMemberOf(RSRaw))
+  expect_true(zero$isKindOf(RSObject))
+  expect_false(zero$isKindOf(RSScalar))
+  expect_identical(zero$superclass(), RSObject)
+  expect_true(zero$conformsTo(RSCoding))
+  expect_true(zero$conformsTo(RSCopying))
   expect_identical(zero$value(), as.raw(0))
   expect_identical(high$value(), as.raw(255))
   expect_false(RSRaw$isNAClass)
@@ -19,6 +24,8 @@ test_that("RSRaw has key equality and hash but no base R sort order", {
   expect_error(later$compare(first), "Raw values cannot be sorted", fixed = TRUE)
   expect_identical(first$hash(), same$hash())
   expect_type(first$hash(), "integer")
+  expect_identical(first$nativeValue(), as.raw(16))
+  expect_identical(first$nativeCompare(later), -1L)
 })
 
 test_that("RSRaw rejects other types and non-scalars", {

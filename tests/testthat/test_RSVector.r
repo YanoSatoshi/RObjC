@@ -5,7 +5,6 @@ test_that("RSVector is a read-only copy of RSMutableVector", {
   expect_true(vector$isMemberOf(RSVector))
   expect_identical(vector$asVector(), c(1L, 2L))
   expect_identical(vector$valueAtIndex(2L), 2L)
-  expect_identical(vector$hashOperator(), mutable$hashOperator())
   expect_identical(vector$copy(), vector)
 
   mutable$appendValues(3L)
@@ -13,22 +12,26 @@ test_that("RSVector is a read-only copy of RSMutableVector", {
 
   editable <- vector$mutableCopy()
   expect_true(editable$isMemberOf(RSMutableVector))
-  expect_false(editable$isMemberOf(RSVector))
+  expect_true(editable$isKindOf(RSVector))
   editable$appendValues(4L)
   expect_identical(editable$asVector(), c(1L, 2L, 4L))
   expect_identical(vector$asVector(), c(1L, 2L))
 })
 
-test_that("RSVector rejects every inherited mutation method", {
+test_that("RSVector exposes no mutation methods", {
   vector <- RSVector$new(c(1L, 2L))
-  message <- msg_immutable_try_mutate(RSVector)
-
-  expect_error(vector$appendValues(3L), message, fixed = TRUE)
-  expect_error(vector$insertValuesAtIndex(3L, 1L), message, fixed = TRUE)
-  expect_error(vector$replaceValuesAtIndices(3L, 1L), message, fixed = TRUE)
-  expect_error(vector$removeValuesAtIndices(1L), message, fixed = TRUE)
-  expect_error(vector$removeAllValues(), message, fixed = TRUE)
+  for (method in c("appendValues", "insertValuesAtIndex",
+                   "replaceValuesAtIndexes", "removeValuesAtIndexes",
+                   "removeAllValues"))
+    expect_false(vector$respondsTo(method))
   expect_identical(vector$asVector(), c(1L, 2L))
+})
+
+test_that("mutable vectors inherit immutable vector behavior", {
+  vector <- RSMutableVector$new(c(1L, 2L))
+  expect_true(vector$isKindOf(RSVector))
+  expect_true(vector$respondsTo("appendValues"))
+  expect_identical(vector$mutableCopy()$class(), RSMutableVector)
 })
 
 test_that("RSVector inherits value comparison and hashing", {
@@ -42,50 +45,13 @@ test_that("RSVector inherits value comparison and hashing", {
   expect_identical(first$hash(), same$hash())
 })
 
-test_that("RSMutableVector: aggregate XOR cannot return the NA integer sentinel", {
-  XorOperator <- RSObjectClass(
-    "AuditVectorXorOperator",
-    public = list(hashForScalar = function(val) {
-      if (identical(val, 1L)) -2147418112L else 65536L
-    })
-  )
-  operator <- XorOperator$new()
-
-  expect_identical(RSMutableVector$new(1L, hash_operator = operator)$hash(),
-                   -2147418112L)
-  expect_identical(RSMutableVector$new(1:2, hash_operator = operator)$hash(),
-                   0L)
-})
-
-test_that("RSMutableVector: hash operator cannot return a missing component", {
-  MissingOperator <- RSObjectClass(
-    "AuditMissingVectorHashOperator",
-    public = list(hashForScalar = function(val) NA_integer_)
-  )
-  vector <- RSMutableVector$new(1L, hash_operator = MissingOperator$new())
-
-  expect_error(vector$hashesOfValues(),
-               "`hashForScalar()` must return non-missing integers.", fixed = TRUE)
-  expect_error(vector$hash(),
-               "`hashForScalar()` must return non-missing integers.", fixed = TRUE)
-})
-
-test_that("vector equality includes the hash operator instance", {
-  ConstantOperator <- RSObjectClass(
-    "VectorEqualityHashOperator",
-    public = list(hashForScalar = function(val) 1L)
-  )
-  operator <- ConstantOperator$new()
+test_that("vector equality follows stored values", {
   standard <- RSVector$new(1L)
-  custom <- RSMutableVector$new(1L, hash_operator = operator)
-  same_operator <- RSVector$new(1L, hash_operator = operator)
-
-  expect_false(standard$isEqual(custom))
-  expect_false(custom$isEqual(standard))
-  expect_true(custom$isEqual(same_operator))
-  expect_true(custom$isEqual(custom$copy()))
-  expect_identical(custom$hash(), same_operator$hash())
-  expect_false(RSMutableSet$new(list(standard))$containsObject(custom))
+  mutable <- RSMutableVector$new(1L)
+  expect_true(standard$isEqual(mutable))
+  expect_true(mutable$isEqual(standard))
+  expect_identical(standard$hash(), mutable$hash())
+  expect_true(RSMutableSet$new(list(standard))$containsObject(mutable))
 })
 
 test_that("mutable and immutable vector copies compare by value", {

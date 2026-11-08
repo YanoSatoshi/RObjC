@@ -68,14 +68,14 @@ stopifnot(is.null(failure))
 robjc のインスタンスは、基底クラス `RSObject` が提供する基本的なメソッドを備えています。ここでは、`RSObject` の提供するメソッドのいくつかを紹介します。詳しくは、[`RSObject` のクラスドキュメント]を参照してください。
 
 - `class()`: インスタンスが所属するクラスを返します。
-- `superClass()`: インスタンスの所属するクラスの親クラスを返します。
+- `superclass()`: インスタンスの所属するクラスの親クラスを返します。
 - `isKindOf(Class)`: インスタンスが引数 `Class` を継承しているかどうかを確認できます。
 - `isMemberOf(Class)`: インスタンスが引数 `Class` に所属しているかどうかを確認できます。
 
 ## インスタンスを確かめる
 
 作成したオブジェクトから、所属クラスと継承関係を確認できます。
-`class()` と `superClass()` が返すのはクラス名ではなく、クラスのジェネレータオブジェクトです。
+`class()` と `superclass()` が返すのはクラス名ではなく、クラスのジェネレータオブジェクトです。
 `isMemberOf()` は所属クラスだけを、`isKindOf()` は親クラスも含めて判定します。
 
 ```{r}
@@ -162,12 +162,12 @@ stopifnot(unique_items$count() == 1L)
 
 ```{r}
 shared <- RSString$new("shared value")
-archive <- RSKeyedArchiver$new()$archive(list(shared, shared))
+archive <- RSKeyedArchiver$new()$encode(list(shared, shared))
 path <- tempfile(fileext = ".rds")
 saveRDS(archive, path)
 
 decoder <- RSKeyedUnarchiver$new(readRDS(path))
-decoder$showAllClasses()  # Inspect classes that need manual resolution.
+decoder$classMappings()  # Inspect classes that need manual resolution.
 restored <- decoder$decode()
 unlink(path)
 
@@ -176,6 +176,6 @@ stopifnot(identical(restored[[1L]]$value(), "shared value"))
 ```
 
 上の例は robjc の標準クラスだけを使うため、クラスの対応付けは不要です。
-自作クラスを復元するときは `showAllClasses()` で未解決のクラスを確認し、
-`setClasses()` で復元先のクラスを指定してから `decode()` を呼びます。
+自作クラスを復元するときは `classMappings()` で未解決のクラスを確認し、
+`setClassMappings()` で復元先のクラスを指定してから `decode()` を呼びます。
 詳しい手順は[アーカイブガイド](guide_10_Archiving.Rmd)を参照してください。

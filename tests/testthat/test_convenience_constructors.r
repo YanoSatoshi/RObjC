@@ -42,7 +42,7 @@ test_that("array constructors accept class and protocol elements", {
   }
 })
 
-test_that("array constructors reject invalid inputs and unsupported capacity", {
+test_that("array constructors reject invalid inputs", {
   expect_error(RSArray_withObject("x"), "list of RObjC objects", fixed = TRUE)
   expect_error(RSMutableArray_withObjects(list(RSString_withValue("x"), "y")),
                "list of RObjC objects", fixed = TRUE)
@@ -51,10 +51,6 @@ test_that("array constructors reject invalid inputs and unsupported capacity", {
   expect_error(RSArray_withArray(list()), "RSArray or RSMutableArray", fixed = TRUE)
   expect_error(RSMutableArray_withArray(RSSet_empty()),
                "RSArray or RSMutableArray", fixed = TRUE)
-  expect_error(RSMutableArray_withCapacity(-1), "non-negative whole number", fixed = TRUE)
-  expect_error(RSMutableArray_withCapacity(1.5), "non-negative whole number", fixed = TRUE)
-  expect_error(RSMutableArray_withCapacity(NA_integer_), "non-negative whole number", fixed = TRUE)
-  expect_error(RSMutableArray_withCapacity(0), "not implemented", fixed = TRUE)
 })
 
 test_that("set constructors deduplicate and copy mutable storage", {

@@ -13,6 +13,9 @@
 #' `initialize()` delegates to [RSObject] and returns the instance. It does not
 #' lock instance fields; subclasses can set fields during initialization.
 #'
+#' @section Protocols:
+#' - [RSCopying]
+#'
 #' @examples
 #' \dontrun{
 #' ConfigModule <- RSSingletonClass(
@@ -36,7 +39,7 @@
 RSModule <- RSSingletonClass(
   "RSModule",
   super_class = RSObject,
-  version     = "0.1.0 beta",
+  version     = "0.2.0",
   public      = list(
     #' @description Initializes the shared module instance.
     #' @return The initialized instance, invisibly.

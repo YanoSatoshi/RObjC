@@ -75,7 +75,7 @@ stopifnot(is.null(invalid))
 
 ## Inspect class relationships
 
-An instance's `class()` returns its class **generator**, and `superClass()` returns the generator for its immediate parent.
+An instance's `class()` returns its class **generator**, and `superclass()` returns the generator for its immediate parent.
 This differs from base R's `class(object)`, which returns a character vector of class names.
 `isMemberOf(Class)` checks direct membership, while `isKindOf(Class)` also includes ancestors.
 
@@ -88,7 +88,7 @@ TaggedRecord <- RSObjectClass(
 
 tagged <- TaggedRecord$new("second")
 stopifnot(identical(tagged$class(), TaggedRecord))
-stopifnot(identical(tagged$superClass(), Record))
+stopifnot(identical(tagged$superclass(), Record))
 stopifnot(tagged$isMemberOf(TaggedRecord))
 stopifnot(!tagged$isMemberOf(Record))
 stopifnot(tagged$isKindOf(Record))

@@ -13,6 +13,9 @@
 #' immutable behavior. Those responsibilities belong to the public dictionary
 #' wrappers.
 #'
+#' @section Protocols:
+#' None.
+#'
 #' @section Methods:
 #' - `duplicate()` returns an independent shallow copy of the native storage.
 #' - `set(key, value)` inserts or replaces a value.
@@ -83,6 +86,8 @@ RSConcreteDictionary <- R6::R6Class(
       invisible(self)
     },
 
+
+
     #' @description Creates an independent shallow copy of the storage.
     #' @return A new `RSConcreteDictionary` instance.
     duplicate = function() {
@@ -90,6 +95,8 @@ RSConcreteDictionary <- R6::R6Class(
         .native_ptr = dictionary_clone(private$.native())
       )
     },
+
+
 
     #' @description Inserts or replaces a value for a key.
 #' @param key Hashable RObjC object or Class/Protocol generator key.
@@ -100,26 +107,28 @@ RSConcreteDictionary <- R6::R6Class(
       invisible(self)
     },
 
+
+
     #' @description Returns the value associated with a key.
     #' @param key Hashable RObjC object or Class/Protocol generator key.
     #' @return The stored value, or `NULL` when the key is absent.
-    get = function(key) {
-      dictionary_get(private$.native(), key)
-    },
+    get = function(key) dictionary_get(private$.native(), key),
+
+
 
     #' @description Tests whether the storage contains a key.
     #' @param key Hashable RObjC object or Class/Protocol generator key.
     #' @return A logical scalar.
-    contains = function(key) {
-      dictionary_contains(private$.native(), key)
-    },
+    contains = function(key) dictionary_contains(private$.native(), key),
+
+
 
     #' @description Removes the entry associated with a key.
     #' @param key Hashable RObjC object or Class/Protocol generator key.
     #' @return `TRUE` if an entry was removed; otherwise `FALSE`.
-    remove = function(key) {
-      dictionary_remove(private$.native(), key)
-    },
+    remove = function(key) dictionary_remove(private$.native(), key),
+
+
 
     #' @description Removes every entry.
     #' @return `self`, invisibly.
@@ -128,35 +137,37 @@ RSConcreteDictionary <- R6::R6Class(
       invisible(self)
     },
 
+
+
     #' @description Returns all stored keys.
     #' @return A list of keys in unspecified order.
-    keys = function() {
-      dictionary_keys(private$.native())
-    },
+    keys = function() dictionary_keys(private$.native()),
+
+
 
     #' @description Returns all stored values.
     #' @return A list of values corresponding to `keys()` when unmodified.
-    values = function() {
-      dictionary_values(private$.native())
-    },
+    values = function() dictionary_values(private$.native()),
+
+
 
     #' @description Returns corresponding stored keys and values together.
     #' @return A list of two-element lists, each containing a key and its value.
-    entries = function() {
-      dictionary_entries(private$.native())
-    },
+    entries = function() dictionary_entries(private$.native()),
+
+
 
     #' @description Returns the number of entries.
     #' @return A non-negative numeric scalar.
-    count = function() {
-      dictionary_size(private$.native())
-    },
+    count = function() dictionary_size(private$.native()),
+
+
 
     #' @description Computes an order-independent aggregate hash of the keys.
     #' @return An integer hash value.
-    contentHash = function() {
-      RSHashOperator$instance$hashFromObjects(self$keys())
-    },
+    contentHash = function() RSHashOperator$instance$combinedHashFromObjects(self$keys()),
+
+
 
     #' @description Captures data needed to rebuild storage after serialization.
     #' @return `self`, invisibly.
