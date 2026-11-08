@@ -12,3 +12,4 @@
 ^robjc_*\.tar\.gz$
 ^prototypes$
 ^zzz_memo$
+^README.ja.md$
