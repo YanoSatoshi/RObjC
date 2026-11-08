@@ -1,0 +1,206 @@
+---
+title: "Values & Copying Guide"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Values & Copying Guide}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Values and copying
+
+In robjc, the `RSScalar` family wraps individual R values, while the `RSVector` family wraps R vectors.
+An Array, by comparison, holds robjc objects as its elements.
+After choosing a wrapper, you need to know whether `copy()` and `mutableCopy()` create a new object and whether they also copy its contents.
+
+This guide uses actual instances to examine how values are wrapped and which references are shared after copying.
+For collection lookup and mutation, see the [Collections Guide](guide_07_Collections.Rmd).
+
+## Wrap a single value
+
+For an R value of length one, use a type-specific entry point such as `RSNumber$new()` or `RSString_withValue()` when you know its type.
+Use `RSScalar_withValue()` when you want the input type to determine the class.
+Raw bytes are outside the `RSScalar` hierarchy; use `RSRaw_withValue()` for them.
+Retrieve the wrapped value with `value()`.
+
+```{r}
+library(robjc)
+
+direct <- RSNumber$new(3L)
+typed  <- RSNumber_withValue(3L)
+chosen <- RSScalar_withValue(3L)
+
+stopifnot(direct$isMemberOf(RSNumber))
+stopifnot(typed$isMemberOf(RSNumber))
+stopifnot(chosen$isMemberOf(RSNumber))
+stopifnot(identical(chosen$value(), 3L))
+
+label <- RSScalar_withValue("ready")
+stopifnot(label$isMemberOf(RSString))
+stopifnot(identical(label$value(), "ready"))
+```
+
+These are **separate instances** that hold values.
+Even when they wrap the same value, their identities are a separate question.
+Use `isEqual()` to compare values, and `identical()` or robjc's `==` to check whether two references point to the same instance.
+See the [Identity, Equality, and Hashing Guide](guide_08_Hash_isEqual.Rmd) for details.
+
+If a custom type needs validation or specialized behavior, define a scalar class with `RSScalarClass()`.
+The [Class Factory Guide](guide_05_ClassFactory.Rmd) covers its arguments and the creation of NA subclasses.
+
+## Distinguish `NULL` from typed `NA`
+
+In R, `NULL` represents the absence of a value, whereas `NA` is a missing value with a type.
+robjc treats them as different objects too.
+`RSScalar_withValue(NULL)` returns the shared `RSNull$null` object. A typed NA returns the corresponding scalar class's shared NA instance.
+
+```{r}
+stopifnot(identical(RSScalar_withValue(NULL), RSNull$null))
+stopifnot(is.null(RSNull$null$value()))
+
+stopifnot(identical(RSNumber$new(NA_integer_), RSNumber$na))
+stopifnot(identical(RSScalar_withValue(NA_character_), RSString$na))
+stopifnot(is.na(RSString$na$value()))
+stopifnot(!identical(RSNull$null, RSString$na))
+```
+
+`RSNumber` handles both integers and doubles.
+The `value()` of its shared NA instance is `NA_real_`.
+You cannot recover whether the original missing R value was an integer or a double from that shared instance.
+`RSFactor` is an exception: it does not always collapse missing factors into one NA instance, so their levels and ordering can be retained.
+The [scalar technical note](tech_06_Scalars.Rmd) outlines the class cluster implementation.
+
+To **store null as an element** in a collection, explicitly pass `RSNull$null` instead of R's `NULL`.
+In a Dictionary, this distinguishes a stored `RSNull` from the R `NULL` returned when a key is absent.
+
+```{r}
+fields <- RSMutableDictionary$new()
+key <- RSString$new("optional")
+fields$setObjectForKey(RSNull$null, key)
+
+stopifnot(identical(fields$objectForKey(key), RSNull$null))
+stopifnot(is.null(fields$objectForKey(RSString$new("absent"))))
+```
+
+## Wrap a vector
+
+`RSVector` and `RSMutableVector` wrap an R atomic vector as one robjc object.
+`RSVector` is the read-only parent; `RSMutableVector` inherits its read and comparison methods and adds mutation methods.
+They do not convert each element into an `RSNumber` or another scalar object.
+Use `asVector()` to retrieve an ordinary R vector, and `valueAtIndex()` to read a value at a one-based position.
+Missing values remain in the vector.
+
+```{r}
+values <- RSVector$new(c(10L, NA_integer_, 30L))
+stopifnot(identical(values$asVector(), c(10L, NA_integer_, 30L)))
+stopifnot(is.na(values$valueAtIndex(2L)))
+
+editable_values <- RSMutableVector$new(c(1L, 2L))
+editable_values$appendValues(3L)
+stopifnot(identical(editable_values$asVector(), c(1L, 2L, 3L)))
+```
+
+Use a Vector when the data naturally forms one R vector, such as a sequence of numbers or strings.
+Use an Array when you need to hold individual robjc objects, possibly from different classes.
+
+```{r}
+objects <- RSArray_withObjects(list(
+  RSNumber$new(10L),
+  RSString$new("ten")
+))
+stopifnot(objects$objectAtIndex(1L)$isMemberOf(RSNumber))
+stopifnot(objects$objectAtIndex(2L)$isMemberOf(RSString))
+```
+
+## Copy mutable and read-only objects
+
+For Collections and Vectors, `copy()` returns a read-only object and `mutableCopy()` returns an editable one.
+Copying a mutable object creates a new outer instance.
+Calling `copy()` on a read-only object returns that same instance.
+
+| Receiver | `copy()` | `mutableCopy()` |
+|:--|:--|:--|
+| Mutable | A separate read-only instance | A separate mutable instance |
+| Read-only | The same instance | A separate mutable instance |
+
+```{r}
+editable <- RSMutableVector$new(c(1L, 2L))
+snapshot <- editable$copy()
+another_editable <- snapshot$mutableCopy()
+
+stopifnot(snapshot$isMemberOf(RSVector))
+stopifnot(!identical(snapshot, editable))
+stopifnot(identical(snapshot$copy(), snapshot))
+stopifnot(another_editable$isMemberOf(RSMutableVector))
+stopifnot(!identical(another_editable, snapshot))
+
+editable$appendValues(3L)
+stopifnot(identical(snapshot$asVector(), c(1L, 2L)))
+```
+
+Copies of Collections such as Arrays are **shallow copies**.
+Even when the outer Collections are separate, they can share the robjc objects they contain.
+In the following example, `saved` and `items` are different Arrays, but both return the same `member`.
+
+```{r}
+member <- RSMutableVector$new(c(1L, 2L))
+items <- RSMutableArray$new(list(member))
+saved <- items$copy()
+
+stopifnot(!identical(saved, items))
+stopifnot(identical(saved$objectAtIndex(1L), member))
+member$appendValues(3L)
+stopifnot(identical(
+  saved$objectAtIndex(1L)$asVector(), c(1L, 2L, 3L)
+))
+```
+
+If the contained objects must also be independent, you need to design how each element is copied.
+
+## Define copying in a custom class
+
+The base class `RSObject` returns `self` from `copy()`.
+If your class holds mutable state and needs an independent copy, override `copy()`.
+Choose which state to pass to the new instance and run the same validation used in normal construction to help preserve the class's invariants.
+
+```{r}
+TagList <- RSObjectClass(
+  "Guide06TagList",
+  private = list(.tags = NULL),
+  public = list(
+    initialize = function(tags = character()) {
+      super$initialize()
+      if (!is.character(tags) || anyNA(tags))
+        stop("`tags` must be a character vector without missing values.")
+      private$.tags <- tags
+      invisible(self)
+    },
+    tags = function() private$.tags,
+    addTag = function(tag) {
+      if (!is.character(tag) || length(tag) != 1L || is.na(tag))
+        stop("`tag` must be one non-missing string.")
+      private$.tags <- c(private$.tags, tag)
+      invisible(self)
+    },
+    copy = function() TagList$new(private$.tags)
+  )
+)
+
+original <- TagList$new("draft")
+duplicate <- original$copy()
+stopifnot(!identical(original, duplicate))
+stopifnot(identical(original$tags(), duplicate$tags()))
+
+duplicate$addTag("reviewed")
+stopifnot(identical(original$tags(), "draft"))
+stopifnot(identical(duplicate$tags(), c("draft", "reviewed")))
+```
+
+This `copy()` creates a new `TagList` and passes it the original tag values.
+R character vectors separate on modification, so adding a tag to the copy does not change the original tags.
+For a class that stores another robjc object in a private field, you must decide whether to share that reference or copy the contained object as well.
+
+Use `identical()` to confirm that the copy is a separate instance.
+If the two copies should be **equal as values**, define `isEqual()` separately.
+When using them in a Set or Dictionary, make `hash()` consistent with that equality.
+See the [Identity, Equality, and Hashing Guide](guide_08_Hash_isEqual.Rmd) for details.

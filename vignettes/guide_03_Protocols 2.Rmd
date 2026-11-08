@@ -1,0 +1,208 @@
+---
+title: "Protocols Guide"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Protocols Guide}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Protocols
+
+A protocol is a contract that names the methods a class should provide.
+The protocol itself implements no methods and cannot create instances.
+A class that declares adoption implements the required methods.
+
+This guide explains why protocols are useful, how to declare one with `RSProtocolClass()`, and how code that receives an object can check its adoption.
+For factory arguments, see the [class factories guide](guide_05_ClassFactory.Rmd).
+
+## Why use a protocol?
+
+A protocol lets unrelated classes declare that they can serve the same role.
+It is similar in purpose to a Java interface or a Python protocol.
+
+Suppose a function formats a mailing destination by calling `name()` and `address()` on an object.
+The object might represent a person or a company.
+Both have a name and address, but neither class inherits from the other.
+Even if both inherit from `RSObject`, that shared parent does not tell the function whether either method is available.
+
+If the function checks separately for a person or a company, it must change whenever a new kind of destination is added.
+It could check for both methods each time, but that alone does not express the class author's intent that the object be used as a destination.
+
+Instead, define one protocol for the promise that a destination provides `name()` and `address()`.
+The person and company classes each declare adoption of that protocol and implement its methods.
+The formatting function checks for adoption and then handles both classes with the same code.
+A new destination class can adopt the same contract.
+
+By default, robjc checks at class declaration that the required **method names** are present.
+The protocol does not implement those methods.
+The check also does not verify arguments, return values, or behavior.
+Document and test those parts of the contract separately.
+A class may adopt more than one protocol.
+
+## Declare a protocol
+
+Pass the **names** of required methods as strings in `contract_methods` to `RSProtocolClass()`.
+The following `Named` protocol requires `name()`.
+A protocol is a generator that represents requirements; it cannot create instances with `$new()`.
+
+```{r}
+library(robjc)
+
+Named <- RSProtocolClass(
+  "Guide03Named",
+  contract_methods = "name"
+)
+stopifnot(robjc_isProtocol(Named))
+stopifnot(is.null(Named$new))
+```
+
+Pass another protocol in `super_protocols` to inherit its requirements.
+The following `Detailed` protocol requires `details()` as well as `name()`.
+There is no need to repeat the parent's method names in `contract_methods`.
+
+```{r}
+Detailed <- RSProtocolClass(
+  "Guide03Detailed",
+  super_protocols = list(Named),
+  contract_methods = "details"
+)
+stopifnot(robjc_isProtocol(Detailed))
+```
+
+A protocol records method names, not signatures, return types, or implementations.
+Describe the more specific expectations in its documentation and in code that uses it.
+
+## Declare and inspect adoption
+
+Pass `protocols = list(...)` to an object class factory to declare adoption.
+An instance's `conformsTo()` method checks that declaration.
+A class that adopts a child protocol also conforms to its parent protocol.
+
+```{r}
+Record <- RSObjectClass(
+  "Guide03Record",
+  protocols = list(Detailed),
+  public = list(
+    name = function() "record",
+    details = function() "a named record"
+  )
+)
+
+record <- Record$new()
+stopifnot(identical(protocol_getMissingContracts(Record), character(0)))
+stopifnot(record$conformsTo(Detailed))
+stopifnot(record$conformsTo(Named))
+stopifnot(record$respondsTo("name"))
+stopifnot(record$respondsTo("details"))
+```
+
+Subclasses also inherit their parent class's protocol declarations.
+`SpecialRecord` does not repeat `protocols`; it inherits both the declaration and methods from `Record`.
+
+```{r}
+SpecialRecord <- RSObjectClass(
+  "Guide03SpecialRecord",
+  super_class = Record
+)
+special <- SpecialRecord$new()
+stopifnot(special$conformsTo(Detailed))
+stopifnot(special$respondsTo("name"))
+```
+
+### Consumer code: Handle a person and a company with one function
+
+Now implement the mailing destination example.
+`Addressable` inherits the `name()` requirement from `Named` and adds `address()`.
+`Person` and `Company` do not inherit from one another, but both declare adoption of `Addressable`.
+
+```{r}
+Addressable <- RSProtocolClass(
+  "Guide03Addressable",
+  super_protocols = list(Named),
+  contract_methods = "address"
+)
+
+Person <- RSObjectClass(
+  "Guide03Person",
+  protocols = list(Addressable),
+  public = list(
+    name = function() "Alex Morgan",
+    address = function() "123 Maple St, Boston, MA 02108, USA"
+  )
+)
+Company <- RSObjectClass(
+  "Guide03Company",
+  protocols = list(Addressable),
+  public = list(
+    name = function() "Harbor Books Ltd",
+    address = function() "24 High Street, Oxford OX1 4BH, UK"
+  )
+)
+
+format_destination <- function(destination) {
+  if (!destination$conformsTo(Addressable))
+    stop("The object must conform to Addressable.")
+  paste(destination$name(), destination$address(), sep = ": ")
+}
+
+person <- Person$new()
+company <- Company$new()
+stopifnot(!person$isKindOf(Company))
+stopifnot(!company$isKindOf(Person))
+stopifnot(identical(format_destination(person),
+                    "Alex Morgan: 123 Maple St, Boston, MA 02108, USA"))
+stopifnot(identical(format_destination(company),
+                    "Harbor Books Ltd: 24 High Street, Oxford OX1 4BH, UK"))
+```
+
+The consuming function `format_destination()` does not distinguish a person from a company.
+It checks whether the object declares that it can serve as a destination.
+The checks above also verify that the two classes return the expected names and addresses.
+
+### Adoption declarations and fulfilling the contract
+
+`protocols = list(...)` is a **declaration** of adoption.
+By default, the class factory checks for the required methods and stops class declaration if any are missing.
+The check includes requirements inherited from parent protocols and methods inherited from parent classes.
+
+You can defer this check with `validate_protocols = FALSE`.
+In that case, a class may declare adoption while still missing a required method.
+The next class adopts `Named` but does not implement `name()`.
+
+```{r}
+DeclaredOnly <- RSObjectClass(
+  "Guide03DeclaredOnly",
+  protocols = list(Named),
+  validate_protocols = FALSE
+)
+incomplete <- DeclaredOnly$new()
+stopifnot(incomplete$conformsTo(Named))
+stopifnot(!incomplete$respondsTo("name"))
+stopifnot(identical(protocol_getMissingContracts(DeclaredOnly), "name"))
+
+Undeclared <- RSObjectClass(
+  "Guide03Undeclared",
+  public = list(name = function() "Has a name")
+)
+undeclared <- Undeclared$new()
+stopifnot(undeclared$respondsTo("name"))
+stopifnot(!undeclared$conformsTo(Named))
+```
+
+Use the three checks for different questions:
+
+| Question | Check | What it tells you |
+|:--|:--|:--|
+| During class development, are all declared protocol methods present? | `protocol_getMissingContracts(Class)` | Names of missing methods, or `character(0)` if none are missing |
+| Does an object declare that it serves a particular role? | `object$conformsTo(Protocol)` | Whether adoption was declared; it does not inspect methods |
+| Can an object respond to a particular public method? | `object$respondsTo("method")` | Whether that instance has the method; it does not inspect adoption |
+
+`protocol_getMissingContracts()` takes one class generator.
+Above, `DeclaredOnly` declares adoption but lacks `name()`.
+By contrast, `Undeclared` implements `name()` but does not declare adoption.
+Thus, `conformsTo()` and `respondsTo()` answer different questions.
+None of these checks verifies what a method actually does.
+
+The robjc base class `RSObject` adopts `RSCopying` and provides `copy()`.
+For the class contract, see the `RSProtocol` class documentation.

@@ -1,0 +1,278 @@
+---
+title: "Technical Note: RSNull and Undefined Methods"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Technical Note: RSNull and Undefined Methods}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Why RSNull Accepts Calls to Undefined Methods
+
+`RSNull` is a shared object that explicitly represents a null **element** in a collection.
+`RSNull$null` and `RSNull$instance` refer to the same instance.
+Arrays, sets, and dictionaries do not accept R `NULL` as an element.
+To store a null element, pass `RSNull$null` or call `robjc_wrap_null()` at the input boundary.
+
+Handling null values can complicate data processing.
+Consider a domain model stored in an R `list`.
+If some elements are R `NULL`, ordinary code must check for them before calling a method.
+
+```{r}
+library(robjc)
+items_usual <- list(RSString$new("a"), NULL)
+length(items_usual)
+for (item in items_usual)
+  if (!is.null(item)) print(item$value()) else print(NULL)
+```
+
+For the shared `RSNull` instance, robjc instead returns that instance when an undefined method is called.
+This behavior is inspired by sending messages to Objective-C's `nil`.
+Using `RSNull`, the previous example becomes:
+
+```{r}
+items_rsnull <- RSArray$new(list(RSString$new("a"), RSNull$null))
+items_rsnull$count()
+for (item in items_rsnull$asList()) print(item$value())
+```
+
+## Reading Through Nested Objects
+
+One null check is manageable when the desired value is close to the top of a domain model.
+For a deeper value, checking after every access obscures the sequence of operations.
+
+`RSNull` absorbs **calls** to undefined methods, so a call chain can continue through a null element.
+This is useful when parsing nested, irregular JSON or XML into domain objects.
+The example below parses JSON with `jsonlite` and maps three levels to `Project`, `Owner`, and `Team` classes.
+
+```{r}
+# Each JSON project has three levels: Project -> Owner -> Team.
+# owner, team, and email may be null or omitted.
+json <- '{
+  "projects": [{
+    "name": "Atlas",
+    "owner": {
+      "name": "Mika",
+      "team": {"name": "Platform", "email": "team@example.org"}
+    }
+  },
+  {
+    "name": "Boreal",
+    "owner": null
+  },
+  {
+    "name": "Cedar",
+    "owner": {
+      "name": "Ken",
+      "team": null
+    }
+  },
+  {
+    "name": "Delta",
+    "owner": {
+      "name": "Rin",
+      "team": {"name": "Research"}
+    }
+  }]
+}'
+data <- jsonlite::fromJSON(json, simplifyVector = FALSE)
+
+Team <- RSObjectClass("RSNullGuideTeam",
+  private = list(.email = NULL),
+  public = list(
+    initialize = function(data) {
+      super$initialize()
+      private$.email <- if (is.null(data$email)) RSNull$null else RSString$new(data$email)
+      invisible(self)
+    },
+    email = function() private$.email
+  )
+)
+
+Owner <- RSObjectClass("RSNullGuideOwner",
+  private = list(.team = NULL),
+  public = list(
+    initialize = function(data) {
+      super$initialize()
+      private$.team <- if (is.null(data$team)) RSNull$null else Team$new(data$team)
+      invisible(self)
+    },
+    team = function() private$.team
+  )
+)
+
+Project <- RSObjectClass("RSNullGuideProject",
+  private = list(.name = NULL, .owner = NULL),
+  public = list(
+    initialize = function(data) {
+      super$initialize()
+      private$.name <- RSString$new(data$name)
+      private$.owner <- if (is.null(data$owner)) RSNull$null else Owner$new(data$owner)
+      invisible(self)
+    },
+    name = function() private$.name,
+    owner = function() private$.owner
+  )
+)
+
+projects <- RSArray$new(lapply(data$projects, function(x) Project$new(x)))
+emails <- lapply(projects$asList(), function(project) project$owner()$team()$email())
+
+stopifnot(identical(emails[[1L]]$value(), "team@example.org"))
+stopifnot(all(vapply(emails[-1L], identical, logical(1), RSNull$null)))
+```
+
+JSON `null` values and omitted fields become R `NULL` after parsing.
+Each class explicitly converts those values to `RSNull` in `initialize()` before storing them in the domain object.
+The `projects` array contains only `Project` instances; missing values deeper in the model propagate as `RSNull`.
+The result is checked for `RSNull` where that distinction matters.
+
+### Keeping R `NULL` and Adding Guards
+
+The next version reads the same JSON into a separate domain model that keeps missing values as R `NULL`.
+It stores the model in an R `list`.
+After reading each level, it must call `is.null()` before invoking another method.
+
+```{r}
+RawTeam <- RSObjectClass("RSNullGuideRawTeam",
+  private = list(.email = NULL),
+  public = list(
+    initialize = function(data) {
+      super$initialize()
+      private$.email <- if (is.null(data$email)) NULL else RSString$new(data$email)
+      invisible(self)
+    },
+    email = function() private$.email
+  )
+)
+
+RawOwner <- RSObjectClass("RSNullGuideRawOwner",
+  private = list(.team = NULL),
+  public = list(
+    initialize = function(data) {
+      super$initialize()
+      private$.team <- if (is.null(data$team)) NULL else RawTeam$new(data$team)
+      invisible(self)
+    },
+    team = function() private$.team
+  )
+)
+
+RawProject <- RSObjectClass("RSNullGuideRawProject",
+  private = list(.name = NULL, .owner = NULL),
+  public = list(
+    initialize = function(data) {
+      super$initialize()
+      private$.name <- RSString$new(data$name)
+      private$.owner <- if (is.null(data$owner)) NULL else RawOwner$new(data$owner)
+      invisible(self)
+    },
+    name = function() private$.name,
+    owner = function() private$.owner
+  )
+)
+
+raw_projects <- lapply(data$projects, function(x) RawProject$new(x))
+guarded_emails <- lapply(
+  raw_projects,
+  function(project) {
+    owner <- project$owner()
+    if (is.null(owner)) return(NULL)
+    team <- owner$team()
+    if (is.null(team)) return(NULL)
+    team$email()
+  }
+)
+
+stopifnot(identical(guarded_emails[[1L]]$value(), "team@example.org"))
+stopifnot(all(vapply(guarded_emails[-1L], is.null, logical(1))))
+stopifnot(identical(
+  lapply(emails, function(x) if (identical(x, RSNull$null)) NULL else x$value()),
+  lapply(guarded_emails, function(x) if (is.null(x)) NULL else x$value())
+))
+```
+
+Both versions extract the same email address from the same JSON.
+The `RSNull` version can express the access as one call chain; the version that retains R `NULL` needs guards after reading `owner` and `team`.
+The resulting `emails` list represents missing values with `RSNull$null`, while `guarded_emails` uses R `NULL`.
+
+This behavior has a cost: calls to undefined methods can let `RSNull` flow into a final result without an error.
+Check for `RSNull` at points where the result must contain a real value.
+
+## Distinguishing RSNull from R NULL
+
+The behavior does not apply to the R `NULL` returned when a dictionary or set lookup finds no item.
+An out-of-bounds array access raises an error.
+
+A missing dictionary key returns R `NULL`, which remains distinguishable from a stored `RSNull`.
+If processing should continue through a missing lookup result, explicitly convert it with `robjc_wrap_null()` at that boundary.
+
+```{r}
+profile <- RSMutableDictionary$new()
+name_key <- RSString$new("name")
+profile$setObjectForKey(RSNull$null, name_key)
+missing <- profile$objectForKey(RSString$new("unknown"))
+stopifnot(is.null(missing))
+stopifnot(identical(profile$objectForKey(name_key), RSNull$null))
+
+wrapped <- robjc_wrap_null(missing)
+stopifnot(identical(wrapped, RSNull$null))
+stopifnot(identical(wrapped$objectForKey(name_key), RSNull$null))
+```
+
+Converting every lookup result automatically would erase the distinction between an absent key and a stored `RSNull`.
+Convert only where the application needs that behavior.
+
+## Implementation: S3 `$` Dispatch
+
+This note (05) traces why `RSNull$null$notImplementedMethod()` returns
+`RSNull$null` through S3 `$` dispatch.
+`RSNull` is an environment-based R6 object, and its instance also has the S3 class `RSNull`.
+This lets `$.RSNull` handle `$` access.
+The implementation in `R/RSNull.r` is:
+
+```{r eval=FALSE}
+`$.RSNull` <- function(x, name) {
+  if (exists(name, envir = x, inherits = FALSE))
+    return(get(name, envir = x, inherits = FALSE))
+  function(...) RSNull$null
+}
+```
+
+The method first checks for an existing binding on instance `x`.
+If it finds one, it returns the original method or value, preserving the behavior of `value()`, `hash()`, and `description()`.
+Otherwise, it returns a function that accepts any arguments. **Calling** that function returns `RSNull$null`.
+The `inherits = FALSE` argument limits `exists()` and `get()` to bindings on the instance itself.
+
+In `RSNull$null$notImplementedMethod()`, the first `RSNull$null` retrieves the shared instance from the generator's `null` binding.
+The next `$notImplementedMethod` accesses that instance, invoking the S3 `$.RSNull` method.
+Because the instance has no such binding, `$.RSNull` returns a function.
+The final `()` calls that function and returns `RSNull$null`.
+
+```{r}
+fallback <- RSNull$null$notImplementedMethod
+stopifnot(is.function(fallback))
+stopifnot(identical(fallback(), RSNull$null))
+stopifnot(identical(RSNull$null$notImplementedMethod(), RSNull$null))
+```
+
+```{r}
+stopifnot(is.null(RSNull$null$value()))
+stopifnot(identical(RSNull$null$unknownMethod(1, option = TRUE), RSNull$instance))
+stopifnot(identical(RSNull$null$unknownMethod()$nextMethod(), RSNull$instance))
+```
+
+Merely **accessing** an undefined name with `$` does not return `RSNull`.
+The lookup returns a function; calling it returns `RSNull$null`.
+
+```{r}
+stopifnot(is.function(RSNull$null$unknownMethod))
+stopifnot(!RSNull$null$respondsTo("unknownMethod"))
+```
+
+## Caveats
+
+Because calls to undefined methods are accepted, a misspelled method name does not fail at that call site.
+Use `respondsTo()` when the method must exist.
+Existing methods still run normally: for example, `RSNull$null$value()` returns R `NULL`, rather than the shared instance.
+Keep propagation of `RSNull` separate from extracting an underlying value.

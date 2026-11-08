@@ -1,0 +1,181 @@
+---
+title: "robjc Quick Start Guide"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{robjc Quick Start Guide}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# 特徴
+robjc パッケージは、参照型のOOPパッケージ `R6` を基盤に構築したフレームワークです。robjc は以下の特徴を備えています。
+
+- コレクションクラス: 配列、集合、辞書の3系統のクラスがあり、それぞれに可変クラスと不変クラスが用意されています。可変クラスと不変クラスの変換は、メソッド `copy()` と `mutableCopy()` を提供しています。
+- 等値性の制御: robjc でオブジェクトを比較するには、メソッド `isEqual()` を使います。`isEqual()` を定義することで等値性を自由に制御できます。
+- オブジェクトのアーカイブ: robjc のアーカイブでは、オブジェクトグラフを保存します。復元時には、保存時のグラフを復元します。復元では、クラス単位でのマイグレーションも可能です。
+
+# クラス生成
+robjc のクラス（ジェネレータ）の実体化は、以下の4つのファクトリー API を使います。`R6Class()`を使って構築することも可能ですが、通常のクラス作成であれば API 利用で十分に応えられます。
+
+- `RSObjectClass()` : 基底クラス `RSObject` 系統のクラスを作成します。最も多く使われるファクトリーです。ただし、親クラスがシングルトンでないことが条件です。
+- `RSSingletonClass()` : シングルトンクラスを作成します。共有インスタンスは、`'Class'$instance` でアクセス可能です。`'Class'$new()` は、常に `'Class'$instance` を返します。
+- `RSScalarClass()` : R の logical, numeric, character, factor, complex などをラップするカスタムクラスを作成します。明示的にクラスを分けたい場合など、標準のラッパークラスで不足する場合に使用できます。
+- `RSProtocolClass()` : 基底クラス `RSProtocol` 系統のクラスを作成します。`RSProtocol` はインスタンスを作成することができません。
+
+カスタムクラスは、次のように生成します。
+第1引数には、クラス名を `character` で与えます。
+引数 `super_class` には親クラスを指定します。
+通常の OOL と同様に、親クラスのインスタンス変数、インスタンスメソッドは継承されます。
+詳しくは、[クラス生成ガイド]を参照してください。
+
+```{r}
+library(robjc)
+
+CustomClass <- RSObjectClass(
+  "CustomClass",
+  super_class = RSObject,
+  private = list(var = NULL),
+  public = list(
+    initialize = function(var) {
+      super$initialize()
+      if (!is.character(var)) return(NULL)
+      self$setVar(var)
+      return(self)
+    },
+    getVar = function() private$var,
+    setVar = function(var) private$var <- var
+  )
+)
+```
+
+## インスタンスの生成と初期化
+robjc でインスタンスを生成するメソッドは、`new(...)` です。
+`new(...)` は器としてのインスタンスを生成した後、**続けて `initialize(...)` を呼び、その返り値を返します。**
+`initialize(...)` は、インスタンス変数のセットアップなどのインスタンスの初期化を行います。
+`initialize(...)` の実装では、**親クラスの初期化プロセスを通すために、`super$initialize()` を必ず呼んでください。**
+初期化が成功したら `self` を返しましょう。
+失敗した場合は、他の値、例えば `NULL` を返すことができます。
+
+```{r}
+object <- CustomClass$new("foo")
+if (!is.null(object)) print(object$getVar())
+failure <- CustomClass$new(1L)
+stopifnot(is.null(failure))
+```
+
+## インスタンスの変数とメソッド
+
+robjc のインスタンスは、基底クラス `RSObject` が提供する基本的なメソッドを備えています。ここでは、`RSObject` の提供するメソッドのいくつかを紹介します。詳しくは、[`RSObject` のクラスドキュメント]を参照してください。
+
+- `class()`: インスタンスが所属するクラスを返します。
+- `superclass()`: インスタンスの所属するクラスの親クラスを返します。
+- `isKindOf(Class)`: インスタンスが引数 `Class` を継承しているかどうかを確認できます。
+- `isMemberOf(Class)`: インスタンスが引数 `Class` に所属しているかどうかを確認できます。
+
+## インスタンスを確かめる
+
+作成したオブジェクトから、所属クラスと継承関係を確認できます。
+`class()` と `superclass()` が返すのはクラス名ではなく、クラスのジェネレータオブジェクトです。
+`isMemberOf()` は所属クラスだけを、`isKindOf()` は親クラスも含めて判定します。
+
+```{r}
+number <- RSNumber$new(42L)
+stopifnot(identical(number$class(), RSNumber))
+stopifnot(number$isMemberOf(RSNumber))
+stopifnot(number$isKindOf(RSScalar))
+stopifnot(identical(number$value(), 42L))
+```
+
+# Collections
+
+robjc には、Array, Set, Dictionary の3系統のコレクションがあります。
+各系統には、可変クラスと不変クラスの2種類のクラスがあります。
+コレクションに登録できるのは、robjc に基づくオブジェクトに限られます。
+R の `integer` や `character` などの値は、コレクションに直接登録できません。
+これらの値は wrapper クラスである `RSScalar` に格納して登録します。
+
+## R の値を包む
+
+`RSNumber` や `RSString` は、R の長さ 1 の値を格納するスカラークラスです。
+型が分かっていれば対応するクラスの `$new()` を使います。
+`RSScalar_withValue()` は入力の型から適切なクラスのインスタンスを生成します。
+
+```{r}
+label <- RSScalar_withValue("Apple")
+quantity <- RSNumber$new(3L)
+stopifnot(label$isKindOf(RSString))
+stopifnot(identical(label$value(), "Apple"))
+stopifnot(identical(quantity$value(), 3L))
+```
+
+欠損値には各スカラークラスの共有 NA インスタンスが用意されています。
+R の `NULL` は `RSNull$null` で表します。
+
+```{r}
+stopifnot(identical(RSNumber$new(NA_integer_), RSNumber$na))
+stopifnot(identical(RSScalar_withValue(NULL), RSNull$null))
+```
+
+## Collection を使う
+
+Array は順序で、Dictionary はキーで、Set は重複のない要素として値を扱います。
+コレクションの可変クラスの名前には 'Mutable' を含みます。
+例えば、不変配列クラス `RSArray` に対応する可変配列クラスは `RSMutableArray` となります。
+可変クラスでは要素の追加や削除などが可能ですが、不変クラスではできません。
+
+可変コレクションから不変コレクションを作成するには、`copy()` を使います。
+不変コレクションから可変コレクションを作成する場合は、`mutableCopy()` を使います。
+
+```{r}
+items <- RSMutableArray$new()
+items$addObject(label)
+items$addObject(quantity)
+stopifnot(items$count() == 2L)
+stopifnot(identical(items$objectAtIndex(1L), label))
+
+saved_items <- items$copy()  # RSArray
+items$addObject(RSString$new("adding item"))
+stopifnot(saved_items$count() == 2L)
+```
+
+Dictionary のキーと値、Set の要素にも robjc のオブジェクトを渡します。
+Dictionary と Set は探索に `hash()` と `isEqual()` を使います。
+
+```{r}
+lookup <- RSMutableDictionary$new()
+lookup$setObjectForKey(quantity, RSString$new("quantity"))
+stopifnot(identical(lookup$objectForKey(RSString$new("quantity"))$value(), 3L))
+
+unique_items <- RSMutableSet$new()
+unique_items$addObject(RSString$new("A"))
+unique_items$addObject(RSString$new("A"))
+stopifnot(unique_items$count() == 1L)
+```
+
+独自クラスを Dictionary のキーや Set の要素に使うときは、等しいオブジェクトで`isEqual()` が真になり、同じ `hash()` を返すようにします。
+計算したハッシュは最後に `robjc_normalize_hash()` に通し、欠損しない整数を返してください。
+
+## 保存して復元する
+
+`RSKeyedArchiver` は、オブジェクト間の参照関係を含む archive を通常の R のlist として作ります。その list を RDS に保存できます。
+`RSKeyedUnarchiver$new()` は archive を読み込むだけで、復元は `decode()` で行います。
+
+```{r}
+shared <- RSString$new("shared value")
+archive <- RSKeyedArchiver$new()$encode(list(shared, shared))
+path <- tempfile(fileext = ".rds")
+saveRDS(archive, path)
+
+decoder <- RSKeyedUnarchiver$new(readRDS(path))
+decoder$classMappings()  # Inspect classes that need manual resolution.
+restored <- decoder$decode()
+unlink(path)
+
+stopifnot(identical(restored[[1L]], restored[[2L]]))
+stopifnot(identical(restored[[1L]]$value(), "shared value"))
+```
+
+上の例は robjc の標準クラスだけを使うため、クラスの対応付けは不要です。
+自作クラスを復元するときは `classMappings()` で未解決のクラスを確認し、
+`setClassMappings()` で復元先のクラスを指定してから `decode()` を呼びます。
+詳しい手順は[アーカイブガイド](guide_10_Archiving.Rmd)を参照してください。

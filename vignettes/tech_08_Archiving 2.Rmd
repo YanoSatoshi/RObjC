@@ -1,0 +1,158 @@
+---
+title: "Technical Note: Graph Archiving Internals"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Technical Note: Graph Archiving Internals}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Save and restore object graphs
+
+Saving only the values of individual objects cannot reconstruct two references to the same object or a cycle in which an object points to itself.
+`RSKeyedArchiver` records each object once and saves reference IDs thereafter.
+`RSKeyedUnarchiver` allocates each destination object and registers it in a reference map before filling its fields.
+This note (08) traces both operations with a self-referential object.
+See the [archiving guide](guide_10_Archiving.Rmd) for the public workflow and [note 02](tech_02_new_initialize.Rmd) for the separation of allocation and initialization.
+
+## A cyclic graph for the example
+
+The following `Node` has a string `value` and a `next_node` pointing to another `Node`.
+Here, `next_node` points back to its owner, and the root R list contains that same `Node` twice.
+`encodeWithCoder()` assigns keys to saved fields, and `initWithCoder()` reads them back.
+
+```{r}
+library(robjc)
+
+Node <- RSObjectClass("Tech08Node",
+  version = "1.0.0",
+  protocols = list(RSCoding),
+  public = list(
+    value = NULL,
+    next_node = NULL,
+    initialize = function(value) {
+      super$initialize()
+      self$value <- value
+      invisible(self)
+    },
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(self$value, "value")
+      coder$encodeObjectForKey(self$next_node, "next")
+      invisible(self)
+    },
+    initWithCoder = function(coder) {
+      self$value <- coder$decodeObjectForKey("value")
+      self$next_node <- coder$decodeObjectForKey("next")
+      invisible(self)
+    }
+  )
+)
+
+source <- Node$new("hello")
+source$next_node <- source
+root <- list(source, source)
+stopifnot(identical(root[[1L]], root[[2L]]))
+stopifnot(identical(source$next_node, source))
+```
+
+## Three archive node types
+
+`archive(root)` returns a record graph represented by an ordinary R list.
+It contains the `root` node and `records` keyed by ID.
+The three node types are `ref` for an RObjC object, `list` for traversing an ordinary R list, and `r` for a value left to R serialization.
+RObjC instances, class generators, and protocol generators use `ref` nodes and matching records.
+
+```{r}
+archive <- RSKeyedArchiver$new()$encode(root)
+stopifnot(identical(archive$format, "robjc-keyed-1"))
+stopifnot(identical(archive$root$type, "list"))
+stopifnot(identical(archive$root$values[[1L]]$type, "ref"))
+stopifnot(identical(archive$root$values[[2L]]$type, "ref"))
+
+id <- archive$root$values[[1L]]$id
+stopifnot(identical(id, archive$root$values[[2L]]$id))
+stopifnot(identical(archive$records[[id]]$fields[["next"]]$id, id))
+stopifnot(identical(archive$records[[id]]$fields$value$type, "r"))
+stopifnot(length(archive$records) == 1L)
+```
+
+This graph contains only one `Node`, so the same ID appears in both root entries and the `next` field.
+The `value` string goes into an `r` node and is eventually serialized by R when the whole archive is saved, for example with `saveRDS()`.
+robjc traverses ordinary R lists element by element but does not interpret reference structures inside arbitrary base R objects.
+
+## Record an object before encoding its fields
+
+When `RSKeyedArchiver` encounters an RObjC object, it uses the pointer string from `robjc_get_pointer()` as a reference ID.
+For a new ID, it retains the source object in `.retained` and puts a record with `fields = NULL` in `.records` first.
+It then calls the instance's `encodeWithCoder()` to fill the fields.
+On encountering the same ID again, it returns only a `ref` node instead of repeating `encodeWithCoder()`.
+
+```text
+First encounter with Node
+  → create ID, retain Node, register incomplete record
+  → follow value and next in encodeWithCoder()
+  → next has the registered ID, so return only a ref
+  → complete the record's fields
+```
+
+Registering the record before following fields prevents infinite recursion on self-reference.
+`.retained` keeps source objects alive during archiving so that garbage collection cannot free one and let its pointer ID be reused for another object.
+The retention map is released when archiving finishes.
+During decoding, saved IDs are opaque strings, not pointers to restored objects.
+
+## Resolve classes before restoration
+
+Each record contains a `kind`, class name, saved version, and, if registered, a package and class ID.
+Built-in and registered package classes can be resolved automatically; a generator can be supplied for a class defined in a script.
+`RSKeyedUnarchiver$new(archive)` loads the data without restoring objects yet.
+Inspect candidate mappings with `classMappings()`, supply a tibble or `RSMutableDictionary` to `setClassMappings()` if needed, and then call `decode()`.
+
+```{r}
+decoder <- RSKeyedUnarchiver$new(unserialize(serialize(archive, NULL)))
+mapping <- decoder$classMappings(include_automatic = TRUE)
+stopifnot(identical(mapping$class_name, "Tech08Node"))
+stopifnot(is.null(mapping$decoder_class[[1L]]))
+
+mapping$decoder_class[1L] <- list(Node)
+decoder$setClassMappings(mapping)
+stopifnot(identical(decoder$classMappings(include_automatic = TRUE)$decoder_name,
+                    "Tech08Node"))
+```
+
+Before restoring the root, `decode()` checks for unresolved classes and required `initWithCoder()` methods.
+Within `initWithCoder()`, `savedClassVersion()` provides the saved version for migration from an older format.
+Class mapping is separate from the archive format, so a saved name can be explicitly mapped to a different current generator.
+
+## Register the destination before decoding its fields
+
+The decoder's `.object_map` maps saved IDs to destination objects.
+On reading a `ref`, it first checks whether the ID is already in that map.
+For a new ID, it finds the destination generator and normally allocates an instance with `robjc_allocate()`, without calling `initialize()`.
+It registers that instance in `.object_map`, makes the record fields available, and only then runs `initWithCoder()`.
+
+```text
+Decode the first ref(id)
+  → allocate an empty Node instance
+  → register it in .object_map[id]
+  → read value and next in initWithCoder()
+  → the next ref(id) returns the same .object_map[id] instance
+  → finish the original Node
+```
+
+Reversing registration and `initWithCoder()` would start restoring the same ID again when `next` is read.
+Early registration permits references to an object whose fields are still incomplete, preserving both cycles and shared references.
+
+```{r}
+restored <- decoder$decode()
+stopifnot(identical(restored[[1L]], restored[[2L]]))
+stopifnot(identical(restored[[1L]]$next_node, restored[[1L]]))
+stopifnot(identical(restored[[1L]]$value, "hello"))
+stopifnot(!identical(restored[[1L]], source))
+```
+
+Records that refer to class or protocol generators put the destination generator in the reference map and return it.
+They do not call `initWithCoder()` as instances do.
+For a Singleton, the default `robjc_allocate()` returns the existing shared instance, so decoding does not make a separate ordinary instance.
+
+This order separates the shape of the saved graph from how current classes interpret their fields.
+`initWithCoder()` remains responsible for validating those fields and completing the object's state.

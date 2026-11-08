@@ -1,0 +1,143 @@
+---
+title: "付録：ノートブックの保存と復元"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{付録：ノートブックの保存と復元}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# ノートブックを保存・復元する
+
+この付録では、[アーカイブのガイド](guide_10_Archiving.Rmd)で扱った操作を、複数クラスからなる一つのモデルに適用します。
+
+一つのノートを二つの節から参照するノートブックを作ります。各クラスは
+`encodeWithCoder()` で保存するフィールドを指定し、`initWithCoder()` で復元します。
+通常の R の値も RObjC オブジェクトも同じ `encodeObjectForKey()` に渡せます。
+list の中にある RObjC オブジェクトは再帰的に記録されます。
+各クラスは `RSCoding` への準拠を宣言し、保存・復元メソッドの存在をクラス作成時に確認します。
+
+ここではクラスをスクリプト内に定義するため、復元前にクラス対応表を設定します。
+拡張パッケージに配置する場合は、`.onLoad()` で `robjc_register_class()` を呼ぶと自動解決できます。
+登録の概要は[アーカイブのガイド](guide_10_Archiving.Rmd)を参照してください。
+
+```{r}
+library(robjc)
+
+Note <- RSObjectClass(
+  "NotebookGuideNote", version = "1.0",
+  protocols = list(RSCoding),
+  public = list(
+    title = NULL,
+    priority = NULL,
+    initialize = function(title, priority) {
+      super$initialize()
+      self$title <- title
+      self$priority <- priority
+      invisible(self)
+    },
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(self$title, "title")
+      coder$encodeObjectForKey(self$priority, "priority")
+    },
+    initWithCoder = function(coder) {
+      self$title <- coder$decodeObjectForKey("title")
+      self$priority <- coder$decodeObjectForKey("priority")
+      invisible(self)
+    }
+  )
+)
+
+Section <- RSObjectClass(
+  "NotebookGuideSection", version = "1.0",
+  protocols = list(RSCoding),
+  public = list(
+    name = NULL,
+    notes = NULL,
+    initialize = function(name, notes = list()) {
+      super$initialize()
+      self$name <- name
+      self$notes <- notes
+      invisible(self)
+    },
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(self$name, "name")
+      coder$encodeObjectForKey(self$notes, "notes")
+    },
+    initWithCoder = function(coder) {
+      self$name <- coder$decodeObjectForKey("name")
+      self$notes <- coder$decodeObjectForKey("notes")
+      invisible(self)
+    }
+  )
+)
+
+Notebook <- RSObjectClass(
+  "NotebookGuideNotebook", version = "1.0",
+  protocols = list(RSCoding),
+  public = list(
+    sections = NULL,
+    initialize = function(sections = list()) {
+      super$initialize()
+      self$sections <- sections
+      invisible(self)
+    },
+    encodeWithCoder = function(coder) {
+      coder$encodeObjectForKey(self$sections, "sections")
+    },
+    initWithCoder = function(coder) {
+      self$sections <- coder$decodeObjectForKey("sections")
+      invisible(self)
+    }
+  )
+)
+```
+
+## 保存と復元
+
+`RSKeyedArchiver$new()$encode()` は通常の R list を返します。これを RDS に保存し、
+読み込んだ archive を `RSKeyedUnarchiver` に渡します。`new()` はデータを保持するだけで、
+`classMappings()` が保存されたクラス一覧と復元先候補を tibble で示します。
+この例では候補が未登録なので、対応する generator を設定します。
+
+```{r}
+shared_note <- Note$new("Review before release", 2.5)
+draft_note <- Note$new("Draft", 1)
+notebook <- Notebook$new(list(
+  Section$new("In progress", list(shared_note, draft_note)),
+  Section$new("Archived", list(shared_note))
+))
+
+archive <- RSKeyedArchiver$new()$encode(notebook)
+stopifnot(length(archive$records) == 5L)
+
+path <- tempfile(fileext = ".rds")
+saveRDS(archive, path)
+saved <- readRDS(path)
+unlink(path)
+
+available <- list(
+  NotebookGuideNote = Note,
+  NotebookGuideSection = Section,
+  NotebookGuideNotebook = Notebook
+)
+decoder <- RSKeyedUnarchiver$new(saved)
+classes <- decoder$classMappings()
+stopifnot(nrow(classes) == 3L)
+stopifnot(all(classes$status == "unresolved"))
+classes$decoder_class <- unname(available[classes$class_name])
+decoder$setClassMappings(classes)
+loaded <- decoder$decode()
+
+stopifnot(identical(loaded$class(), Notebook))
+stopifnot(identical(loaded$sections[[1L]]$name, "In progress"))
+stopifnot(identical(loaded$sections[[1L]]$notes[[2L]]$title, "Draft"))
+stopifnot(identical(loaded$sections[[1L]]$notes[[1L]]$priority, 2.5))
+stopifnot(identical(
+  loaded$sections[[1L]]$notes[[1L]],
+  loaded$sections[[2L]]$notes[[1L]]
+))
+```
+
+最後の確認は文字列ではなく、復元後の二つの節が**同じ Note インスタンス**を
+参照していることを確かめています。`initialize()` は復元時には呼ばれません。

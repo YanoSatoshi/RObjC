@@ -1,0 +1,206 @@
+---
+title: "値とコピーのガイド"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{値とコピーのガイド}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# 値とコピー
+
+robjc では、R の単一値を `RSScalar` 系列、R のベクトルを `RSVector` 系列で包めます。
+一方、Array は robjc オブジェクトを要素として保持します。
+値を何で包むかを決めた後は、`copy()` と `mutableCopy()` が新しいオブジェクトを作るのか、中身まで複製するのかを区別する必要があります。
+
+このガイドでは、値の包み方とコピー後の参照関係を、実際のインスタンスで確かめます。
+Collection の検索や変更操作は[Collection のガイド](guide_07_Collections.Rmd)を参照してください。
+
+## 単一の値を包む
+
+長さ 1 の R の値を包むときは、型が分かっていれば `RSNumber$new()` や `RSString_withValue()` のような型別の入口を使います。
+入力の型に応じてクラスを選びたい場合は `RSScalar_withValue()` を使います。
+raw 値は `RSScalar` 系列に含まれないため、`RSRaw_withValue()` を使います。
+包んだ値は `value()` で取り出せます。
+
+```{r}
+library(robjc)
+
+direct <- RSNumber$new(3L)
+typed  <- RSNumber_withValue(3L)
+chosen <- RSScalar_withValue(3L)
+
+stopifnot(direct$isMemberOf(RSNumber))
+stopifnot(typed$isMemberOf(RSNumber))
+stopifnot(chosen$isMemberOf(RSNumber))
+stopifnot(identical(chosen$value(), 3L))
+
+label <- RSScalar_withValue("ready")
+stopifnot(label$isMemberOf(RSString))
+stopifnot(identical(label$value(), "ready"))
+```
+
+これらは値を保持する**別のインスタンス**です。
+同じ値を包んでいても、参照の同一性は別に考えます。
+値としての比較は `isEqual()`、同じインスタンスかどうかは `identical()` や robjc の `==` で確認します。
+詳しくは[同一性・同値性・ハッシュのガイド](guide_08_Hash_isEqual.Rmd)を参照してください。
+
+独自の型に検証や専用の振る舞いが必要なら `RSScalarClass()` でスカラークラスを作れます。
+ファクトリーの引数と NA 子クラスの作り方は[クラスファクトリーのガイド](guide_05_ClassFactory.Rmd)で扱います。
+
+## `NULL` と型付きの `NA` を区別する
+
+R の `NULL` は「値がない」ことを表し、`NA` は型を持つ値の欠損を表します。
+robjc でも別のオブジェクトとして扱います。
+`RSScalar_withValue(NULL)` は共有オブジェクト `RSNull$null` を返し、型付きの NA は対応するスカラークラスの共有 NA インスタンスを返します。
+
+```{r}
+stopifnot(identical(RSScalar_withValue(NULL), RSNull$null))
+stopifnot(is.null(RSNull$null$value()))
+
+stopifnot(identical(RSNumber$new(NA_integer_), RSNumber$na))
+stopifnot(identical(RSScalar_withValue(NA_character_), RSString$na))
+stopifnot(is.na(RSString$na$value()))
+stopifnot(!identical(RSNull$null, RSString$na))
+```
+
+`RSNumber` は整数と実数の両方を扱います。
+その共有 NA インスタンスの `value()` は `NA_real_` です。
+元の R の欠損値が整数だったか実数だったかを、この共有インスタンスから復元することはできません。
+`RSFactor` は例外で、欠損値ごとに水準や順序の情報を持てるよう、NA インスタンスを常に一つにまとめません。
+クラスクラスタの実装は[Scalar の技術ノート](tech_06_Scalars.Rmd)で扱います。
+
+Collection に null を**要素として格納する**なら、R の `NULL` ではなく `RSNull$null` を明示的に渡します。
+Dictionary では、格納された `RSNull` と、キーが見つからないときに返る R の `NULL` を区別できます。
+
+```{r}
+fields <- RSMutableDictionary$new()
+key <- RSString$new("optional")
+fields$setObjectForKey(RSNull$null, key)
+
+stopifnot(identical(fields$objectForKey(key), RSNull$null))
+stopifnot(is.null(fields$objectForKey(RSString$new("absent"))))
+```
+
+## ベクトルを包む
+
+`RSVector` と `RSMutableVector` は、R の atomic vector を一つの robjc オブジェクトに包みます。
+`RSVector` が読み取り専用の親クラスで、`RSMutableVector` は読み取り・比較メソッドを継承し、変更メソッドを追加します。
+各要素を `RSNumber` などに変換して保持するわけではありません。
+`asVector()` で通常の R のベクトルを取り出し、`valueAtIndex()` で 1 始まりの位置にある値を読みます。
+ベクトル内の `NA` もそのまま保持できます。
+
+```{r}
+values <- RSVector$new(c(10L, NA_integer_, 30L))
+stopifnot(identical(values$asVector(), c(10L, NA_integer_, 30L)))
+stopifnot(is.na(values$valueAtIndex(2L)))
+
+editable_values <- RSMutableVector$new(c(1L, 2L))
+editable_values$appendValues(3L)
+stopifnot(identical(editable_values$asVector(), c(1L, 2L, 3L)))
+```
+
+数値や文字列などを一つの R ベクトルとして扱うなら Vector が自然です。
+robjc オブジェクトを一つずつ保持し、異なるクラスの要素を並べたいなら Array を使います。
+
+```{r}
+objects <- RSArray_withObjects(list(
+  RSNumber$new(10L),
+  RSString$new("ten")
+))
+stopifnot(objects$objectAtIndex(1L)$isMemberOf(RSNumber))
+stopifnot(objects$objectAtIndex(2L)$isMemberOf(RSString))
+```
+
+## 可変・読み取り専用オブジェクトをコピーする
+
+Collection と Vector の `copy()` は読み取り専用のオブジェクトを、`mutableCopy()` は変更可能なオブジェクトを返します。
+変更可能なオブジェクトからコピーする場合、外側のインスタンスは新しく作られます。
+読み取り専用オブジェクトの `copy()` は、そのインスタンス自身を返します。
+
+| 呼び出す相手 | `copy()` | `mutableCopy()` |
+|:--|:--|:--|
+| 変更可能 | 別の読み取り専用インスタンス | 別の変更可能なインスタンス |
+| 読み取り専用 | 同じインスタンス | 別の変更可能なインスタンス |
+
+```{r}
+editable <- RSMutableVector$new(c(1L, 2L))
+snapshot <- editable$copy()
+another_editable <- snapshot$mutableCopy()
+
+stopifnot(snapshot$isMemberOf(RSVector))
+stopifnot(!identical(snapshot, editable))
+stopifnot(identical(snapshot$copy(), snapshot))
+stopifnot(another_editable$isMemberOf(RSMutableVector))
+stopifnot(!identical(another_editable, snapshot))
+
+editable$appendValues(3L)
+stopifnot(identical(snapshot$asVector(), c(1L, 2L)))
+```
+
+Array などの Collection のコピーは**浅いコピー**です。
+外側の Collection が別でも、格納している robjc オブジェクトは共有され得ます。
+以下では `saved` と `items` は別の Array ですが、両方から同じ `member` を取り出します。
+
+```{r}
+member <- RSMutableVector$new(c(1L, 2L))
+items <- RSMutableArray$new(list(member))
+saved <- items$copy()
+
+stopifnot(!identical(saved, items))
+stopifnot(identical(saved$objectAtIndex(1L), member))
+member$appendValues(3L)
+stopifnot(identical(
+  saved$objectAtIndex(1L)$asVector(), c(1L, 2L, 3L)
+))
+```
+
+格納したオブジェクトまで独立させたい場合は、各要素のコピー方法も設計する必要があります。
+
+## 独自クラスのコピーを定義する
+
+基底クラス `RSObject` の `copy()` は `self` を返します。
+独自クラスが変更可能な状態を持ち、独立したコピーを必要とするなら、`copy()` を上書きします。
+新しいインスタンスに引き継ぐ状態を選び、通常の生成時と同じ検証を通すと、クラスの不変条件を保ちやすくなります。
+
+```{r}
+TagList <- RSObjectClass(
+  "Guide06TagList",
+  private = list(.tags = NULL),
+  public = list(
+    initialize = function(tags = character()) {
+      super$initialize()
+      if (!is.character(tags) || anyNA(tags))
+        stop("`tags` must be a character vector without missing values.")
+      private$.tags <- tags
+      invisible(self)
+    },
+    tags = function() private$.tags,
+    addTag = function(tag) {
+      if (!is.character(tag) || length(tag) != 1L || is.na(tag))
+        stop("`tag` must be one non-missing string.")
+      private$.tags <- c(private$.tags, tag)
+      invisible(self)
+    },
+    copy = function() TagList$new(private$.tags)
+  )
+)
+
+original <- TagList$new("draft")
+duplicate <- original$copy()
+stopifnot(!identical(original, duplicate))
+stopifnot(identical(original$tags(), duplicate$tags()))
+
+duplicate$addTag("reviewed")
+stopifnot(identical(original$tags(), "draft"))
+stopifnot(identical(duplicate$tags(), c("draft", "reviewed")))
+```
+
+この `copy()` は新しい `TagList` を作り、元のタグの値を渡します。
+R の文字ベクトルは変更時に独立するので、コピー先へタグを追加しても元のタグは変わりません。
+一方、private に別の robjc オブジェクトを保持するクラスでは、同じ参照を渡すか、そのオブジェクトもコピーするかを決める必要があります。
+
+別インスタンスになったことは `identical()` で確認できます。
+コピーした二つを**値として等しい**と扱いたいなら、`isEqual()` を別途定義します。
+Set や Dictionary で使う場合は、`hash()` も同値性と整合させてください。
+詳しくは[同一性・同値性・ハッシュのガイド](guide_08_Hash_isEqual.Rmd)を参照してください。
