@@ -1,6 +1,6 @@
 # robjc
 
-[日本語](README.ja.md)
+[日本語](https://github.com/YanoSatoshi/RObjC/blob/main/README.ja.md)
 
 `robjc` is an Objective-C inspired object framework for R, built on R6.
 It provides class factories, protocols, scalar wrappers, mutable and immutable

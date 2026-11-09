@@ -1,5 +1,6 @@
 ^.DS_Store$
 ^README\.ja\.md$
+^README\.ja\.md$
 ^\.github$
 ^\.sf$
 ^LICENSE\.md$
@@ -13,3 +14,4 @@
 ^prototypes$
 ^zzz_memo$
 ^README.ja.md$
+^cran-comments\.md$
